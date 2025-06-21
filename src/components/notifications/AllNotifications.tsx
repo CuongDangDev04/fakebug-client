@@ -17,8 +17,14 @@ export default function AllNotifications() {
         const fetchNotification = async () => {
             try {
                 setLoading(true);
-                const response = await notificationService.getAllNotificationOfUser();
-                setAllNotifications(response);
+                let response;
+                if (filter === 'unread') {
+                    response = await notificationService.getUnreadNotification();
+                    setAllNotifications(Array.isArray(response?.noti) ? response.noti : []);
+                } else {
+                    response = await notificationService.getAllNotificationOfUser();
+                    setAllNotifications(Array.isArray(response) ? response : []);
+                }
             } catch (error) {
                 console.error('Error fetching notifications:', error);
             } finally {
@@ -26,7 +32,7 @@ export default function AllNotifications() {
             }
         };
         fetchNotification();
-    }, []);
+    }, [filter]);
 
     const newNotifications = useNotificationStore((state) => state.notifications);
 

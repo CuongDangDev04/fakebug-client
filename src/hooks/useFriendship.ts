@@ -17,7 +17,7 @@ export const useFriendship = () => {
             await notificationService.sendNotification(
                 targetId, 
                 `Đã nhận lời mời kết bạn từ ${currentUserFullName}`,
-                "/friends/loi-moi-ket-ban-da-nhan",
+                "/ban-be/loi-moi-ket-ban-da-nhan",
                 currentUserAvatar // Now using the default-backed avatar URL
             );
             return true;
@@ -38,7 +38,7 @@ export const useFriendship = () => {
                 await notificationService.sendNotification(
                     fromUser.id,
                     `${currentUserFullName} đã chấp nhận lời mời kết bạn của bạn`,
-                    "/ban-be",
+                    "/ban-be/tat-ca",
                     currentUserAvatar // Now using the default-backed avatar URL
                 );
                 
@@ -46,7 +46,7 @@ export const useFriendship = () => {
                     avt: fromUser.avatar || '/default-avatar.png', // Added fallback for user avatar
                     message: `Phản hồi lời mời kết bạn của ${fromUser.firstName} ${fromUser.lastName} thành công`,
                     createdAt: '1 phút trước',
-                    url: '/ban-be',
+                    url: '/ban-be/tat-ca',
                     navigate: () => {}
                 });
             }

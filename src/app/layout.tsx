@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import NotificationSocketHandler from "@/components/notifications/NotificationSocketHandler";
 
 
 export const metadata: Metadata = {
@@ -15,6 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <NotificationSocketHandler />
         {children}
       </body>
     </html>

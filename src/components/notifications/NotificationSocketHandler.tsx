@@ -1,3 +1,4 @@
+'use client'
 import { useNotificationSocket } from '@/hooks/useNotificationSocket';
 import type Notification from '@/types/notification';
 import { showNotificationToast } from './NotificationToast';
