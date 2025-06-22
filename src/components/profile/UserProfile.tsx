@@ -22,6 +22,8 @@ export default function UserProfile() {
   const [error, setError] = useState<string | null>(null);
   const [friendshipStatus, setFriendshipStatus] = useState<FriendshipStatus | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('posts');
+  const [isBlocking, setIsBlocking] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -93,12 +95,51 @@ export default function UserProfile() {
     }
   };
 
+  const handleBlockUser = async () => {
+    if (!userId) return;
+    setIsBlocking(true);
+    try {
+      await friendshipService.blockUser(Number(userId));
+      setIsBlocked(true);
+    } catch (error) {
+      console.error('Error blocking user:', error);
+    } finally {
+      setIsBlocking(false);
+    }
+  };
+
+  const handleUnblockUser = async () => {
+    if (!userId) return;
+    setIsBlocking(true);
+    try {
+      await friendshipService.unblockUser(Number(userId));
+      setIsBlocked(false);
+    } catch (error) {
+      console.error('Error unblocking user:', error);
+    } finally {
+      setIsBlocking(false);
+    }
+  };
+
   const renderFriendshipButton = () => {
     if (!friendshipStatus) return null;
 
     const baseButtonClass = "flex items-center justify-center gap-2 px-3 md:px-6 py-2 rounded-full font-medium transition-colors w-full sm:w-auto";
     const primaryButtonClass = `${baseButtonClass} bg-white hover:bg-gray-100 text-gray-900`;
     const secondaryButtonClass = `${baseButtonClass} bg-gray-100 hover:bg-gray-200 text-gray-900`;
+
+    if (isBlocked) {
+      return (
+        <button
+          onClick={handleUnblockUser}
+          className={secondaryButtonClass}
+          disabled={isBlocking}
+        >
+          <X className="w-4 h-4" />
+          <span className="hidden sm:inline">{isBlocking ? 'Đang mở chặn...' : 'Bỏ chặn'}</span>
+        </button>
+      );
+    }
 
     switch (friendshipStatus.status) {
       case 'not_friend':
@@ -218,6 +259,16 @@ export default function UserProfile() {
                   <Mail className="w-4 h-4" />
                   <span className="hidden sm:inline">Nhắn tin</span>
                 </button>
+                {!isBlocked ? (
+                  <button
+                    onClick={handleBlockUser}
+                    className="flex items-center justify-center gap-2 px-3 md:px-6 py-2 rounded-full font-medium transition-colors bg-red-600 hover:bg-red-700 text-white w-full sm:w-auto"
+                    disabled={isBlocking}
+                  >
+                    <X className="w-4 h-4" />
+                    <span className="hidden sm:inline">{isBlocking ? 'Đang chặn...' : 'Chặn'}</span>
+                  </button>
+                ) : null}
               </div>
             </div>
           </div>

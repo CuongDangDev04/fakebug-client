@@ -13,7 +13,7 @@ import { notificationService } from '@/services/notificationService'
 
 const navItems = [
     { icon: <Home size={32} />, href: '/' },
-    { icon: <Users size={32} />, href: 'ban-be/tat-ca' },
+    { icon: <Users size={32} />, href: '/ban-be/tat-ca' },
     { icon: <UsersRound size={32} />, href: '/groups' },
     { icon: <MessageCircle size={32} />, href: '/messages' },
 ]

@@ -72,5 +72,10 @@ export const friendshipService = {
     // Lấy thông tin chi tiết về mối quan hệ với một danh sách users
     async getFriendshipStatusBatch(userIds: number[]) {
         return axiosInstance.post(`${BASE_URL}/status-batch`, { userIds });
+    },
+
+    // Lấy danh sách user bị chặn
+    async getBlockedUsers() {
+        return axiosInstance.get(`${BASE_URL}/blocked`);
     }
 };

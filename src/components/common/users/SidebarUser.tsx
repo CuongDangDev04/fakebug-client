@@ -12,7 +12,7 @@ const sidebarItems = [
     label: 'Tên người dùng',
     href: '/trang-ca-nhan'
   },
-  { icon: <UsersRound size={24} />, label: 'Bạn bè', href: '/friends' },
+  { icon: <UsersRound size={24} />, label: 'Bạn bè', href: '/ban-be/tat-ca' },
   { icon: <BookMarked size={24} />, label: 'Đã lưu', href: '/saved' },
   { icon: <CalendarClock size={24} />, label: 'Kỷ niệm', href: '/memories' },
   { icon: <Settings size={24} />, label: 'Cài đặt', href: '/settings' },

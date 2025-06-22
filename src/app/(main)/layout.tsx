@@ -8,7 +8,6 @@ export default function MainLayout({
     children: React.ReactNode;
 }>) {
     const pathname = usePathname();
-    // Hide sidebar on all /friends routes
     const showSidebar = !pathname.startsWith("/ban-be");
 
     return (

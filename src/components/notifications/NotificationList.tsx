@@ -1,4 +1,4 @@
-// import { useNotificationSocket } from '@/hooks/useNotificationSocket';
+'use client'
 import { notificationService } from '@/services/notificationService';
 import { useNotificationStore } from '@/stores/notificationStore';
 import type Notification from '@/types/notification';

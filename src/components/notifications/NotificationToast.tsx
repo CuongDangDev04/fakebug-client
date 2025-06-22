@@ -1,3 +1,4 @@
+'use client'
 import type { NotificationToastData } from '@/types/notification';
 import { toast } from 'sonner';
 
