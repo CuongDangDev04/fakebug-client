@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import NotificationSocketHandler from "@/components/notifications/NotificationSocketHandler";
 import { Toaster } from "sonner";
+import ChatSocketHandler from "@/components/messages/ChatSocketHandler";
 
 
 export const metadata: Metadata = {
@@ -21,6 +22,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Toaster position="top-right" />
+        <ChatSocketHandler />
         <NotificationSocketHandler />
         {children}
       </body>

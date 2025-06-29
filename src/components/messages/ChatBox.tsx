@@ -1,7 +1,7 @@
-'use client'
-import React, { useRef, useState } from 'react';
-import useChatMessages from '../../hooks/useChatMessages';
-
+'use client';
+import { useChatMessages } from '@/hooks/useChatMessages';
+import { useChatStore } from '@/stores/chatStore';
+import { useEffect, useRef, useState, useMemo } from 'react';
 
 interface ChatBoxProps {
   currentUserId: number;
@@ -9,12 +9,26 @@ interface ChatBoxProps {
 }
 
 export default function ChatBox({ currentUserId, targetUserId }: ChatBoxProps) {
-  const { messages, loading, setMessages, sendMessage } = useChatMessages(currentUserId, targetUserId);
+  const { messages, loading } = useChatMessages(currentUserId, targetUserId);
+  const onlineUserIds = useChatStore((state) => state.onlineUserIds);
+
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const handleSend = async () => {
+
+  const isTargetOnline = onlineUserIds.includes(targetUserId);
+
+  const handleSend = () => {
     if (!input.trim()) return;
-    sendMessage(input);
+
+    const socket = (window as any).chatSocket as any;  
+    if (socket) {
+      socket.emit('sendMessage', {
+        senderId: currentUserId,
+        receiverId: targetUserId,
+        content: input.trim(),
+      });
+    }
+
     setInput('');
   };
 
@@ -22,18 +36,13 @@ export default function ChatBox({ currentUserId, targetUserId }: ChatBoxProps) {
     if (e.key === 'Enter') handleSend();
   };
 
-  const scrollToBottom = () => {
+  useEffect(() => {
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
-  };
-
-  React.useEffect(() => {
-    scrollToBottom();
   }, [messages]);
 
-  // Loại bỏ tin nhắn trùng id (nếu có)
-  const uniqueMessages = React.useMemo(() => {
+  const uniqueMessages = useMemo(() => {
     const seen = new Set();
     return messages.filter(msg => {
       if (seen.has(msg.id)) return false;
@@ -44,6 +53,15 @@ export default function ChatBox({ currentUserId, targetUserId }: ChatBoxProps) {
 
   return (
     <div className="flex flex-col h-full border rounded shadow bg-white dark:bg-dark-card">
+      {/* Header: online status */}
+      <div className="flex items-center gap-2 p-2 border-b bg-gray-50 dark:bg-dark-hover">
+        <span className={`w-2 h-2 rounded-full ${isTargetOnline ? 'bg-green-500' : 'bg-gray-400'}`}></span>
+        <span className="font-medium">
+          {isTargetOnline ? 'Đang hoạt động' : 'Ngoại tuyến'}
+        </span>
+      </div>
+
+      {/* Message list */}
       <div className="flex-1 overflow-y-auto p-4">
         {loading ? (
           <div>Đang tải...</div>
@@ -58,7 +76,7 @@ export default function ChatBox({ currentUserId, targetUserId }: ChatBoxProps) {
                   {msg.content}
                 </div>
                 <div className="text-xs text-gray-500 mt-1 self-end">
-                  {msg.sent_at ? new Date(msg.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                  {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                 </div>
               </div>
             </div>
@@ -66,6 +84,8 @@ export default function ChatBox({ currentUserId, targetUserId }: ChatBoxProps) {
         )}
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Input area */}
       <div className="p-2 border-t flex gap-2">
         <input
           className="flex-1 border rounded px-3 py-2"
