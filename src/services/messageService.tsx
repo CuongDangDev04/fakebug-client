@@ -10,5 +10,10 @@ export const messageService = {
     return axiosInstance.get(`${BASE_URL}/between`, {
       params: { userId1, userId2 }
     });
+  },
+  async getLastSeen(userId: number) {
+    const url = `${BASE_URL}/last-seen/${userId}`;
+    const res = await axiosInstance.get(url);
+    return res.data;
   }
 };
