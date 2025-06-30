@@ -1,7 +1,7 @@
 'use client';
 
 import { useChatMessages } from '@/hooks/useChatMessages';
-import { useChatStore } from '@/stores/chatStore';
+import { useUserOnlineStatus } from '@/hooks/useUserOnlineStatus';
 import { messageService } from '@/services/messageService';
 import { useEffect, useRef, useState, useMemo } from 'react';
 
@@ -12,48 +12,15 @@ interface ChatBoxProps {
 
 export default function ChatBox({ currentUserId, targetUserId }: ChatBoxProps) {
   const { messages, loading } = useChatMessages(currentUserId, targetUserId);
-  const onlineUserIds = useChatStore((state) => state.onlineUserIds);
-  const userLastSeenMap = useChatStore((state) => state.userLastSeenMap);
-  const setUserLastSeen = useChatStore((state) => state.setUserLastSeen);
+  const { isOnline: isTargetOnline, lastSeen, formatLastSeen } = useUserOnlineStatus(targetUserId);
 
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const isTargetOnline = onlineUserIds.includes(targetUserId);
-  const lastSeen = userLastSeenMap[targetUserId];
 
   // Cuộn xuống khi có tin nhắn mới
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-
-  // Gọi API lastSeen nếu offline và chưa có dữ liệu
-  useEffect(() => {
-    if (!isTargetOnline && !lastSeen) {
-      messageService
-        .getLastSeen(targetUserId)
-        .then((data) => {
-          if (data.lastSeen) {
-            setUserLastSeen(targetUserId, data.lastSeen);
-          }
-        })
-        .catch((err) => {
-          console.error('Lỗi lấy lastSeen:', err);
-        });
-    }
-  }, [isTargetOnline, lastSeen, targetUserId]);
-
-  // Format thời gian offline
-  const formatLastSeen = (iso: string) => {
-    const diff = Date.now() - new Date(iso).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins <= 0) return 'Online 1 phút trước';
-    if (mins < 60) return `Online ${mins} phút trước`;
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) return `Online ${hours} giờ trước`;
-    const days = Math.floor(hours / 24);
-    return `Offline ${days} ngày trước`;
-  };
 
   // Gửi tin nhắn
   const handleSend = () => {

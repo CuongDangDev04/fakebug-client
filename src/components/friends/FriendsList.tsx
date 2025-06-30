@@ -89,10 +89,13 @@ export default function FriendsList() {
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <button className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 bg-[#e7f3ff] dark:bg-dark-button-primary hover:bg-[#dbe7f2] dark:hover:bg-dark-button-hover text-blue-600 dark:text-primary-400 px-3 py-1.5 rounded-full text-sm font-medium transition-colors">
-                      <MessageCircle className="w-4 h-4" />
-                      <span className="hidden sm:inline">Nhắn tin</span>
-                    </button>
+                    <Link href={`/tin-nhan/${friend.id}`}>
+                      <button className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 bg-[#e7f3ff] dark:bg-dark-button-primary hover:bg-[#dbe7f2] dark:hover:bg-dark-button-hover text-blue-600 dark:text-primary-400 px-3 py-1.5 rounded-full text-sm font-medium transition-colors">
+                        <MessageCircle className="w-4 h-4" />
+                        <span className="hidden sm:inline">Nhắn tin</span>
+                      </button>
+                    </Link>
+
                     <button
                       onClick={() => handleUnfriend(friend.id)}
                       className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 bg-gray-100 dark:bg-dark-hover hover:bg-gray-200 dark:hover:bg-dark-active text-gray-700 dark:text-dark-text-primary px-3 py-1.5 rounded-full text-sm transition-colors"

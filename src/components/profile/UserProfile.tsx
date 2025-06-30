@@ -255,10 +255,12 @@ export default function UserProfile() {
               {/* Actions */}
               <div className="mt-4 md:mt-6 flex flex-row gap-2 justify-center md:justify-start w-full">
                 {renderFriendshipButton()}
-                <button className="flex items-center justify-center gap-2 px-3 md:px-6 py-2 rounded-full font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">
-                  <Mail className="w-4 h-4" />
-                  <span className="hidden sm:inline">Nhắn tin</span>
-                </button>
+                <Link href={`/tin-nhan/${user.id}`}>
+                  <button className="flex items-center justify-center gap-2 px-3 md:px-6 py-2 rounded-full font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">
+                    <Mail className="w-4 h-4" />
+                    <span className="hidden sm:inline">Nhắn tin</span>
+                  </button>
+                </Link>
                 {!isBlocked ? (
                   <button
                     onClick={handleBlockUser}

@@ -23,7 +23,7 @@ export default function ChatPage(props: ChatPageProps) {
     return (
         <div className="flex h-full" style={{height: '100vh'}}>
             <div className="w-80 border-r h-full">
-                <ChatSidebar currentUserId={currentUserId} />
+                <ChatSidebar  />
             </div>
             <div className="flex-1 h-full">
                 <ChatBox currentUserId={currentUserId} targetUserId={targetUserId} />

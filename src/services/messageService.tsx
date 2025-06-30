@@ -15,5 +15,14 @@ export const messageService = {
     const url = `${BASE_URL}/last-seen/${userId}`;
     const res = await axiosInstance.get(url);
     return res.data;
+  },
+  async getFriendMessages() {
+    try {
+      const response = await axiosInstance.get(`${BASE_URL}/friend-messages`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching friend messages:', error);
+    }
+
   }
 };
