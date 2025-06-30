@@ -3,6 +3,7 @@
 import { useChatMessages } from '@/hooks/useChatMessages';
 import { useUserOnlineStatus } from '@/hooks/useUserOnlineStatus';
 import { messageService } from '@/services/messageService';
+import { useChatStore } from '@/stores/chatStore';
 import { useEffect, useRef, useState, useMemo } from 'react';
 
 interface ChatBoxProps {
@@ -13,14 +14,34 @@ interface ChatBoxProps {
 export default function ChatBox({ currentUserId, targetUserId }: ChatBoxProps) {
   const { messages, loading } = useChatMessages(currentUserId, targetUserId);
   const { isOnline: isTargetOnline, lastSeen, formatLastSeen } = useUserOnlineStatus(targetUserId);
+  const isSeen = useChatStore((state) => state.readStatus[targetUserId]);
 
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Cuộn xuống khi có tin nhắn mới
+  const hasMarkedAsRead = useRef(false);
+
   useEffect(() => {
+    if (!hasMarkedAsRead.current && messages.length > 0) {
+      // Kiểm tra nếu có ít nhất 1 tin nhắn chưa đọc từ đối phương
+      const hasUnread = messages.some(
+        (msg) => msg.sender.id === targetUserId && !msg.is_read
+      );
+
+      if (hasUnread) {
+        messageService.markAsRead(targetUserId);
+        hasMarkedAsRead.current = true;
+      }
+    }
+
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, targetUserId]);
+
+  // Reset lại khi đổi đối tượng chat
+  useEffect(() => {
+    hasMarkedAsRead.current = false;
+  }, [targetUserId]);
+
 
   // Gửi tin nhắn
   const handleSend = () => {
@@ -52,13 +73,16 @@ export default function ChatBox({ currentUserId, targetUserId }: ChatBoxProps) {
     });
   }, [messages]);
 
+  // Tìm tin nhắn cuối cùng do mình gửi
+  const lastSentByMe = [...uniqueMessages]
+    .reverse()
+    .find((msg) => msg.sender.id === currentUserId);
+
   return (
     <div className="flex flex-col h-full border rounded shadow bg-white dark:bg-dark-card">
       {/* Header */}
       <div className="flex items-center gap-2 p-2 border-b bg-gray-50 dark:bg-dark-hover">
-        <span
-          className={`w-2 h-2 rounded-full ${isTargetOnline ? 'bg-green-500' : 'bg-gray-400'}`}
-        ></span>
+        <span className={`w-2 h-2 rounded-full ${isTargetOnline ? 'bg-green-500' : 'bg-gray-400'}`}></span>
         <span className="font-medium">
           {isTargetOnline
             ? 'Đang hoạt động'
@@ -73,33 +97,47 @@ export default function ChatBox({ currentUserId, targetUserId }: ChatBoxProps) {
         {loading ? (
           <div>Đang tải...</div>
         ) : (
-          uniqueMessages.map((msg, idx) => (
-            <div
-              key={msg.id || idx}
-              className={`mb-2 flex ${msg.sender.id === currentUserId ? 'justify-end' : 'justify-start'}`}
-            >
-              <div className="flex flex-col items-end max-w-xs">
-                <div
-                  className={`px-3 py-2 rounded-lg ${
-                    msg.sender.id === currentUserId
+          uniqueMessages.map((msg, idx) => {
+            const isMe = msg.sender.id === currentUserId;
+            const isLastSentByMe = msg.id === lastSentByMe?.id;
+            const wasRead = msg.is_read;
+
+            return (
+              <div
+                key={msg.id || idx}
+                className={`mb-2 flex ${isMe ? 'justify-end' : 'justify-start'}`}
+              >
+                <div className="flex flex-col items-end max-w-xs">
+                  <div
+                    className={`px-3 py-2 rounded-lg ${isMe
                       ? 'bg-blue-500 text-white'
                       : 'bg-gray-200 dark:bg-dark-hover'
-                  }`}
-                >
-                  {msg.content}
-                </div>
-                <div className="text-xs text-gray-500 mt-1 self-end">
-                  {msg.createdAt &&
-                    new Date(msg.createdAt).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
+                      }`}
+                  >
+                    {msg.content}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1 self-end">
+                    {msg.createdAt &&
+                      new Date(msg.createdAt).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                  </div>
+
+                  {isMe && isLastSentByMe && wasRead && (
+                    <div className="text-xs text-blue-500 mt-1">Đã xem</div>
+                  )}
                 </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
-        <div ref={messagesEndRef} />
+        {lastSentByMe && isSeen && (
+          <div className="text-xs text-right text-blue-500 italic mt-1 pr-2">
+            Đã xem
+          </div>
+        )}
+
       </div>
 
       {/* Input */}

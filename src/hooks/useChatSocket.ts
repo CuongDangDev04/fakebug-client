@@ -10,7 +10,8 @@ export function useChatSocket() {
   const addMessage = useChatStore((state) => state.addMessage);
   const setUserLastSeen = useChatStore((state) => state.setUserLastSeen);
   const updateOnlineUserIds = useChatStore((state) => state.updateOnlineUserIds);
-
+  const markMessagesAsReadFromUser = useChatStore.getState().markMessagesAsReadFromUser;
+  const setUserHasReadMyMessages = useChatStore.getState().setUserHasReadMyMessages;
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
@@ -53,9 +54,18 @@ export function useChatSocket() {
       console.log('[ChatSocket] New msg:', msg);
       addMessage(msg);
     });
+    socket.on('message-read', (data: { from: number }) => {
+      console.log('[ChatSocket] Message read from user:', data.from);
+      markMessagesAsReadFromUser(data.from);
+      setUserHasReadMyMessages(data.from);
+    });
 
     return () => {
+
+      socket.off();
       socket.disconnect();
     };
-  }, [userId]);
+
+
+  })
 }

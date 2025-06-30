@@ -23,6 +23,13 @@ export const messageService = {
     } catch (error: any) {
       console.error('Error fetching friend messages:', error);
     }
-
+  },
+  async markAsRead(friendId: number) {
+    try {
+      const res = await axiosInstance.put(`${BASE_URL}/mark-as-read/${friendId}`);
+      return res;
+    } catch (error: any) {
+      console.error('Lỗi khi đọc tin nhắn: ', error)
+    }
   }
 };
