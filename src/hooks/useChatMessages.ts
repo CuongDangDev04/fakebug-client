@@ -26,6 +26,7 @@ export function useChatMessages(currentUserId: number, targetUserId: number) {
         setLoading(true);
         try {
             const res = await messageService.getMessagesBetweenUsers(currentUserId, targetUserId);
+            // res.data là mảng tin nhắn
             res.data.forEach((msg: any) => addMessage(msg));
         } catch (err) {
             console.error("Lỗi tải messages:", err);

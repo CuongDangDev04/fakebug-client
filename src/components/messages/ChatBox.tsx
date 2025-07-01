@@ -19,29 +19,24 @@ export default function ChatBox({ currentUserId, targetUserId }: ChatBoxProps) {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const hasMarkedAsRead = useRef(false);
-
   useEffect(() => {
-    if (!hasMarkedAsRead.current && messages.length > 0) {
-      // Kiểm tra nếu có ít nhất 1 tin nhắn chưa đọc từ đối phương
-      const hasUnread = messages.some(
-        (msg) => msg.sender.id === targetUserId && !msg.is_read
-      );
+    // Kiểm tra nếu có ít nhất 1 tin nhắn chưa đọc từ đối phương
+    const hasUnread = messages.some(
+      (msg) => msg.sender.id === targetUserId && !msg.is_read
+    );
 
-      if (hasUnread) {
-        messageService.markAsRead(targetUserId);
-        hasMarkedAsRead.current = true;
+    if (hasUnread) {
+      const socket = (window as any).chatSocket as any;
+      if (socket) {
+        socket.emit('markAsRead', {
+          fromUserId: targetUserId,
+          toUserId: currentUserId,
+        });
       }
     }
 
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, targetUserId]);
-
-  // Reset lại khi đổi đối tượng chat
-  useEffect(() => {
-    hasMarkedAsRead.current = false;
-  }, [targetUserId]);
-
+  }, [messages, targetUserId, currentUserId]);
 
   // Gửi tin nhắn
   const handleSend = () => {
@@ -123,7 +118,7 @@ export default function ChatBox({ currentUserId, targetUserId }: ChatBoxProps) {
                         minute: '2-digit',
                       })}
                   </div>
-
+                  {/* Hiển thị "Đã xem" nếu là tin nhắn cuối cùng do mình gửi và đã được đọc */}
                   {isMe && isLastSentByMe && wasRead && (
                     <div className="text-xs text-blue-500 mt-1">Đã xem</div>
                   )}
@@ -132,12 +127,6 @@ export default function ChatBox({ currentUserId, targetUserId }: ChatBoxProps) {
             );
           })
         )}
-        {lastSentByMe && isSeen && (
-          <div className="text-xs text-right text-blue-500 italic mt-1 pr-2">
-            Đã xem
-          </div>
-        )}
-
       </div>
 
       {/* Input */}
@@ -160,3 +149,4 @@ export default function ChatBox({ currentUserId, targetUserId }: ChatBoxProps) {
     </div>
   );
 }
+        

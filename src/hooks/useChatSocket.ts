@@ -11,7 +11,8 @@ export function useChatSocket() {
   const setUserLastSeen = useChatStore((state) => state.setUserLastSeen);
   const updateOnlineUserIds = useChatStore((state) => state.updateOnlineUserIds);
   const markMessagesAsReadFromUser = useChatStore.getState().markMessagesAsReadFromUser;
-  const setUserHasReadMyMessages = useChatStore.getState().setUserHasReadMyMessages;
+  const setUserHasReadMyMessages = (userId: number, myUserId: number) =>
+    useChatStore.getState().setUserHasReadMyMessages(userId, myUserId);
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
@@ -31,7 +32,7 @@ export function useChatSocket() {
 
     socket.on('onlineUsers', (userIds: number[]) => {
       console.log('[ChatSocket] Online:', userIds);
-      updateOnlineUserIds(() => userIds); // set trực tiếp mảng userIds mới
+      updateOnlineUserIds(() => userIds); 
     });
 
     socket.on('userStatusChanged', (data: { userId: number; isOnline: boolean; lastSeen?: string }) => {
@@ -44,9 +45,9 @@ export function useChatSocket() {
       );
 
       if (data.isOnline) {
-        setUserLastSeen(data.userId, null); // xóa lastSeen khi online
+        setUserLastSeen(data.userId, null); 
       } else if (data.lastSeen) {
-        setUserLastSeen(data.userId, data.lastSeen); // lưu lại thời gian offline
+        setUserLastSeen(data.userId, data.lastSeen); 
       }
     });
 
@@ -57,15 +58,12 @@ export function useChatSocket() {
     socket.on('message-read', (data: { from: number }) => {
       console.log('[ChatSocket] Message read from user:', data.from);
       markMessagesAsReadFromUser(data.from);
-      setUserHasReadMyMessages(data.from);
+      setUserHasReadMyMessages(data.from, userId);
     });
 
     return () => {
-
       socket.off();
       socket.disconnect();
     };
-
-
-  })
+  }, [userId]); 
 }
