@@ -21,7 +21,7 @@ export default function ChatPage(props: ChatPageProps) {
     }
 
     return (
-        <div className="flex h-full" style={{height: '100vh'}}>
+        <div className="flex h-full" style={{height: '87vh'}}>
             <div className="w-80 border-r h-full">
                 <ChatSidebar  />
             </div>

@@ -21,10 +21,10 @@ export default function ConversationItem({ fm }: ConversationItemProps) {
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="font-medium text-base truncate">{fm.friendName}</div>
-        <div className="text-xs text-gray-500 truncate">{fm.content}</div>
+        <div className="font-medium text-base truncate text-gray-900 dark:text-dark-text-primary">{fm.friendName}</div>
+        <div className="text-xs text-gray-500 dark:text-dark-text-secondary truncate">{fm.content}</div>
       </div>
-      <div className="text-xs text-gray-400 ml-2">{new Date(fm.sent_at).toLocaleString('vi-VN')}</div>
+      <div className="text-xs text-gray-400 dark:text-dark-text-secondary ml-2">{new Date(fm.sent_at).toLocaleString('vi-VN')}</div>
     </Link>
   );
 }
