@@ -48,22 +48,33 @@ export default function ChatBox({ currentUserId, targetUserId }: ChatBoxProps) {
     if (!container) return;
 
     const handleScroll = async () => {
-      // Hiện nút nếu không ở cuối
-      const isAtBottom =
-        container.scrollHeight - container.scrollTop - container.clientHeight < 20;
-      setShowScrollToBottom(!isAtBottom);
+  const isAtBottom =
+    container.scrollHeight - container.scrollTop - container.clientHeight < 20;
+  setShowScrollToBottom(!isAtBottom);
 
-      if (container.scrollTop <= 20 && !loadingMore) {
-        setLoadingMore(true);
-        const prevScrollHeight = container.scrollHeight;
-        await loadMore();
-        setTimeout(() => {
-          const newScrollHeight = container.scrollHeight;
-          container.scrollTop = newScrollHeight - prevScrollHeight;
-          setLoadingMore(false);
-        }, 0);
+  if (container.scrollTop <= 20 && !loadingMore) {
+    setLoadingMore(true);
+    const prevScrollHeight = container.scrollHeight;
+
+    const prevMsgLength = messages.length;
+    await loadMore();
+
+    // So sánh lại độ dài mảng tin nhắn
+    const newMsgLength = messages.length;
+
+    setTimeout(() => {
+      const newScrollHeight = container.scrollHeight;
+
+      if (newMsgLength > prevMsgLength) {
+        // Chỉ set scrollTop nếu có thêm tin nhắn
+        container.scrollTop = newScrollHeight - prevScrollHeight;
       }
-    };
+
+      setLoadingMore(false);
+    }, 0);
+  }
+};
+
 
     container.addEventListener('scroll', handleScroll);
     return () => container.removeEventListener('scroll', handleScroll);
