@@ -6,6 +6,7 @@ interface ChatMessage {
   receiver: { id: number };
   content: string;
   createdAt: string;
+  sent_at?: string;
   is_read?: boolean;
 }
 
@@ -16,11 +17,15 @@ interface ChatState {
   readStatus: Record<number, boolean>;
 
   addMessage: (msg: ChatMessage) => void;
+  addMessages: (msgs: ChatMessage[], prepend?: boolean) => void;
+
   setOnlineUserIds: (ids: number[]) => void;
   updateOnlineUserIds: (updater: (prev: number[]) => number[]) => void;
   setUserLastSeen: (userId: number, isoTime: string | null) => void;
+
   markMessagesAsReadFromUser: (fromUserId: number) => void;
-  setUserHasReadMyMessages: (userId: number, myUserId: number) => void; 
+  setUserHasReadMyMessages: (userId: number, myUserId: number) => void;
+
   clearMessages: () => void;
 }
 
@@ -33,6 +38,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
   addMessage: (msg) =>
     set((state) => ({
       messages: [...state.messages, msg],
+    })),
+
+  addMessages: (msgs, prepend = false) =>
+    set((state) => ({
+      messages: prepend ? [...msgs, ...state.messages] : [...state.messages, ...msgs],
     })),
 
   setOnlineUserIds: (ids) => set({ onlineUserIds: ids }),

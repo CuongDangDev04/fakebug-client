@@ -6,16 +6,19 @@ export const messageService = {
   async sendMessage(senderId: number, receiverId: number, content: string) {
     return axiosInstance.post(`${BASE_URL}/send`, { senderId, receiverId, content });
   },
-  async getMessagesBetweenUsers(userId1: number, userId2: number) {
+
+  async getMessagesBetweenUsers(userId1: number, userId2: number, limit = 10, offset = 0) {
     return axiosInstance.get(`${BASE_URL}/between`, {
-      params: { userId1, userId2 }
+      params: { userId1, userId2, limit, offset }
     });
   },
+
   async getLastSeen(userId: number) {
     const url = `${BASE_URL}/last-seen/${userId}`;
     const res = await axiosInstance.get(url);
     return res.data;
   },
+
   async getFriendMessages() {
     try {
       const response = await axiosInstance.get(`${BASE_URL}/friend-messages`);
@@ -24,6 +27,7 @@ export const messageService = {
       console.error('Error fetching friend messages:', error);
     }
   },
+
   async markAsRead(friendId: number) {
     try {
       const res = await axiosInstance.put(`${BASE_URL}/mark-as-read/${friendId}`);
