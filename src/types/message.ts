@@ -7,4 +7,5 @@ export interface FriendsMessage {
     friendId:number;
     friendName: string;
     avatar_url: string;
+    is_read?: boolean; 
 }

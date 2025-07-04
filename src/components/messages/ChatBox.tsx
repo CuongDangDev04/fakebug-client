@@ -6,6 +6,7 @@ import { useChatStore } from '@/stores/chatStore';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useThemeStore } from '@/stores/themeStore';
 import Loader from '@/components/common/users/Loader';
+import { useFriendMessagesStore } from '@/stores/friendMessagesStore'; // ✅ Thêm dòng này
 
 interface ChatBoxProps {
   currentUserId: number;
@@ -17,30 +18,30 @@ export default function ChatBox({ currentUserId, targetUserId }: ChatBoxProps) {
   const { isOnline: isTargetOnline, lastSeen, formatLastSeen } = useUserOnlineStatus(targetUserId);
   const isSeen = useChatStore((state) => state.readStatus[targetUserId]);
 
+  const updateFriendMessage = useFriendMessagesStore((state) => state.updateMessage); // ✅ Gọi store
+
   const [input, setInput] = useState('');
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [showTime, setShowTime] = useState<{ [id: string]: boolean }>({});
-  const { isDark, toggleTheme } = useThemeStore();
+  const { isDark } = useThemeStore();
   const [loadingMore, setLoadingMore] = useState(false);
-  const [showScrollToBottom, setShowScrollToBottom] = useState(false); // Thêm state mới
-
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const markAsReadInSidebar = useFriendMessagesStore((state) => state.markAsRead);
   useEffect(() => {
     const hasUnread = messages.some(
       (msg) => msg.sender.id === targetUserId && !msg.is_read
     );
+
     if (hasUnread) {
       const socket = (window as any).chatSocket;
       socket?.emit('markAsRead', {
         fromUserId: targetUserId,
         toUserId: currentUserId,
       });
-    }
 
-    // Xóa tự động cuộn xuống cuối trang khi có tin nhắn mới
-    // messagesContainerRef.current?.scrollTo({
-    //   top: messagesContainerRef.current.scrollHeight,
-    //   behavior: 'smooth',
-    // });
+      // 👇 Cập nhật store để sidebar mất in đậm ngay
+      markAsReadInSidebar(targetUserId);
+    }
   }, [messages]);
 
   useEffect(() => {
@@ -48,49 +49,38 @@ export default function ChatBox({ currentUserId, targetUserId }: ChatBoxProps) {
     if (!container) return;
 
     const handleScroll = async () => {
-  const isAtBottom =
-    container.scrollHeight - container.scrollTop - container.clientHeight < 20;
-  setShowScrollToBottom(!isAtBottom);
+      const isAtBottom =
+        container.scrollHeight - container.scrollTop - container.clientHeight < 20;
+      setShowScrollToBottom(!isAtBottom);
 
-  if (container.scrollTop <= 20 && !loadingMore) {
-    setLoadingMore(true);
-    const prevScrollHeight = container.scrollHeight;
+      if (container.scrollTop <= 20 && !loadingMore) {
+        setLoadingMore(true);
+        const prevScrollHeight = container.scrollHeight;
+        const prevMsgLength = messages.length;
+        await loadMore();
 
-    const prevMsgLength = messages.length;
-    await loadMore();
-
-    // So sánh lại độ dài mảng tin nhắn
-    const newMsgLength = messages.length;
-
-    setTimeout(() => {
-      const newScrollHeight = container.scrollHeight;
-
-      if (newMsgLength > prevMsgLength) {
-        // Chỉ set scrollTop nếu có thêm tin nhắn
-        container.scrollTop = newScrollHeight - prevScrollHeight;
+        setTimeout(() => {
+          const newScrollHeight = container.scrollHeight;
+          if (messages.length > prevMsgLength) {
+            container.scrollTop = newScrollHeight - prevScrollHeight;
+          }
+          setLoadingMore(false);
+        }, 0);
       }
-
-      setLoadingMore(false);
-    }, 0);
-  }
-};
-
+    };
 
     container.addEventListener('scroll', handleScroll);
     return () => container.removeEventListener('scroll', handleScroll);
   }, [loadMore, loadingMore]);
 
-  // Kiểm tra trạng thái ban đầu chỉ khi messages thay đổi
   useEffect(() => {
     const container = messagesContainerRef.current;
     if (!container) return;
-    // Kiểm tra trạng thái ban đầu khi messages thay đổi
     const isAtBottom =
       container.scrollHeight - container.scrollTop - container.clientHeight < 20;
     setShowScrollToBottom(!isAtBottom);
   }, [messages]);
 
-  // Hàm cuộn xuống cuối
   const scrollToBottom = () => {
     const container = messagesContainerRef.current;
     if (container) {
@@ -139,14 +129,13 @@ export default function ChatBox({ currentUserId, targetUserId }: ChatBoxProps) {
         </span>
       </div>
 
-      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-3 py-2 space-y-4" style={{ position: 'relative' }}>
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-3 py-2 space-y-4 relative">
         {loading && <div className="text-gray-700 dark:text-dark-text-primary">Đang tải...</div>}
         {loadingMore && (
           <div className="flex justify-center py-2">
             <Loader />
           </div>
         )}
-        {/* Nút scroll xuống cuối */}
         {showScrollToBottom && (
           <button
             onClick={scrollToBottom}
@@ -154,9 +143,8 @@ export default function ChatBox({ currentUserId, targetUserId }: ChatBoxProps) {
             style={{ width: 44, height: 44 }}
             aria-label="Cuộn xuống cuối"
           >
-            {/* Đổi sang icon mũi tên xuống */}
             <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
-              <path d="M12 16c-.28 0-.53-.11-.71-.29l-6-6a1.003 1.003 0 011.42-1.42L12 13.59l5.29-5.3a1.003 1.003 0 111.42 1.42l-6 6c-.18.18-.43.29-.71.29z" fill="currentColor"/>
+              <path d="M12 16c-.28 0-.53-.11-.71-.29l-6-6a1.003 1.003 0 011.42-1.42L12 13.59l5.29-5.3a1.003 1.003 0 111.42 1.42l-6 6c-.18.18-.43.29-.71.29z" fill="currentColor" />
             </svg>
           </button>
         )}

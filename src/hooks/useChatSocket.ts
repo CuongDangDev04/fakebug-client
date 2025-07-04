@@ -2,17 +2,22 @@ import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useUserStore } from '@/stores/userStore';
 import { useChatStore } from '@/stores/chatStore';
+import { useFriendMessagesStore } from '@/stores/friendMessagesStore';
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:5001';
 
 export function useChatSocket() {
   const userId = useUserStore((state) => state.user?.id);
+
   const addMessage = useChatStore((state) => state.addMessage);
   const setUserLastSeen = useChatStore((state) => state.setUserLastSeen);
   const updateOnlineUserIds = useChatStore((state) => state.updateOnlineUserIds);
   const markMessagesAsReadFromUser = useChatStore.getState().markMessagesAsReadFromUser;
   const setUserHasReadMyMessages = (userId: number, myUserId: number) =>
     useChatStore.getState().setUserHasReadMyMessages(userId, myUserId);
+
+  const updateFriendMessage = useFriendMessagesStore.getState().updateMessage;
+
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
@@ -24,7 +29,7 @@ export function useChatSocket() {
     });
 
     socketRef.current = socket;
-    (window as any).chatSocket = socket; // để sử dụng socket toàn cục nếu cần
+    (window as any).chatSocket = socket;
 
     socket.on('connect', () => {
       console.log('[ChatSocket] Connected:', socket.id);
@@ -32,7 +37,7 @@ export function useChatSocket() {
 
     socket.on('onlineUsers', (userIds: number[]) => {
       console.log('[ChatSocket] Online:', userIds);
-      updateOnlineUserIds(() => userIds); 
+      updateOnlineUserIds(() => userIds);
     });
 
     socket.on('userStatusChanged', (data: { userId: number; isOnline: boolean; lastSeen?: string }) => {
@@ -45,16 +50,18 @@ export function useChatSocket() {
       );
 
       if (data.isOnline) {
-        setUserLastSeen(data.userId, null); 
+        setUserLastSeen(data.userId, null);
       } else if (data.lastSeen) {
-        setUserLastSeen(data.userId, data.lastSeen); 
+        setUserLastSeen(data.userId, data.lastSeen);
       }
     });
 
     socket.on('newMessage', (msg: any) => {
       console.log('[ChatSocket] New msg:', msg);
-      addMessage(msg);
+      addMessage(msg);                // cập nhật chi tiết trong ChatBox
+      updateFriendMessage(msg);      // cập nhật danh sách trong Sidebar
     });
+
     socket.on('message-read', (data: { from: number }) => {
       console.log('[ChatSocket] Message read from user:', data.from);
       markMessagesAsReadFromUser(data.from);
@@ -65,5 +72,5 @@ export function useChatSocket() {
       socket.off();
       socket.disconnect();
     };
-  }, [userId]); 
+  }, [userId]);
 }
