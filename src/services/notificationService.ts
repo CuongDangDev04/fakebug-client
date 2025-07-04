@@ -1,10 +1,10 @@
-import axiosInstance from '@/lib/axiosInstance';
+import api from '@/services/api';
 import type Notification from '@/types/notification';
 const BASE_URL = `${process.env.NEXT_PUBLIC_BASE_URL}/notifications`;
 export const notificationService = {
     async getAllNotificationOfUser(): Promise<Notification[]> {
         try {
-            const response = await axiosInstance.get(`${BASE_URL}/all`);
+            const response = await api.get(`${BASE_URL}/all`);
             return response.data;
         } catch (error: any) {
             console.error("Lỗi khi lấy thông báo", error);
@@ -13,7 +13,7 @@ export const notificationService = {
     },
     async sendNotification(userId: number, message: string, url: string, avt: string) {
         try {
-            const response = await axiosInstance.post(`${BASE_URL}/send`, { userId, message, url, avt })
+            const response = await api.post(`${BASE_URL}/send`, { userId, message, url, avt })
             return response
         } catch (error: any) {
             console.error("Lỗi khi gửi thông báo");
@@ -21,7 +21,7 @@ export const notificationService = {
     },
     async deleteNotification(id: number){
         try{
-            const response = await axiosInstance.delete(`${BASE_URL}/delete/${id}`)
+            const response = await api.delete(`${BASE_URL}/delete/${id}`)
             return response;
         }catch(error: any){
             console.error(`Lỗi khi xoá thông báo với id: ${id}`)
@@ -29,7 +29,7 @@ export const notificationService = {
     },
     async markAsRead(id: number) {
         try {
-            const response = await axiosInstance.post(`${BASE_URL}/mark-read/${id}`);
+            const response = await api.post(`${BASE_URL}/mark-read/${id}`);
             return response;
         } catch (error: any) {
             console.error(`Lỗi khi đánh dấu đã đọc thông báo với id: ${id}`);
@@ -37,7 +37,7 @@ export const notificationService = {
     },
     async markAllAsRead() {
         try {
-            const response = await axiosInstance.post(`${BASE_URL}/mark-all-read`);
+            const response = await api.post(`${BASE_URL}/mark-all-read`);
             return response;
         } catch (error: any) {
             console.error('Lỗi khi đánh dấu tất cả thông báo là đã đọc');
@@ -45,7 +45,7 @@ export const notificationService = {
     },
     async getUnreadNotification(){
         try{
-            const response = await axiosInstance.get(`${BASE_URL}/unread`)
+            const response = await api.get(`${BASE_URL}/unread`)
             return response.data;
         }catch(error:any){
             console.error('Lỗi: ',error)

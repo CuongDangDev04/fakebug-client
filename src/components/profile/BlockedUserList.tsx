@@ -2,13 +2,9 @@
 import { useEffect, useState } from 'react';
 import { friendshipService } from '@/services/friendshipService';
 import { X } from 'lucide-react';
+import { BlockedUser } from '@/types/blockedUser';
 
-type BlockedUser = {
-  id: number;
-  firstName: string;
-  lastName: string;
-  avatar: string;
-};
+
 
 export default function BlockedUserList() {
   const [blocked, setBlocked] = useState<BlockedUser[]>([]);

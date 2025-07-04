@@ -4,7 +4,7 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 
 // Tạo một instance axios có cấu hình sẵn
-const axiosInstance = axios.create({
+const api = axios.create({
     baseURL: process.env.NEXT_PUBLIC_BASE_URL, // Base URL của API
     headers: {
         'Content-Type': 'application/json',
@@ -13,7 +13,7 @@ const axiosInstance = axios.create({
 });
 
 // Interceptor request: Gắn access_token vào header Authorization
-axiosInstance.interceptors.request.use(
+api.interceptors.request.use(
     (config) => {
         const token = Cookies.get('access_token');  
         if (token) {
@@ -48,7 +48,7 @@ const processQueue = (error: any, token: string | null = null) => {
 };
 
 // Interceptor response: xử lý lỗi từ response trả về
-axiosInstance.interceptors.response.use(
+api.interceptors.response.use(
     (response) => response, // Nếu response OK → return luôn
     async (error) => {
         const originalRequest = error.config;
@@ -63,7 +63,7 @@ axiosInstance.interceptors.response.use(
                     failedQueue.push({
                         resolve: (token: string) => {
                             originalRequest.headers.Authorization = 'Bearer ' + token;
-                            resolve(axiosInstance(originalRequest)); // Gửi lại request cũ với token mới
+                            resolve(api(originalRequest)); // Gửi lại request cũ với token mới
                         },
                         reject: (err: any) => reject(err),
                     });
@@ -89,14 +89,14 @@ axiosInstance.interceptors.response.use(
                 Cookies.set('access_token', newToken, { expires: 7, path: '/' });
 
                 // Gắn lại token vào các request mặc định
-                axiosInstance.defaults.headers.Authorization = 'Bearer ' + newToken;
+                api.defaults.headers.Authorization = 'Bearer ' + newToken;
                 originalRequest.headers.Authorization = 'Bearer ' + newToken;
 
                 // Gửi lại các request trong hàng đợi
                 processQueue(null, newToken);
 
                 // Gửi lại request cũ đã bị lỗi 401
-                return axiosInstance(originalRequest);
+                return api(originalRequest);
             } catch (err) {
                 // Nếu refresh thất bại → xóa token, logout
                 processQueue(err, null);
@@ -114,4 +114,4 @@ axiosInstance.interceptors.response.use(
     }
 );
 
-export default axiosInstance;
+export default api;

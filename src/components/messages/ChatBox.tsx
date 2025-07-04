@@ -1,24 +1,18 @@
 'use client';
 
+import Link from 'next/link';
 import { useChatMessages } from '@/hooks/useChatMessages';
 import { useUserOnlineStatus } from '@/hooks/useUserOnlineStatus';
-import { useChatStore } from '@/stores/chatStore';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useThemeStore } from '@/stores/themeStore';
 import Loader from '@/components/common/users/Loader';
-import { useFriendMessagesStore } from '@/stores/friendMessagesStore'; // ✅ Thêm dòng này
-
-interface ChatBoxProps {
-  currentUserId: number;
-  targetUserId: number;
-}
+import { useFriendMessagesStore } from '@/stores/friendMessagesStore';
+import { ChatBoxProps } from '@/types/chatBoxProps';
 
 export default function ChatBox({ currentUserId, targetUserId }: ChatBoxProps) {
   const { messages, loading, loadMore } = useChatMessages(currentUserId, targetUserId);
   const { isOnline: isTargetOnline, lastSeen, formatLastSeen } = useUserOnlineStatus(targetUserId);
-  const isSeen = useChatStore((state) => state.readStatus[targetUserId]);
-
-  const updateFriendMessage = useFriendMessagesStore((state) => state.updateMessage); // ✅ Gọi store
+  const markAsReadInSidebar = useFriendMessagesStore((state) => state.markAsRead);
 
   const [input, setInput] = useState('');
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -26,20 +20,15 @@ export default function ChatBox({ currentUserId, targetUserId }: ChatBoxProps) {
   const { isDark } = useThemeStore();
   const [loadingMore, setLoadingMore] = useState(false);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
-  const markAsReadInSidebar = useFriendMessagesStore((state) => state.markAsRead);
-  useEffect(() => {
-    const hasUnread = messages.some(
-      (msg) => msg.sender.id === targetUserId && !msg.is_read
-    );
 
+  useEffect(() => {
+    const hasUnread = messages.some(msg => msg.sender.id === targetUserId && !msg.is_read);
     if (hasUnread) {
       const socket = (window as any).chatSocket;
       socket?.emit('markAsRead', {
         fromUserId: targetUserId,
         toUserId: currentUserId,
       });
-
-      // 👇 Cập nhật store để sidebar mất in đậm ngay
       markAsReadInSidebar(targetUserId);
     }
   }, [messages]);
@@ -49,8 +38,7 @@ export default function ChatBox({ currentUserId, targetUserId }: ChatBoxProps) {
     if (!container) return;
 
     const handleScroll = async () => {
-      const isAtBottom =
-        container.scrollHeight - container.scrollTop - container.clientHeight < 20;
+      const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 20;
       setShowScrollToBottom(!isAtBottom);
 
       if (container.scrollTop <= 20 && !loadingMore) {
@@ -76,18 +64,14 @@ export default function ChatBox({ currentUserId, targetUserId }: ChatBoxProps) {
   useEffect(() => {
     const container = messagesContainerRef.current;
     if (!container) return;
-    const isAtBottom =
-      container.scrollHeight - container.scrollTop - container.clientHeight < 20;
+    const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 20;
     setShowScrollToBottom(!isAtBottom);
   }, [messages]);
 
   const scrollToBottom = () => {
     const container = messagesContainerRef.current;
     if (container) {
-      container.scrollTo({
-        top: container.scrollHeight,
-        behavior: 'smooth',
-      });
+      container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
     }
   };
 
@@ -120,15 +104,36 @@ export default function ChatBox({ currentUserId, targetUserId }: ChatBoxProps) {
 
   const lastSentByMe = [...uniqueMessages].reverse().find((msg) => msg.sender.id === currentUserId);
 
+  const targetUser = messages[0]?.sender.id === currentUserId ? messages[0]?.receiver : messages[0]?.sender;
+
   return (
     <div className="flex flex-col h-full border rounded bg-white dark:bg-dark-card border-gray-200 dark:border-dark-border">
-      <div className="flex items-center gap-2 p-2 border-b bg-gray-50 dark:bg-dark-hover border-gray-200 dark:border-dark-border">
-        <span className={`w-2 h-2 rounded-full ${isTargetOnline ? 'bg-green-500' : 'bg-gray-400'}`}></span>
-        <span className="font-medium text-gray-900 dark:text-dark-text-primary">
-          {isTargetOnline ? 'Đang hoạt động' : lastSeen ? formatLastSeen(lastSeen) : 'Ngoại tuyến'}
-        </span>
-      </div>
+      {/* Header */}
+      <Link
+        href={`/trang-ca-nhan/${targetUser?.id ?? targetUserId}`}
+        className="flex items-center gap-3 p-3 border-b bg-gray-50 dark:bg-dark-hover border-gray-200 dark:border-dark-border hover:bg-gray-100 dark:hover:bg-dark-light transition-colors"
+      >
+        <div className="relative">
+          <img
+            src={targetUser?.avatar_url || '/default-avatar.png'}
+            className="w-10 h-10 rounded-full object-cover"
+            alt="avatar"
+          />
+          {isTargetOnline && (
+            <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-dark-card rounded-full"></span>
+          )}
+        </div>
+        <div className="flex flex-col">
+          <span className="font-medium text-gray-900 dark:text-dark-text-primary">
+            {`${targetUser?.first_name ?? ''} ${targetUser?.last_name ?? ''}` || 'Đối phương'}
+          </span>
+          <span className="text-sm text-gray-500 dark:text-dark-text-secondary">
+            {isTargetOnline ? 'Đang hoạt động' : lastSeen ? formatLastSeen(lastSeen) : 'Ngoại tuyến'}
+          </span>
+        </div>
+      </Link>
 
+      {/* Tin nhắn */}
       <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-3 py-2 space-y-4 relative">
         {loading && <div className="text-gray-700 dark:text-dark-text-primary">Đang tải...</div>}
         {loadingMore && (
@@ -157,11 +162,19 @@ export default function ChatBox({ currentUserId, targetUserId }: ChatBoxProps) {
           return (
             <div key={msg.id || idx} className={`flex w-full ${isMe ? 'justify-end' : 'justify-start'}`}>
               <div className={`flex items-end gap-2 ${isMe ? 'flex-row-reverse' : ''} max-w-[75%]`}>
-                <img className="rounded-full w-8 h-8 object-cover" src={(msg.sender as any).avatar_url} alt="avatar" />
+                {!isMe && (
+                  <img
+                    className="rounded-full w-8 h-8 object-cover"
+                    src={(msg.sender as any).avatar_url}
+                    alt="avatar"
+                  />
+                )}
+
                 <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} w-fit`}>
                   <div
-                    className={`px-4 py-2 break-words max-w-[320px] cursor-pointer ${isMe ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-dark-hover text-gray-900 dark:text-dark-text-primary'
-                      }`}
+                    className={`px-4 py-2 break-words max-w-[320px] cursor-pointer ${
+                      isMe ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-dark-hover text-gray-900 dark:text-dark-text-primary'
+                    }`}
                     style={{
                       borderRadius: 20,
                       borderTopRightRadius: 20,
@@ -193,6 +206,7 @@ export default function ChatBox({ currentUserId, targetUserId }: ChatBoxProps) {
         })}
       </div>
 
+      {/* Input */}
       <div className="p-2 border-t flex gap-2 border-gray-200 dark:border-dark-border">
         <input
           className="flex-1 border rounded px-3 py-2 text-gray-900 dark:text-dark-text-primary bg-white dark:bg-dark-card placeholder-gray-400 dark:placeholder-dark-text-secondary"

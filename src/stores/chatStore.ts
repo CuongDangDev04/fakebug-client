@@ -1,31 +1,19 @@
+import { ChatMessage } from '@/types/chatStoreType';
 import { create } from 'zustand';
 
-interface ChatMessage {
-  id: number;
-  sender: { id: number };
-  receiver: { id: number };
-  content: string;
-  createdAt: string;
-  sent_at?: string;
-  is_read?: boolean;
-}
 
 interface ChatState {
   onlineUserIds: number[];
   userLastSeenMap: Record<number, string | null>;
   messages: ChatMessage[];
   readStatus: Record<number, boolean>;
-
   addMessage: (msg: ChatMessage) => void;
   addMessages: (msgs: ChatMessage[], prepend?: boolean) => void;
-
   setOnlineUserIds: (ids: number[]) => void;
   updateOnlineUserIds: (updater: (prev: number[]) => number[]) => void;
   setUserLastSeen: (userId: number, isoTime: string | null) => void;
-
   markMessagesAsReadFromUser: (fromUserId: number) => void;
   setUserHasReadMyMessages: (userId: number, myUserId: number) => void;
-
   clearMessages: () => void;
 }
 

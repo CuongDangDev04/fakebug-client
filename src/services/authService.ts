@@ -1,5 +1,5 @@
 // authService.ts
-import axiosInstance from '@/lib/axiosInstance';
+import api from '@/services/api';
 import type { RegisterUserDto, LoginUserDto, AuthResponse, ForgotPasswordDto, ResetPasswordDto, ResetPasswordResponse, ForgotPasswordResponse } from '@/types/auth';
 import type { User } from '@/types/profile';
 import { cookieService } from './cookieService';
@@ -31,12 +31,12 @@ export const authService = {
 
     async logout(): Promise<{ message: string }> {
 
-        const response = await axiosInstance.post(`${BASE_URL}/auth/logout`);
+        const response = await api.post(`${BASE_URL}/auth/logout`);
 
         cookieService.removeAccessToken();
         cookieService.removeRefreshToken();
 
-        delete axiosInstance.defaults.headers.common['Authorization'];
+        delete api.defaults.headers.common['Authorization'];
 
         return response.data; 
     },
@@ -80,7 +80,7 @@ export const authService = {
                 return undefined;
             }
 
-            const response = await axiosInstance.get(`${BASE_URL}/user/getInfo-user`);
+            const response = await api.get(`${BASE_URL}/user/getInfo-user`);
             if (response.data && response.data.user) {
                 return response.data.user;
             }
