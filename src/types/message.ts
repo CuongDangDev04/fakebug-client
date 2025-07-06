@@ -9,4 +9,5 @@ export interface FriendsMessage {
     avatar_url: string;
     is_read?: boolean; 
     unreadCount?: number; // Thêm dòng này nếu dữ liệu có trường này
+    is_revoked: boolean;
 }

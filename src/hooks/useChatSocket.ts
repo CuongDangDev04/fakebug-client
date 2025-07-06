@@ -68,6 +68,30 @@ export function useChatSocket() {
       setUserHasReadMyMessages(data.from, userId);
     });
 
+    socket.on('messageRevoked', ({ messageId }: { messageId: number }) => {
+      console.log('[ChatSocket] Message revoked:', messageId);
+
+      // Cập nhật lại message trong ChatBox
+      addMessage({
+        id: messageId,
+        content: 'Tin nhắn đã được thu hồi',
+        is_revoked: true,
+      } as any); // ép kiểu nếu chưa đủ field
+
+      // Cập nhật Sidebar nếu cần
+      updateFriendMessage({
+        id: messageId,
+        content: 'Tin nhắn đã được thu hồi',
+        is_revoked: true,
+      });
+
+      // DEBUG: log lại toàn bộ messages sau khi revoke
+      setTimeout(() => {
+        console.log('[ChatSocket] Messages after revoke:', useChatStore.getState().messages);
+      }, 100);
+    });
+
+
     return () => {
       socket.off();
       socket.disconnect();

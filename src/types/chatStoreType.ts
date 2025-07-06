@@ -13,4 +13,5 @@ export interface ChatMessage {
   createdAt: string;
   sent_at?: string;
   is_read?: boolean;
+  is_revoked?: boolean;
 }

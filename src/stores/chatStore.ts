@@ -23,10 +23,22 @@ export const useChatStore = create<ChatState>((set, get) => ({
   messages: [],
   readStatus: {},
 
+  // addMessage: (msg) =>
+  //   set((state) => ({
+  //     messages: [...state.messages, msg],
+  //   })),
   addMessage: (msg) =>
-    set((state) => ({
-      messages: [...state.messages, msg],
-    })),
+    set((state) => {
+      const existingIndex = state.messages.findIndex((m) => m.id === msg.id);
+      if (existingIndex !== -1) {
+        // Nếu tin nhắn đã tồn tại → cập nhật nội dung
+        const updatedMessages = [...state.messages];
+        updatedMessages[existingIndex] = { ...updatedMessages[existingIndex], ...msg };
+        return { messages: updatedMessages };
+      }
+      // Nếu là tin nhắn mới → thêm vào cuối
+      return { messages: [...state.messages, msg] };
+    }),
 
   addMessages: (msgs, prepend = false) =>
     set((state) => ({

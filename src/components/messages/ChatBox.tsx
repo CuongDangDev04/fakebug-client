@@ -8,6 +8,7 @@ import { useThemeStore } from '@/stores/themeStore';
 import Loader from '@/components/common/users/Loader';
 import { useFriendMessagesStore } from '@/stores/friendMessagesStore';
 import { ChatBoxProps } from '@/types/chatBoxProps';
+import { ChatMessage } from '@/types/chatStoreType'; // đảm bảo import đúng type
 
 export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: ChatBoxProps & { onOpenSidebar?: () => void }) {
   const { messages, loading, loadMore } = useChatMessages(currentUserId, targetUserId);
@@ -20,6 +21,7 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
   const { isDark } = useThemeStore();
   const [loadingMore, setLoadingMore] = useState(false);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const [hoveredMsgId, setHoveredMsgId] = useState<number | null>(null);
 
   useEffect(() => {
     const hasUnread = messages.some(msg => msg.sender.id === targetUserId && !msg.is_read);
@@ -190,7 +192,12 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
           const sentAt = (msg as any).sent_at || msg.createdAt;
 
           return (
-            <div key={msg.id || idx} className={`flex w-full ${isMe ? 'justify-end' : 'justify-start'}`}>
+            <div
+              key={msg.id || idx}
+              className={`flex w-full ${isMe ? 'justify-end' : 'justify-start'}`}
+              onMouseEnter={() => setHoveredMsgId(msg.id)}
+              onMouseLeave={() => setHoveredMsgId(null)}
+            >
               <div className={`flex items-end gap-2 ${isMe ? 'flex-row-reverse' : ''} max-w-[75%]`}>
                 {!isMe && (
                   <img
@@ -200,11 +207,26 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
                   />
                 )}
 
-                <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} w-fit`}>
+                <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} w-fit relative`}>
+                  {/* Dropdown nổi khi hover */}
+                  {isMe && !(msg as any).is_revoked && hoveredMsgId === msg.id && (
+                    <div
+                      className="absolute -top-8 right-0 z-10 bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded shadow px-2 py-1"
+                    >
+                      <button
+                        className="text-xs text-red-500 hover:underline"
+                        onClick={() => {
+                          const socket = (window as any).chatSocket;
+                          socket?.emit('revokeMessage', { messageId: msg.id });
+                        }}
+                      >
+                        Thu hồi
+                      </button>
+                    </div>
+                  )}
                   <div
-                    className={`px-4 py-2 break-words max-w-[320px] cursor-pointer ${
-                      isMe ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-dark-hover text-gray-900 dark:text-dark-text-primary'
-                    }`}
+                    className={`px-4 py-2 break-words max-w-[320px] cursor-pointer ${isMe ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-dark-hover text-gray-900 dark:text-dark-text-primary'
+                      }`}
                     style={{
                       borderRadius: 20,
                       borderTopRightRadius: 20,
@@ -219,8 +241,13 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
                       }))
                     }
                   >
-                    {msg.content}
+                    {(msg as any).is_revoked ? (
+                      <i className="text-sm text-white dark:text-dark-text-secondary italic">Tin nhắn đã được thu hồi</i>
+                    ) : (
+                      msg.content
+                    )}
                   </div>
+                  {/* ...existing code for time and "Đã xem"... */}
                   {showTime[msg.id] && (
                     <div className="text-[11px] text-gray-500 dark:text-dark-text-secondary mt-0.5">
                       {sentAt && new Date(sentAt).toLocaleString()}

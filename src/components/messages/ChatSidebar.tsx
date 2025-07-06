@@ -117,7 +117,7 @@ export default function ChatSidebar({ mobileOpen = true, onClose }: { mobileOpen
           <div className="text-center text-gray-400 dark:text-dark-text-secondary mt-8">Không có hội thoại nào</div>
         )}
         {filtered.map((fm) => (
-          <ConversationItem key={fm.friendId} fm={fm} />
+          <ConversationItem key={fm.id || fm.friendId} fm={fm} />
         ))}
       </div>
     </div>
