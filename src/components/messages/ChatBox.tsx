@@ -9,7 +9,7 @@ import Loader from '@/components/common/users/Loader';
 import { useFriendMessagesStore } from '@/stores/friendMessagesStore';
 import { ChatBoxProps } from '@/types/chatBoxProps';
 
-export default function ChatBox({ currentUserId, targetUserId }: ChatBoxProps) {
+export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: ChatBoxProps & { onOpenSidebar?: () => void }) {
   const { messages, loading, loadMore } = useChatMessages(currentUserId, targetUserId);
   const { isOnline: isTargetOnline, lastSeen, formatLastSeen } = useUserOnlineStatus(targetUserId);
   const markAsReadInSidebar = useFriendMessagesStore((state) => state.markAsRead);
@@ -106,35 +106,54 @@ export default function ChatBox({ currentUserId, targetUserId }: ChatBoxProps) {
 
   const targetUser = messages[0]?.sender.id === currentUserId ? messages[0]?.receiver : messages[0]?.sender;
 
+  // Responsive: Thêm nút mở sidebar trên mobile
   return (
-    <div className="flex flex-col h-full border rounded bg-white dark:bg-dark-card border-gray-200 dark:border-dark-border">
+    <div className="flex flex-col h-full border rounded bg-white dark:bg-dark-card border-gray-200 dark:border-dark-border
+      md:rounded-none md:border-none
+      w-full
+      ">
       {/* Header */}
-      <Link
-        href={`/trang-ca-nhan/${targetUser?.id ?? targetUserId}`}
-        className="flex items-center gap-3 p-3 border-b bg-gray-50 dark:bg-dark-hover border-gray-200 dark:border-dark-border hover:bg-gray-100 dark:hover:bg-dark-light transition-colors"
-      >
-        <div className="relative">
-          <img
-            src={targetUser?.avatar_url || '/default-avatar.png'}
-            className="w-10 h-10 rounded-full object-cover"
-            alt="avatar"
-          />
-          {isTargetOnline && (
-            <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-dark-card rounded-full"></span>
-          )}
-        </div>
-        <div className="flex flex-col">
-          <span className="font-medium text-gray-900 dark:text-dark-text-primary">
-            {`${targetUser?.first_name ?? ''} ${targetUser?.last_name ?? ''}` || 'Đối phương'}
-          </span>
-          <span className="text-sm text-gray-500 dark:text-dark-text-secondary">
-            {isTargetOnline ? 'Đang hoạt động' : lastSeen ? formatLastSeen(lastSeen) : 'Ngoại tuyến'}
-          </span>
-        </div>
-      </Link>
+      <div className="flex items-center gap-3 p-3 border-b bg-gray-50 dark:bg-dark-hover border-gray-200 dark:border-dark-border
+        hover:bg-gray-100 dark:hover:bg-dark-light transition-colors
+        ">
+        {/* Nút mở sidebar trên mobile */}
+        <button
+          className="md:hidden p-2 rounded hover:bg-gray-200 dark:hover:bg-dark-hover"
+          onClick={onOpenSidebar}
+          aria-label="Mở danh sách chat"
+        >
+          <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+            <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </button>
+        <Link
+          href={`/trang-ca-nhan/${targetUser?.id ?? targetUserId}`}
+          className="flex items-center gap-3 flex-1 min-w-0"
+        >
+          <div className="relative">
+            <img
+              src={targetUser?.avatar_url || '/default-avatar.png'}
+              className="w-10 h-10 rounded-full object-cover"
+              alt="avatar"
+            />
+            {isTargetOnline && (
+              <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-dark-card rounded-full"></span>
+            )}
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="font-medium text-gray-900 dark:text-dark-text-primary truncate">
+              {`${targetUser?.first_name ?? ''} ${targetUser?.last_name ?? ''}` || 'Đối phương'}
+            </span>
+            <span className="text-sm text-gray-500 dark:text-dark-text-secondary truncate">
+              {isTargetOnline ? 'Đang hoạt động' : lastSeen ? formatLastSeen(lastSeen) : 'Ngoại tuyến'}
+            </span>
+          </div>
+        </Link>
+      </div>
 
       {/* Tin nhắn */}
-      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-3 py-2 space-y-4 relative">
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-2 py-2 space-y-4 relative md:px-3"
+        style={{ minHeight: 0, maxHeight: 'calc(100vh - 120px)' }}>
         {loading && <div className="text-gray-700 dark:text-dark-text-primary">Đang tải...</div>}
         {loadingMore && (
           <div className="flex justify-center py-2">
@@ -207,7 +226,7 @@ export default function ChatBox({ currentUserId, targetUserId }: ChatBoxProps) {
       </div>
 
       {/* Input */}
-      <div className="p-2 border-t flex gap-2 border-gray-200 dark:border-dark-border">
+      <div className="p-2 border-t flex gap-2 border-gray-200 dark:border-dark-border bg-white dark:bg-dark-card">
         <input
           className="flex-1 border rounded px-3 py-2 text-gray-900 dark:text-dark-text-primary bg-white dark:bg-dark-card placeholder-gray-400 dark:placeholder-dark-text-secondary"
           value={input}
