@@ -6,16 +6,17 @@ import { useUserStore } from '@/stores/userStore'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
-import { useState, useEffect, useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { authService } from '@/services/authService'
 import NotificationList from '@/components/notifications/NotificationList'
 import { notificationService } from '@/services/notificationService'
+import { messageService } from '@/services/messageService'
 
 const navItems = [
     { icon: <Home size={32} />, href: '/' },
     { icon: <Users size={32} />, href: '/ban-be/tat-ca' },
     { icon: <UsersRound size={32} />, href: '/groups' },
-    { icon: <MessageCircle size={32} />, href: '/messages' },
+    { icon: <MessageCircle size={32} />, href: '/tin-nhan' },
 ]
 
 type Props = {
@@ -29,6 +30,7 @@ export default function HeaderUser({ onMenuClick }: Props) {
     const [showDropdown, setShowDropdown] = useState(false)
     const { user, clearUser } = useUserStore()
     const [showNotiDropdown, setShowNotiDropdown] = useState(false)
+    const [totalUnread, setTotalUnread] = useState(0);
     const bellRef = useRef<HTMLDivElement>(null)
     const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -54,15 +56,43 @@ export default function HeaderUser({ onMenuClick }: Props) {
     }, [init]);
 
     useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (!bellRef.current?.contains(event.target as Node) && 
-                !dropdownRef.current?.contains(event.target as Node)) {
-                setShowNotiDropdown(false);
+        let isMounted = true;
+        const fetchTotalUnread = async () => {
+            const res = await messageService.getTotalUnreadCount();
+            if (isMounted) setTotalUnread(res?.totalUnreadCount ?? 0);
+        };
+        fetchTotalUnread();
+
+        // Đảm bảo socket luôn tồn tại trước khi lắng nghe
+        let socket: any;
+        const waitForSocket = () => {
+            socket = (window as any).chatSocket;
+            if (!socket) {
+                setTimeout(waitForSocket, 300);
+                return;
             }
+
+            const updateUnread = async () => {
+                const res = await messageService.getTotalUnreadCount();
+                if (isMounted) setTotalUnread(res?.totalUnreadCount ?? 0);
+            };
+
+            socket.on('newMessage', updateUnread);
+            socket.on('message-read', updateUnread);
+
+            // Cleanup
+            return () => {
+                socket.off('newMessage', updateUnread);
+                socket.off('message-read', updateUnread);
+            };
         };
 
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        const cleanup = waitForSocket();
+
+        return () => {
+            isMounted = false;
+            if (typeof cleanup === 'function') cleanup();
+        };
     }, []);
 
     const handleMarkAllAsRead = async () => {
@@ -112,9 +142,17 @@ export default function HeaderUser({ onMenuClick }: Props) {
                     <Link
                         key={index}
                         href={item.href}
-                        className={`p-2.5 md:p-3.5 hover:bg-gray-100 dark:hover:bg-dark-hover rounded-xl transition-all text-gray-700 dark:text-dark-text-primary ${pathname === item.href ? 'bg-gray-100 dark:bg-dark-hover' : ''}`}
+                        className={`p-2.5 md:p-3.5 hover:bg-gray-100 dark:hover:bg-dark-hover rounded-xl transition-all text-gray-700 dark:text-dark-text-primary ${pathname === item.href ? 'bg-gray-100 dark:bg-dark-hover' : ''} relative`}
                     >
-                        {item.icon}
+                        <span className="relative inline-block">
+                            {item.icon}
+                            {/* Badge đè lên viền icon chat */}
+                            {item.href === '/tin-nhan' && totalUnread > 0 && (
+                                <span className="absolute -bottom-1 -right-1 translate-x-1/4 translate-y-1/4 bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center leading-none z-10 shadow-md border-2 border-white dark:border-dark-card">
+                                    {totalUnread}
+                                </span>
+                            )}
+                        </span>
                     </Link>
                 ))}
             </nav>
