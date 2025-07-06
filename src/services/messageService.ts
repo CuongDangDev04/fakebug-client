@@ -35,5 +35,15 @@ export const messageService = {
     } catch (error: any) {
       console.error('Lỗi khi đọc tin nhắn: ', error)
     }
+  },
+
+  async getTotalUnreadCount() {
+    try {
+      const response = await api.get(`${BASE_URL}/total-unread`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching total unread count:', error);
+      return { totalUnreadCount: 0 };
+    }
   }
 };

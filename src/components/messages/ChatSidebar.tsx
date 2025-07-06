@@ -2,19 +2,56 @@ import { useEffect, useState } from "react";
 import ConversationItem from "./ConversationItem";
 import { messageService } from "@/services/messageService";
 import { useFriendMessagesStore } from "@/stores/friendMessagesStore";
+import { useChatStore } from "@/stores/chatStore";
 
 export default function ChatSidebar({ mobileOpen = true, onClose }: { mobileOpen?: boolean, onClose?: () => void }) {
   const { friends, setFriends } = useFriendMessagesStore();
   const [search, setSearch] = useState('');
+  const [totalUnread, setTotalUnread] = useState(0);
 
+  // Fetch danh sách hội thoại và tổng số chưa đọc khi mount
   useEffect(() => {
     const fetchFriendsMessages = async () => {
       const res = await messageService.getFriendMessages();
-      setFriends(res);
+      if (res?.friends) {
+        setFriends(res.friends);
+        setTotalUnread(res.totalUnreadCount ?? 0);
+      } else {
+        setFriends(res || []);
+        setTotalUnread(0);
+      }
     };
     fetchFriendsMessages();
-  }, [setFriends]);
+  // Sửa dependencies thành [] để không thay đổi giữa các lần render
+  }, []);
 
+  // Realtime: cập nhật danh sách hội thoại và tổng số chưa đọc khi có newMessage hoặc message-read
+  useEffect(() => {
+    const socket = (window as any).chatSocket;
+    if (!socket) return;
+
+    const updateSidebar = async () => {
+      const res = await messageService.getFriendMessages();
+      if (res?.friends) {
+        setFriends(res.friends);
+        setTotalUnread(res.totalUnreadCount ?? 0);
+      } else {
+        setFriends(res || []);
+        setTotalUnread(0);
+      }
+    };
+
+    socket.on('newMessage', updateSidebar);
+    socket.on('message-read', updateSidebar);
+
+    return () => {
+      socket.off('newMessage', updateSidebar);
+      socket.off('message-read', updateSidebar);
+    };
+  // Sửa dependencies thành [] để không thay đổi giữa các lần render
+  }, []);
+
+  // Không cần tính lại unreadCount từ allMessages nữa, dùng từ backend trả về
   const filtered = friends.filter((f) =>
     f.friendName?.toLowerCase().includes(search.toLowerCase())
   );
@@ -36,7 +73,14 @@ export default function ChatSidebar({ mobileOpen = true, onClose }: { mobileOpen
       `}
     >
       <div className="flex items-center justify-between p-4 border-b">
-        <span className="font-bold text-xl text-gray-900 dark:text-dark-text-primary">Chat</span>
+        <span className="font-bold text-xl text-gray-900 dark:text-dark-text-primary flex items-center gap-2">
+          Chat
+          {totalUnread > 0 && (
+            <span className="ml-2 bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5 min-w-[20px] text-center" style={{ lineHeight: "18px" }}>
+              {totalUnread}
+            </span>
+          )}
+        </span>
         {/* Nút đóng trên mobile */}
         <button
           className="md:hidden p-2 rounded hover:bg-gray-200 dark:hover:bg-dark-hover"

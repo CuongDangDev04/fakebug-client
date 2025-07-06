@@ -8,4 +8,5 @@ export interface FriendsMessage {
     friendName: string;
     avatar_url: string;
     is_read?: boolean; 
+    unreadCount?: number; // Thêm dòng này nếu dữ liệu có trường này
 }

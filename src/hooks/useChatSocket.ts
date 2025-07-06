@@ -59,7 +59,7 @@ export function useChatSocket() {
     socket.on('newMessage', (msg: any) => {
       console.log('[ChatSocket] New msg:', msg);
       addMessage(msg);                // cập nhật chi tiết trong ChatBox
-      updateFriendMessage(msg);      // cập nhật danh sách trong Sidebar
+      updateFriendMessage(msg);       // cập nhật danh sách trong Sidebar
     });
 
     socket.on('message-read', (data: { from: number }) => {

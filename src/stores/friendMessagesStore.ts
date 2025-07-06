@@ -7,9 +7,10 @@ interface FriendMessagesState {
   setFriends: (f: FriendsMessage[]) => void;
   updateMessage: (msg: any) => void;
   markAsRead: (friendId: number) => void;
+  incrementUnreadCount: (friendId: number) => void;
 }
 
-export const useFriendMessagesStore = create<FriendMessagesState>((set) => ({
+export const useFriendMessagesStore = create<FriendMessagesState>((set, get) => ({
   friends: [],
   setFriends: (f) => set({ friends: f }),
 
@@ -33,6 +34,7 @@ export const useFriendMessagesStore = create<FriendMessagesState>((set) => ({
                   content: msg.content,
                   sent_at: msg.createdAt,
                   is_read: false,
+                  unreadCount: (f.unreadCount ?? 0) + 1,
                 }
               : f
           )
@@ -50,6 +52,7 @@ export const useFriendMessagesStore = create<FriendMessagesState>((set) => ({
           is_read: false,
           senderId,
           receiverId,
+          unreadCount: 1,
         };
 
         return { friends: [newFriend, ...state.friends] };
@@ -59,7 +62,16 @@ export const useFriendMessagesStore = create<FriendMessagesState>((set) => ({
   markAsRead: (friendId) =>
     set((state) => ({
       friends: state.friends.map((f) =>
-        f.friendId === friendId ? { ...f, is_read: true } : f
+        f.friendId === friendId ? { ...f, is_read: true, unreadCount: 0 } : f
+      ),
+    })),
+
+  incrementUnreadCount: (friendId) =>
+    set((state) => ({
+      friends: state.friends.map((f) =>
+        f.friendId === friendId
+          ? { ...f, unreadCount: (f.unreadCount ?? 0) + 1, is_read: false }
+          : f
       ),
     })),
 }));
