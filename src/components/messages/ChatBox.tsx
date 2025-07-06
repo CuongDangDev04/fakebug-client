@@ -106,7 +106,18 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
 
   const targetUser = messages[0]?.sender.id === currentUserId ? messages[0]?.receiver : messages[0]?.sender;
 
-  // Responsive: Thêm nút mở sidebar trên mobile
+  // Chỉ tự động cuộn xuống cuối khi lần đầu vào chat (không cuộn khi load thêm tin nhắn cũ)
+  const isFirstLoadRef = useRef(true);
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (container && messages.length > 0 && isFirstLoadRef.current) {
+      requestAnimationFrame(() => {
+        container.scrollTop = container.scrollHeight;
+      });
+      isFirstLoadRef.current = false;
+    }
+  }, [targetUserId, messages.length]);
+
   return (
     <div className="flex flex-col h-full border rounded bg-white dark:bg-dark-card border-gray-200 dark:border-dark-border
       md:rounded-none md:border-none

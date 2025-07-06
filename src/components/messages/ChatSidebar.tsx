@@ -23,7 +23,7 @@ export default function ChatSidebar({ mobileOpen = true, onClose }: { mobileOpen
   return (
     <div
       className={`
-        h-full flex flex-col bg-white dark:bg-dark-card border-r
+        h-[90vh] flex flex-col bg-white dark:bg-dark-card border-r
         w-80 max-w-full
         fixed md:static top-0 left-0 z-40
         transition-transform duration-300
@@ -34,7 +34,6 @@ export default function ChatSidebar({ mobileOpen = true, onClose }: { mobileOpen
         md:max-w-xs
         shadow-lg md:shadow-none
       `}
-      style={{ height: '100vh', maxWidth: 360 }}
     >
       <div className="flex items-center justify-between p-4 border-b">
         <span className="font-bold text-xl text-gray-900 dark:text-dark-text-primary">Chat</span>
@@ -65,7 +64,11 @@ export default function ChatSidebar({ mobileOpen = true, onClose }: { mobileOpen
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      {/* Danh sách hội thoại */}
+      <div
+        className="flex-1 overflow-y-auto"
+        style={{ maxHeight: '91vh' }} // 128px: trừ hao cho header + search + viền/padding (tăng thêm để chắc chắn không dư)
+      >
         {filtered.length === 0 && (
           <div className="text-center text-gray-400 dark:text-dark-text-secondary mt-8">Không có hội thoại nào</div>
         )}

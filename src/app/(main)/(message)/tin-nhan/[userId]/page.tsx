@@ -25,7 +25,7 @@ export default function ChatPage(props: ChatPageProps) {
   }
 
   return (
-    <div className="flex h-full relative" style={{ height: "87vh" }}>
+    <div className="flex h-[80] relative" >
       {/* Sidebar: ẩn trên mobile, hiện khi sidebarOpen */}
       <div className="hidden md:block w-80 border-r h-full">
         <ChatSidebar />
@@ -49,7 +49,7 @@ export default function ChatPage(props: ChatPageProps) {
         />
       </div>
       {/* ChatBox */}
-      <div className="flex-1 h-full min-w-0">
+      <div className="flex-1 h-[90vh] min-w-0">
         <ChatBox
           currentUserId={currentUserId}
           targetUserId={targetUserId}
