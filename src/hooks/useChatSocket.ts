@@ -91,6 +91,34 @@ export function useChatSocket() {
       }, 100);
     });
 
+    socket.on('messageReacted', ({ messageId, userId, emoji }: { messageId: number; userId: number; emoji: string }) => {
+      console.log('[ChatSocket] Message reacted:', { messageId, userId, emoji });
+
+      addMessage({
+        id: messageId,
+        reactions: [{ userId, emoji }],
+      } as any);
+
+      updateFriendMessage({
+        id: messageId,
+        reactions: [{ userId, emoji }],
+      });
+    });
+
+    socket.on('messageReactionRemoved', ({ messageId, userId }: { messageId: number; userId: number }) => {
+      console.log('[ChatSocket] Reaction removed:', { messageId, userId });
+
+      addMessage({
+        id: messageId,
+        reactions: [{ userId, emoji: null }],
+      } as any);
+
+      updateFriendMessage({
+        id: messageId,
+        reactions: [{ userId, emoji: null }],
+      });
+    });
+    
 
     return () => {
       socket.off();

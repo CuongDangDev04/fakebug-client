@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Search, UserPlus, Users, UserCheck, X } from 'lucide-react';
+import { Search, UserPlus, Users, UserCheck, X, UserRoundX } from 'lucide-react';
 import React from 'react';
 
 export default function FriendWrapper({ children }: { children: React.ReactNode }) {
@@ -11,7 +11,7 @@ export default function FriendWrapper({ children }: { children: React.ReactNode 
         { path: 'loi-moi-ket-ban-da-nhan', label: 'Lời mời nhận được', icon: UserPlus },
         { path: 'loi-moi-ket-ban-da-gui', label: 'Lời mời đã gửi', icon: UserCheck },
         { path: 'goi-y', label: 'Gợi ý', icon: UserPlus },
-        { path: 'danh-sach-chan', label: 'Danh sách bị chặn', icon: X }
+        { path: 'danh-sach-chan', label: 'Danh sách bị chặn', icon: UserRoundX}
     ];
 
     return (

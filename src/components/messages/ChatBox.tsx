@@ -9,6 +9,7 @@ import { useFriendMessagesStore } from '@/stores/friendMessagesStore';
 import { ChatBoxProps } from '@/types/chatBoxProps';
 import Picker from '@emoji-mart/react';
 import data from '@emoji-mart/data';
+import { EllipsisVertical, Laugh } from 'lucide-react';
 
 
 export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: ChatBoxProps & { onOpenSidebar?: () => void }) {
@@ -27,6 +28,9 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
+  const reactionEmojis = ['❤️', '😆', '😮', '😢', '😡', '👍', '👎'];
+  const [openedReactionMsgId, setOpenedReactionMsgId] = useState<number | null>(null);
+
 
   useEffect(() => {
     const hasUnread = messages.some(msg => msg.sender.id === targetUserId && !msg.is_read);
@@ -147,6 +151,24 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
       isFirstLoadRef.current = false;
     }
   }, [targetUserId, messages.length]);
+  const handleReactToMessage = (messageId: number, emoji: string | null) => {
+    const socket = (window as any).chatSocket;
+
+    if (emoji) {
+      socket?.emit('reactToMessage', {
+        messageId,
+        userId: currentUserId,
+        emoji,
+      });
+    } else {
+      socket?.emit('removeReaction', {
+        messageId,
+        userId: currentUserId,
+      });
+    }
+
+    setShowEmojiPicker(false);
+  };
 
   return (
     <div className="flex flex-col h-full border rounded bg-white dark:bg-dark-card border-gray-200 dark:border-dark-border md:rounded-none md:border-none w-full">
@@ -219,117 +241,181 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
               onMouseEnter={() => setHoveredMsgId(msg.id)}
               onMouseLeave={() => setHoveredMsgId(null)}
             >
-              <div className={`flex items-end gap-2 ${isMe ? 'flex-row-reverse' : ''} max-w-[75%]`}>
-                {!isMe && (
-                  <img
-                    className="rounded-full w-8 h-8 object-cover"
-                    src={(msg.sender as any).avatar_url}
-                    alt="avatar"
-                  />
-                )}
+              <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} w-full`}>
+                <div className={`flex ${isMe ? 'flex-row-reverse' : 'flex-row'} items-start gap-2 max-w-[75%]`}>
+                  {!isMe && (
+                    <img
+                      className="rounded-full w-8 h-8 object-cover"
+                      src={(msg.sender as any).avatar_url}
+                      alt="avatar"
+                    />
+                  )}
 
-                <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} w-fit relative`}>
-                  {/* Three-dot button and dropdown for messages sent by me */}
-                  {isMe && !(msg as any).is_revoked && (
-                    <div className={`absolute top-1 ${isMe ? '-left-8' : 'right-0'} z-20`}>
-                      {hoveredMsgId === msg.id && (
-                        <button
-                          ref={buttonRef}
-                          className="text-gray-500 hover:text-gray-700 dark:text-dark-text-secondary dark:hover:text-dark-text-primary"
+                  <div className="flex flex-col items-start">
+                    {/* Message bubble và icon */}
+                    <div className={`flex items-start ${isMe ? 'flex-row-reverse' : 'flex-row'} gap-1`}>
+                      {/* Nội dung tin nhắn */}
+                      <div className="relative inline-block">
+                        {/* Nội dung tin nhắn */}
+                        <div
+                          className={`px-4 py-2 break-words max-w-[320px] cursor-pointer ${isMe
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-gray-200 dark:bg-dark-hover text-gray-900 dark:text-dark-text-primary'
+                            }`}
+                          style={{
+                            borderRadius: 20,
+                            borderTopRightRadius: 20,
+                            borderTopLeftRadius: 20,
+                            borderBottomRightRadius: isMe ? 6 : 20,
+                            borderBottomLeftRadius: isMe ? 20 : 6,
+                          }}
                           onClick={() =>
-                            setOpenedOptionsMsgId((prev) => (prev === msg.id ? null : msg.id))
+                            setShowTime((prev) => ({
+                              ...prev,
+                              [msg.id]: !prev[msg.id],
+                            }))
                           }
                         >
-                          <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                            <circle cx="12" cy="5" r="2" />
-                            <circle cx="12" cy="12" r="2" />
-                            <circle cx="12" cy="19" r="2" />
-                          </svg>
-                        </button>
-                      )}
+                          {(msg as any).is_revoked ? (
+                            <i className="text-sm text-white dark:text-dark-text-secondary italic">
+                              Tin nhắn đã được thu hồi
+                            </i>
+                          ) : (
+                            msg.content
+                          )}
+                        </div>
 
-                      {/* Dropdown menu */}
-                      {openedOptionsMsgId === msg.id && (
-                        <div
-                          ref={dropdownRef}
-                          className="absolute left-1/2 -translate-x-1/2 bottom-8 bg-white dark:bg-dark-card border border-gray-300 dark:border-dark-border rounded shadow-md py-1 z-30 min-w-[120px]"
-                        >
+                        {/* Hiển thị reactions nếu có */}
+                        {msg.reactions && msg.reactions.length > 0 && (
+                          <div className="absolute -bottom-2 -right-2 bg-white dark:bg-dark-card rounded-full border shadow px-[6px] py-[1px] text-sm flex items-center">
+                            {Object.entries(
+                              msg.reactions.reduce((acc: Record<string, number>, r) => {
+                                acc[r.emoji] = (acc[r.emoji] || 0) + 1;
+                                return acc;
+                              }, {})
+                            ).map(([emoji, count]) => (
+                              <span key={emoji} className="mx-0.5">
+                                {emoji}
+                                {count > 1 && <span className="ml-0.5 text-xs">{count}</span>}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
 
-                          <button
-                            className="block w-full text-left text-sm px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-hover"
-                            onClick={() => {
-                              setOpenedOptionsMsgId(null);
-                              alert('Chức năng chỉnh sửa đang được phát triển');
-                            }}
+
+                      {/* Hiển thị icon nếu đang hover và chưa thu hồi */}
+                      {hoveredMsgId === msg.id && !(msg as any).is_revoked && (
+                        <div className={`flex items-center gap-1 self-stretch ${isMe ? 'flex-row-reverse' : ''}`}>
+
+
+                          {/* Icon mặt cười */}
+                          <div
+                            className="text-gray-500 hover:text-yellow-500 cursor-pointer relative"
+                            onClick={() =>
+                              setOpenedReactionMsgId((prev) => (prev === msg.id ? null : msg.id))
+                            }
                           >
-                            Chỉnh sửa
-                          </button>
-                          <button
-                            className="block w-full text-left text-sm px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-hover"
-                            onClick={() => {
-                              const socket = (window as any).chatSocket;
-                              socket?.emit('revokeMessage', { messageId: msg.id });
-                              setOpenedOptionsMsgId(null);
-                            }}
-                          >
-                            Thu hồi
-                          </button>
-                          <button
-                            className="block w-full text-left text-sm px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-hover"
-                            onClick={() => {
-                              setOpenedOptionsMsgId(null);
-                              alert('Chức năng chuyển tiếp đang được phát triển');
-                            }}
-                          >
-                            Chuyển tiếp
-                          </button>
-                          <button
-                            className="block w-full text-left text-sm px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-hover"
-                            onClick={() => {
-                              navigator.clipboard.writeText(msg.content);
-                              setOpenedOptionsMsgId(null);
-                            }}
-                          >
-                            Sao chép
-                          </button>
+                            <Laugh />
+                            {openedReactionMsgId === msg.id && (
+                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-white dark:bg-dark-card border rounded shadow z-50 flex space-x-1">
+                                {reactionEmojis.map((emoji) => (
+                                  <button
+                                    key={emoji}
+                                    onClick={() => {
+                                      handleReactToMessage(msg.id, emoji);
+                                      setOpenedReactionMsgId(null);
+                                    }}
+                                    className="text-xl hover:scale-110 transition-transform"
+                                  >
+                                    {emoji}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Icon ba chấm */}
+                          <div className="relative flex items-center ">
+                            <button
+                              ref={buttonRef}
+                              className="text-gray-500 hover:text-gray-700 dark:text-dark-text-secondary dark:hover:text-dark-text-primary"
+                              onClick={() =>
+                                setOpenedOptionsMsgId((prev) => (prev === msg.id ? null : msg.id))
+                              }
+                            >
+                              <EllipsisVertical />
+                            </button>
+
+                            {/* Dropdown menu hiển thị trên */}
+                            {openedOptionsMsgId === msg.id && (
+                              <div
+                                ref={dropdownRef}
+                                className="absolute bottom-full right-0 mb-1 bg-white dark:bg-dark-card border border-gray-300 dark:border-dark-border rounded shadow-md py-1 z-30 min-w-[120px]"
+                              >
+                                {/* Nếu là tin nhắn của mình mới hiển thị "Chỉnh sửa" và "Thu hồi" */}
+                                {isMe && (
+                                  <>
+                                    <button
+                                      className="block w-full text-left text-sm px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-hover"
+                                      onClick={() => {
+                                        setOpenedOptionsMsgId(null);
+                                        alert('Chức năng chỉnh sửa đang được phát triển');
+                                      }}
+                                    >
+                                      Chỉnh sửa
+                                    </button>
+                                    <button
+                                      className="block w-full text-left text-sm px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-hover"
+                                      onClick={() => {
+                                        const socket = (window as any).chatSocket;
+                                        socket?.emit('revokeMessage', { messageId: msg.id });
+                                        setOpenedOptionsMsgId(null);
+                                      }}
+                                    >
+                                      Thu hồi
+                                    </button>
+                                  </>
+                                )}
+
+                                {/* Còn lại luôn hiện */}
+                                <button
+                                  className="block w-full text-left text-sm px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-hover"
+                                  onClick={() => {
+                                    setOpenedOptionsMsgId(null);
+                                    alert('Chức năng chuyển tiếp đang được phát triển');
+                                  }}
+                                >
+                                  Chuyển tiếp
+                                </button>
+                                <button
+                                  className="block w-full text-left text-sm px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-hover"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(msg.content);
+                                    setOpenedOptionsMsgId(null);
+                                  }}
+                                >
+                                  Sao chép
+                                </button>
+                              </div>
+                            )}
+
+                          </div>
+
                         </div>
                       )}
                     </div>
-                  )}
 
-                  <div
-                    className={`px-4 py-2 break-words max-w-[320px] cursor-pointer ${isMe
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-200 dark:bg-dark-hover text-gray-900 dark:text-dark-text-primary'
-                      }`}
-                    style={{
-                      borderRadius: 20,
-                      borderTopRightRadius: 20,
-                      borderTopLeftRadius: 20,
-                      borderBottomRightRadius: isMe ? 6 : 20,
-                      borderBottomLeftRadius: isMe ? 20 : 6,
-                    }}
-                    onClick={() =>
-                      setShowTime((prev) => ({
-                        ...prev,
-                        [msg.id]: !prev[msg.id],
-                      }))
-                    }
-                  >
-                    {(msg as any).is_revoked ? (
-                      <i className="text-sm text-white dark:text-dark-text-secondary italic">Tin nhắn đã được thu hồi</i>
-                    ) : (
-                      msg.content
+                    {/* Hiển thị thời gian & đã xem */}
+                    {showTime[msg.id] && (
+                      <div className="text-[11px] text-gray-500 dark:text-dark-text-secondary mt-0.5">
+                        {sentAt && new Date(sentAt).toLocaleString()}
+                      </div>
+                    )}
+                    {isMe && isLastSentByMe && wasRead && (
+                      <div className="text-[11px] text-blue-500 dark:text-blue-400 mt-0.5">Đã xem</div>
                     )}
                   </div>
-                  {showTime[msg.id] && (
-                    <div className="text-[11px] text-gray-500 dark:text-dark-text-secondary mt-0.5">
-                      {sentAt && new Date(sentAt).toLocaleString()}
-                    </div>
-                  )}
-                  {isMe && isLastSentByMe && wasRead && (
-                    <div className="text-[11px] text-blue-500 dark:text-blue-400 mt-0.5">Đã xem</div>
-                  )}
                 </div>
               </div>
             </div>
@@ -351,16 +437,16 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
         <button
           ref={buttonRef}
           onClick={() => setShowEmojiPicker((prev) => !prev)}
-          className="text-2xl"
+          className="text-2xl hover:text-yellow-500"
           type="button"
         >
-          🙂
+          <Laugh />
         </button>
 
 
         {/* Emoji Picker */}
         {showEmojiPicker && (
-          <div ref={emojiPickerRef} className="absolute bottom-full right-2 mb-2 z-50">
+          <div ref={emojiPickerRef} className="absolute  bottom-full right-2 mb-2 z-50">
             <Picker
               data={data}
               onEmojiSelect={(emoji: any) => {

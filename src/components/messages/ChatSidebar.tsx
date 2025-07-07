@@ -13,6 +13,7 @@ export default function ChatSidebar({ mobileOpen = true, onClose }: { mobileOpen
   useEffect(() => {
     const fetchFriendsMessages = async () => {
       const res = await messageService.getFriendMessages();
+      console.log("Friends in sidebar update:", res.friends);
       if (res?.friends) {
         setFriends(res.friends);
         setTotalUnread(res.totalUnreadCount ?? 0);
@@ -43,9 +44,10 @@ export default function ChatSidebar({ mobileOpen = true, onClose }: { mobileOpen
 
     socket.on('newMessage', updateSidebar);
     socket.on('message-read', updateSidebar);
-
+    socket.on('reactToMessage', updateSidebar)
     return () => {
       socket.off('newMessage', updateSidebar);
+      socket.off('reactToMessage', updateSidebar)
       socket.off('message-read', updateSidebar);
     };
   // Sửa dependencies thành [] để không thay đổi giữa các lần render

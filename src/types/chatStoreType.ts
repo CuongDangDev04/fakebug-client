@@ -4,7 +4,12 @@ export interface User {
   last_name: string;
   avatar_url: string;
 }
-
+export interface Reaction{
+  id: number;
+  emoji: string;
+  create_at: Date;
+  user:User
+}
 export interface ChatMessage {
   id: number;
   sender: User;
@@ -14,4 +19,5 @@ export interface ChatMessage {
   sent_at?: string;
   is_read?: boolean;
   is_revoked?: boolean;
+  reactions: Reaction[];
 }
