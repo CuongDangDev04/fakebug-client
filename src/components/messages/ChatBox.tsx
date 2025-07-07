@@ -4,11 +4,9 @@ import Link from 'next/link';
 import { useChatMessages } from '@/hooks/useChatMessages';
 import { useUserOnlineStatus } from '@/hooks/useUserOnlineStatus';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useThemeStore } from '@/stores/themeStore';
 import Loader from '@/components/common/users/Loader';
 import { useFriendMessagesStore } from '@/stores/friendMessagesStore';
 import { ChatBoxProps } from '@/types/chatBoxProps';
-import { ChatMessage } from '@/types/chatStoreType'; // đảm bảo import đúng type
 
 export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: ChatBoxProps & { onOpenSidebar?: () => void }) {
   const { messages, loading, loadMore } = useChatMessages(currentUserId, targetUserId);
@@ -18,10 +16,12 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
   const [input, setInput] = useState('');
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [showTime, setShowTime] = useState<{ [id: string]: boolean }>({});
-  const { isDark } = useThemeStore();
   const [loadingMore, setLoadingMore] = useState(false);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const [hoveredMsgId, setHoveredMsgId] = useState<number | null>(null);
+  const [openedOptionsMsgId, setOpenedOptionsMsgId] = useState<number | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const hasUnread = messages.some(msg => msg.sender.id === targetUserId && !msg.is_read);
@@ -33,7 +33,7 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
       });
       markAsReadInSidebar(targetUserId);
     }
-  }, [messages]);
+  }, [messages, currentUserId, targetUserId, markAsReadInSidebar]);
 
   useEffect(() => {
     const container = messagesContainerRef.current;
@@ -61,7 +61,7 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
 
     container.addEventListener('scroll', handleScroll);
     return () => container.removeEventListener('scroll', handleScroll);
-  }, [loadMore, loadingMore]);
+  }, [loadMore, loadingMore, messages]);
 
   useEffect(() => {
     const container = messagesContainerRef.current;
@@ -69,6 +69,22 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
     const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 20;
     setShowScrollToBottom(!isAtBottom);
   }, [messages]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target as Node)
+      ) {
+        setOpenedOptionsMsgId(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const scrollToBottom = () => {
     const container = messagesContainerRef.current;
@@ -108,7 +124,6 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
 
   const targetUser = messages[0]?.sender.id === currentUserId ? messages[0]?.receiver : messages[0]?.sender;
 
-  // Chỉ tự động cuộn xuống cuối khi lần đầu vào chat (không cuộn khi load thêm tin nhắn cũ)
   const isFirstLoadRef = useRef(true);
   useEffect(() => {
     const container = messagesContainerRef.current;
@@ -121,15 +136,9 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
   }, [targetUserId, messages.length]);
 
   return (
-    <div className="flex flex-col h-full border rounded bg-white dark:bg-dark-card border-gray-200 dark:border-dark-border
-      md:rounded-none md:border-none
-      w-full
-      ">
+    <div className="flex flex-col h-full border rounded bg-white dark:bg-dark-card border-gray-200 dark:border-dark-border md:rounded-none md:border-none w-full">
       {/* Header */}
-      <div className="flex items-center gap-3 p-3 border-b bg-gray-50 dark:bg-dark-hover border-gray-200 dark:border-dark-border
-        hover:bg-gray-100 dark:hover:bg-dark-light transition-colors
-        ">
-        {/* Nút mở sidebar trên mobile */}
+      <div className="flex items-center gap-3 p-3 border-b bg-gray-50 dark:bg-dark-hover border-gray-200 dark:border-dark-border hover:bg-gray-100 dark:hover:bg-dark-light transition-colors">
         <button
           className="md:hidden p-2 rounded hover:bg-gray-200 dark:hover:bg-dark-hover"
           onClick={onOpenSidebar}
@@ -164,9 +173,8 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
         </Link>
       </div>
 
-      {/* Tin nhắn */}
-      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-2 py-2 space-y-4 relative md:px-3"
-        style={{ minHeight: 0, maxHeight: 'calc(100vh - 120px)' }}>
+      {/* Messages */}
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-2 py-2 space-y-4 relative md:px-3" style={{ minHeight: 0, maxHeight: 'calc(100vh - 120px)' }}>
         {loading && <div className="text-gray-700 dark:text-dark-text-primary">Đang tải...</div>}
         {loadingMore && (
           <div className="flex justify-center py-2">
@@ -181,7 +189,7 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
             aria-label="Cuộn xuống cuối"
           >
             <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
-              <path d="M12 16c-.28 0-.53-.11-.71-.29l-6-6a1.003 1.003 0 011.42-1.42L12 13.59l5.29-5.3a1.003 1.003 0 111.42 1.42l-6 6c-.18.18-.43.29-.71.29z" fill="currentColor" />
+              <path d="M12 16c-.28 0-.53-.11-.71-.29l-6-6a1.003 1.003 0 011.42 1.42L12 13.59l5.29-5.3a1.003 1.003 0 111.42 1.42l-6 6c-.18.18-.43.29-.71.29z" fill="currentColor" />
             </svg>
           </button>
         )}
@@ -208,24 +216,78 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
                 )}
 
                 <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} w-fit relative`}>
-                  {/* Dropdown nổi khi hover */}
-                  {isMe && !(msg as any).is_revoked && hoveredMsgId === msg.id && (
-                    <div
-                      className="absolute -top-8 right-0 z-10 bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded shadow px-2 py-1"
-                    >
-                      <button
-                        className="text-xs text-red-500 hover:underline"
-                        onClick={() => {
-                          const socket = (window as any).chatSocket;
-                          socket?.emit('revokeMessage', { messageId: msg.id });
-                        }}
-                      >
-                        Thu hồi
-                      </button>
+                  {/* Three-dot button and dropdown for messages sent by me */}
+                  {isMe && !(msg as any).is_revoked && (
+                    <div className={`absolute top-1 ${isMe ? '-left-8' : 'right-0'} z-20`}>
+                      {hoveredMsgId === msg.id && (
+                        <button
+                          ref={buttonRef}
+                          className="text-gray-500 hover:text-gray-700 dark:text-dark-text-secondary dark:hover:text-dark-text-primary"
+                          onClick={() =>
+                            setOpenedOptionsMsgId((prev) => (prev === msg.id ? null : msg.id))
+                          }
+                        >
+                          <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                            <circle cx="12" cy="5" r="2" />
+                            <circle cx="12" cy="12" r="2" />
+                            <circle cx="12" cy="19" r="2" />
+                          </svg>
+                        </button>
+                      )}
+
+                      {/* Dropdown menu */}
+                      {openedOptionsMsgId === msg.id && (
+                        <div
+                          ref={dropdownRef}
+                          className="absolute left-1/2 -translate-x-1/2 bottom-8 bg-white dark:bg-dark-card border border-gray-300 dark:border-dark-border rounded shadow-md py-1 z-30 min-w-[120px]"
+                        >
+
+                          <button
+                            className="block w-full text-left text-sm px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-hover"
+                            onClick={() => {
+                              setOpenedOptionsMsgId(null);
+                              alert('Chức năng chỉnh sửa đang được phát triển');
+                            }}
+                          >
+                            Chỉnh sửa
+                          </button>
+                          <button
+                            className="block w-full text-left text-sm px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-hover"
+                            onClick={() => {
+                              const socket = (window as any).chatSocket;
+                              socket?.emit('revokeMessage', { messageId: msg.id });
+                              setOpenedOptionsMsgId(null);
+                            }}
+                          >
+                            Thu hồi
+                          </button>
+                          <button
+                            className="block w-full text-left text-sm px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-hover"
+                            onClick={() => {
+                              setOpenedOptionsMsgId(null);
+                              alert('Chức năng chuyển tiếp đang được phát triển');
+                            }}
+                          >
+                            Chuyển tiếp
+                          </button>
+                          <button
+                            className="block w-full text-left text-sm px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-hover"
+                            onClick={() => {
+                              navigator.clipboard.writeText(msg.content);
+                              setOpenedOptionsMsgId(null);
+                            }}
+                          >
+                            Sao chép
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
+
                   <div
-                    className={`px-4 py-2 break-words max-w-[320px] cursor-pointer ${isMe ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-dark-hover text-gray-900 dark:text-dark-text-primary'
+                    className={`px-4 py-2 break-words max-w-[320px] cursor-pointer ${isMe
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-200 dark:bg-dark-hover text-gray-900 dark:text-dark-text-primary'
                       }`}
                     style={{
                       borderRadius: 20,
@@ -247,7 +309,6 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
                       msg.content
                     )}
                   </div>
-                  {/* ...existing code for time and "Đã xem"... */}
                   {showTime[msg.id] && (
                     <div className="text-[11px] text-gray-500 dark:text-dark-text-secondary mt-0.5">
                       {sentAt && new Date(sentAt).toLocaleString()}

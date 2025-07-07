@@ -28,7 +28,7 @@ export function useChatMessages(currentUserId: number, targetUserId: number) {
     if (loading || !hasMore) return;
     setLoading(true);
     try {
-      const res = await messageService.getMessagesBetweenUsers(currentUserId, targetUserId, 10, currentOffset);
+      const res = await messageService.getMessagesBetweenUsers(currentUserId, targetUserId, 15, currentOffset);
       const messages = res.data.reverse(); // đảo ngược vì BE trả DESC
       if (messages.length < 10) setHasMore(false);
       addMessages(messages, true); // prepend
