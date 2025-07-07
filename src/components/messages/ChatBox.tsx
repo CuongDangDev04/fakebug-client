@@ -7,6 +7,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Loader from '@/components/common/users/Loader';
 import { useFriendMessagesStore } from '@/stores/friendMessagesStore';
 import { ChatBoxProps } from '@/types/chatBoxProps';
+import Picker from '@emoji-mart/react';
+import data from '@emoji-mart/data';
+
 
 export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: ChatBoxProps & { onOpenSidebar?: () => void }) {
   const { messages, loading, loadMore } = useChatMessages(currentUserId, targetUserId);
@@ -22,6 +25,8 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
   const [openedOptionsMsgId, setOpenedOptionsMsgId] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const hasUnread = messages.some(msg => msg.sender.id === targetUserId && !msg.is_read);
@@ -34,6 +39,28 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
       markAsReadInSidebar(targetUserId);
     }
   }, [messages, currentUserId, targetUserId, markAsReadInSidebar]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        emojiPickerRef.current &&
+        !emojiPickerRef.current.contains(event.target as Node) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target as Node)
+      ) {
+        setShowEmojiPicker(false);
+      }
+
+    };
+
+    if (showEmojiPicker) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showEmojiPicker]);
 
   useEffect(() => {
     const container = messagesContainerRef.current;
@@ -70,21 +97,6 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
     setShowScrollToBottom(!isAtBottom);
   }, [messages]);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(event.target as Node)
-      ) {
-        setOpenedOptionsMsgId(null);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   const scrollToBottom = () => {
     const container = messagesContainerRef.current;
@@ -105,6 +117,7 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
     });
 
     setInput('');
+    setShowEmojiPicker(false)
   };
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -325,7 +338,7 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
       </div>
 
       {/* Input */}
-      <div className="p-2 border-t flex gap-2 border-gray-200 dark:border-dark-border bg-white dark:bg-dark-card">
+      <div className="p-2 border-t flex items-center gap-2 border-gray-200 dark:border-dark-border bg-white dark:bg-dark-card relative">
         <input
           className="flex-1 border rounded px-3 py-2 text-gray-900 dark:text-dark-text-primary bg-white dark:bg-dark-card placeholder-gray-400 dark:placeholder-dark-text-secondary"
           value={input}
@@ -333,6 +346,33 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
           onKeyDown={handleInputKeyDown}
           placeholder="Nhập tin nhắn..."
         />
+
+        {/* Nút emoji */}
+        <button
+          ref={buttonRef}
+          onClick={() => setShowEmojiPicker((prev) => !prev)}
+          className="text-2xl"
+          type="button"
+        >
+          🙂
+        </button>
+
+
+        {/* Emoji Picker */}
+        {showEmojiPicker && (
+          <div ref={emojiPickerRef} className="absolute bottom-full right-2 mb-2 z-50">
+            <Picker
+              data={data}
+              onEmojiSelect={(emoji: any) => {
+                setInput((prev) => prev + emoji.native);
+              }}
+              theme="light"
+            />
+          </div>
+        )}
+
+
+
         <button
           className="bg-blue-500 text-white dark:text-dark-text-primary px-4 py-2 rounded"
           onClick={handleSend}
@@ -341,6 +381,7 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
           Gửi
         </button>
       </div>
+
     </div>
   );
 }
