@@ -153,17 +153,24 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
   }, [targetUserId, messages.length]);
   const handleReactToMessage = (messageId: number, emoji: string | null) => {
     const socket = (window as any).chatSocket;
+    const msg = messages.find(m => m.id === messageId);
+    if (!msg || !emoji) return;
 
-    if (emoji) {
-      socket?.emit('reactToMessage', {
+    const userAlreadyReacted = msg.reactions?.some(r => r.user.id === currentUserId && r.emoji === emoji);
+
+    if (userAlreadyReacted) {
+      // Gỡ reaction nếu đã tồn tại
+      socket?.emit('removeReaction', {
         messageId,
         userId: currentUserId,
         emoji,
       });
     } else {
-      socket?.emit('removeReaction', {
+      // Gửi reaction mới
+      socket?.emit('reactToMessage', {
         messageId,
         userId: currentUserId,
+        emoji,
       });
     }
 

@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import ConversationItem from "./ConversationItem";
 import { messageService } from "@/services/messageService";
 import { useFriendMessagesStore } from "@/stores/friendMessagesStore";
-import { useChatStore } from "@/stores/chatStore";
 
 export default function ChatSidebar({ mobileOpen = true, onClose }: { mobileOpen?: boolean, onClose?: () => void }) {
   const { friends, setFriends } = useFriendMessagesStore();
@@ -44,10 +43,10 @@ export default function ChatSidebar({ mobileOpen = true, onClose }: { mobileOpen
 
     socket.on('newMessage', updateSidebar);
     socket.on('message-read', updateSidebar);
-    socket.on('reactToMessage', updateSidebar)
+    socket.on('reactionUpdated', updateSidebar)
     return () => {
       socket.off('newMessage', updateSidebar);
-      socket.off('reactToMessage', updateSidebar)
+      socket.off('reactionUpdated', updateSidebar)
       socket.off('message-read', updateSidebar);
     };
   // Sửa dependencies thành [] để không thay đổi giữa các lần render

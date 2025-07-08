@@ -91,34 +91,17 @@ export function useChatSocket() {
       }, 100);
     });
 
-    socket.on('messageReacted', ({ messageId, userId, emoji }: { messageId: number; userId: number; emoji: string }) => {
-      console.log('[ChatSocket] Message reacted:', { messageId, userId, emoji });
+    socket.on('reactionUpdated', (updatedMessage: any) => {
+      console.log('[ChatSocket] Reaction updated:', updatedMessage);
 
-      addMessage({
-        id: messageId,
-        reactions: [{ userId, emoji }],
-      } as any);
+      // Cập nhật trong ChatBox
+      addMessage(updatedMessage);
 
-      updateFriendMessage({
-        id: messageId,
-        reactions: [{ userId, emoji }],
-      });
+      // Cập nhật trong danh sách bạn bè (nếu cần)
+      updateFriendMessage(updatedMessage);
     });
 
-    socket.on('messageReactionRemoved', ({ messageId, userId }: { messageId: number; userId: number }) => {
-      console.log('[ChatSocket] Reaction removed:', { messageId, userId });
 
-      addMessage({
-        id: messageId,
-        reactions: [{ userId, emoji: null }],
-      } as any);
-
-      updateFriendMessage({
-        id: messageId,
-        reactions: [{ userId, emoji: null }],
-      });
-    });
-    
 
     return () => {
       socket.off();
