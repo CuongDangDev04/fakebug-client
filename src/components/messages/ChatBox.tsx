@@ -30,6 +30,7 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const reactionEmojis = ['❤️', '😆', '😮', '😢', '😡', '👍', '👎'];
   const [openedReactionMsgId, setOpenedReactionMsgId] = useState<number | null>(null);
+  const [viewingReactionsMsg, setViewingReactionsMsg] = useState<number | null>(null);
 
 
   useEffect(() => {
@@ -294,7 +295,10 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
 
                         {/* Hiển thị reactions nếu có */}
                         {msg.reactions && msg.reactions.length > 0 && (
-                          <div className="absolute -bottom-2 -right-2 bg-white dark:bg-dark-card rounded-full border shadow px-[6px] py-[1px] text-sm flex items-center">
+                          <div
+                            onClick={() => setViewingReactionsMsg(msg.id)} // 👈 mở modal
+                            className="absolute -bottom-2 -right-2 bg-white dark:bg-dark-card rounded-full border  py-[1px] text-sm flex items-center cursor-pointer"
+                          >
                             {Object.entries(
                               msg.reactions.reduce((acc: Record<string, number>, r) => {
                                 acc[r.emoji] = (acc[r.emoji] || 0) + 1;
@@ -307,8 +311,94 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
                               </span>
                             ))}
                           </div>
+
                         )}
                       </div>
+                      {/* modal reaction */}
+                      {viewingReactionsMsg !== null && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center">
+                          {/* Lớp nền mờ nhẹ, không đen thui */}
+                          <div className="absolute inset-0 pointer-events-none bg-black/5 " />
+
+                          {/* Modal nổi */}
+                          <div className="relative bg-white dark:bg-dark-card rounded-xl w-[95%] max-w-md z-10 max-h-[80vh] overflow-y-auto p-4">
+
+                            {/* Header */}
+                            <div className="flex justify-between items-center border-b pb-2 mb-3">
+                              <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Cảm xúc về tin nhắn</h2>
+                              <button
+                                onClick={() => setViewingReactionsMsg(null)}
+                                className="text-gray-400 hover:text-red-500 text-xl"
+                              >
+                                ×
+                              </button>
+                            </div>
+
+                            {/* Nội dung modal */}
+                            {(() => {
+                              const msg = messages.find(m => m.id === viewingReactionsMsg);
+                              if (!msg) return null;
+
+                              const grouped = msg.reactions.reduce((acc: Record<string, any[]>, r) => {
+                                if (!acc[r.emoji]) acc[r.emoji] = [];
+                                acc[r.emoji].push(r);
+                                return acc;
+                              }, {});
+
+                              return (
+                                <>
+                                  {Object.entries(grouped).map(([emoji, users]) => (
+                                    <div key={emoji} className="mb-4">
+                                      <div className="font-medium text-sm mb-2 text-gray-700 dark:text-gray-200">
+                                        {emoji} {users.length}
+                                      </div>
+                                      <div className="space-y-1">
+                                        {users.map(({ user }) => (
+                                          <div
+                                            key={user.id}
+                                            onClick={() => {
+                                              const socket = (window as any).chatSocket;
+                                              socket?.emit('removeReaction', {
+                                                messageId: msg.id,
+                                                userId: user.id,
+                                                emoji,
+                                              });
+
+                                              // Nếu là user hiện tại thì tự đóng modal
+                                              if (user.id === currentUserId) {
+                                                setViewingReactionsMsg(null);
+                                              }
+                                            }}
+                                            className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-hover cursor-pointer transition"
+                                          >
+                                            <div className="flex items-center gap-2 overflow-hidden">
+                                              <img
+                                                src={user.avatar_url || '/default-avatar.png'}
+                                                alt="avatar"
+                                                className="w-7 h-7 rounded-full object-cover"
+                                              />
+                                              <div className="flex flex-col overflow-hidden">
+                                                <span className="text-sm text-gray-800 dark:text-white truncate">
+                                                  {user.first_name} {user.last_name}
+                                                </span>
+                                                {user.id === currentUserId && (
+                                                  <span className="text-xs text-gray-500 dark:text-dark-text-secondary">Nhấp để gỡ</span>
+                                                )}
+                                              </div>
+
+                                            </div>
+                                            <span className="text-xl">{emoji}</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </>
+                              );
+                            })()}
+                          </div>
+                        </div>
+                      )}
 
 
                       {/* Hiển thị icon nếu đang hover và chưa thu hồi */}

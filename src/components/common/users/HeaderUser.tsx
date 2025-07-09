@@ -1,6 +1,6 @@
 'use client'
 
-import { Menu, Search, Bell, User, Sun, Moon, Home, Users, MessageCircle, UsersRound, LogOut } from 'lucide-react'
+import { Menu, Search, Bell, User, Sun, Moon, Home, Users, UsersRound, LogOut, MessageCircleMore } from 'lucide-react'
 import { useThemeStore } from '@/stores/themeStore'
 import { useUserStore } from '@/stores/userStore'
 import Link from 'next/link'
@@ -16,7 +16,7 @@ const navItems = [
     { icon: <Home size={32} />, href: '/' },
     { icon: <Users size={32} />, href: '/ban-be/tat-ca' },
     { icon: <UsersRound size={32} />, href: '/groups' },
-    { icon: <MessageCircle size={32} />, href: '/tin-nhan' },
+    { icon: <MessageCircleMore size={32} />, href: '/tin-nhan' },
 ]
 
 type Props = {
