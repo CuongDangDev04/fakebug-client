@@ -14,6 +14,7 @@ interface ChatState {
   setUserLastSeen: (userId: number, isoTime: string | null) => void;
   markMessagesAsReadFromUser: (fromUserId: number) => void;
   setUserHasReadMyMessages: (userId: number, myUserId: number) => void;
+  removeMessageById: (id: number) => void;
   clearMessages: () => void;
 }
 
@@ -23,10 +24,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   messages: [],
   readStatus: {},
 
-  // addMessage: (msg) =>
-  //   set((state) => ({
-  //     messages: [...state.messages, msg],
-  //   })),
+
   addMessage: (msg) =>
     set((state) => {
       const existingIndex = state.messages.findIndex((m) => m.id === msg.id);
@@ -84,6 +82,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
           ? { ...msg, is_read: true }
           : msg
       ),
+    })),
+
+  removeMessageById: (id) =>
+    set((state) => ({
+      messages: state.messages.filter((msg) => msg.id !== id),
     })),
 
   clearMessages: () => set({ messages: [] }),

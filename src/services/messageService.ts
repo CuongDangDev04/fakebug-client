@@ -45,5 +45,14 @@ export const messageService = {
       console.error('Error fetching total unread count:', error);
       return { totalUnreadCount: 0 };
     }
+  },
+  async deleteMessageForMe(messageId: number) {
+    try{
+      const res = await api.put(`${BASE_URL}/delete-for-me/${messageId}`);
+      return res.data;
+    }
+    catch(error:any){
+      console.error('Lỗi: ', error)
+    }
   }
 };

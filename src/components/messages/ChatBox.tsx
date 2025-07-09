@@ -10,6 +10,8 @@ import { ChatBoxProps } from '@/types/chatBoxProps';
 import Picker from '@emoji-mart/react';
 import data from '@emoji-mart/data';
 import { EllipsisVertical, Laugh } from 'lucide-react';
+import { messageService } from '@/services/messageService';
+import { useChatStore } from '@/stores/chatStore';
 
 
 export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: ChatBoxProps & { onOpenSidebar?: () => void }) {
@@ -31,7 +33,7 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
   const reactionEmojis = ['❤️', '😆', '😮', '😢', '😡', '👍', '👎'];
   const [openedReactionMsgId, setOpenedReactionMsgId] = useState<number | null>(null);
   const [viewingReactionsMsg, setViewingReactionsMsg] = useState<number | null>(null);
-
+  const removeMessageById = useChatStore((state) => state.removeMessageById)
 
   useEffect(() => {
     const hasUnread = messages.some(msg => msg.sender.id === targetUserId && !msg.is_read);
@@ -177,6 +179,15 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
 
     setShowEmojiPicker(false);
   };
+  const handdleDeteledMessageForMe = async (messageId: number) => {
+    try {
+      await messageService.deleteMessageForMe(messageId)
+      removeMessageById(messageId)
+    } catch (error) {
+      console.error("Lỗi: ", error)
+    }
+
+  }
 
   return (
     <div className="flex flex-col h-full border rounded bg-white dark:bg-dark-card border-gray-200 dark:border-dark-border md:rounded-none md:border-none w-full">
@@ -448,20 +459,12 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
                             {openedOptionsMsgId === msg.id && (
                               <div
                                 ref={dropdownRef}
-                                className="absolute bottom-full right-0 mb-1 bg-white dark:bg-dark-card border border-gray-300 dark:border-dark-border rounded shadow-md py-1 z-30 min-w-[120px]"
+                                className="absolute bottom-full right-0 mb-1 bg-white dark:bg-dark-card border border-gray-300 dark:border-dark-border rounded shadow-md py-1 z-30 min-w-[140px]"
                               >
                                 {/* Nếu là tin nhắn của mình mới hiển thị "Chỉnh sửa" và "Thu hồi" */}
                                 {isMe && (
                                   <>
-                                    <button
-                                      className="block w-full text-left text-sm px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-hover"
-                                      onClick={() => {
-                                        setOpenedOptionsMsgId(null);
-                                        alert('Chức năng chỉnh sửa đang được phát triển');
-                                      }}
-                                    >
-                                      Chỉnh sửa
-                                    </button>
+
                                     <button
                                       className="block w-full text-left text-sm px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-hover"
                                       onClick={() => {
@@ -494,6 +497,17 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
                                 >
                                   Sao chép
                                 </button>
+                                <button
+                                  className="block w-full text-left text-sm px-4 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-dark-hover"
+                                  onClick={() => {
+                                    handdleDeteledMessageForMe(msg.id)
+                                    setOpenedOptionsMsgId(null);
+                                  }
+                                  }
+                                >
+                                  Xóa ở phía tôi
+                                </button>
+
                               </div>
                             )}
 
