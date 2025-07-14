@@ -14,7 +14,16 @@ import { messageService } from '@/services/messageService';
 import { useChatStore } from '@/stores/chatStore';
 
 
-export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: ChatBoxProps & { onOpenSidebar?: () => void }) {
+export default function ChatBox({
+  currentUserId,
+  targetUserId,
+  onOpenSidebar,
+  onStartCall
+}: ChatBoxProps & {
+  onOpenSidebar?: () => void;
+  onStartCall?: (type: 'audio' | 'video') => void;
+}) {
+
   const { messages, loading, loadMore } = useChatMessages(currentUserId, targetUserId);
   const { isOnline: isTargetOnline, lastSeen, formatLastSeen } = useUserOnlineStatus(targetUserId);
   const markAsReadInSidebar = useFriendMessagesStore((state) => state.markAsRead);
@@ -202,29 +211,49 @@ export default function ChatBox({ currentUserId, targetUserId, onOpenSidebar }: 
             <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
         </button>
-        <Link
-          href={`/trang-ca-nhan/${targetUser?.id ?? targetUserId}`}
-          className="flex items-center gap-3 flex-1 min-w-0"
-        >
-          <div className="relative">
-            <img
-              src={targetUser?.avatar_url || '/default-avatar.png'}
-              className="w-10 h-10 rounded-full object-cover"
-              alt="avatar"
-            />
-            {isTargetOnline && (
-              <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-dark-card rounded-full"></span>
-            )}
+        <div className="flex items-center justify-between gap-3 w-full">
+          {/* Avatar + Tên + Trạng thái */}
+          <Link
+            href={`/trang-ca-nhan/${targetUser?.id ?? targetUserId}`}
+            className="flex items-center gap-3 flex-1 min-w-0"
+          >
+            <div className="relative">
+              <img
+                src={targetUser?.avatar_url || '/default-avatar.png'}
+                className="w-10 h-10 rounded-full object-cover"
+                alt="avatar"
+              />
+              {isTargetOnline && (
+                <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-dark-card rounded-full"></span>
+              )}
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="font-medium text-gray-900 dark:text-dark-text-primary truncate">
+                {`${targetUser?.first_name ?? ''} ${targetUser?.last_name ?? ''}` || 'Đối phương'}
+              </span>
+              <span className="text-sm text-gray-500 dark:text-dark-text-secondary truncate">
+                {isTargetOnline ? 'Đang hoạt động' : lastSeen ? formatLastSeen(lastSeen) : 'Ngoại tuyến'}
+              </span>
+            </div>
+          </Link>
+
+          {/* Nút gọi nằm ngoài Link */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => onStartCall?.('audio')}
+              className="text-green-600 hover:text-green-800 text-sm font-medium"
+            >
+              📞
+            </button>
+            <button
+              onClick={() => onStartCall?.('video')}
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+            >
+              🎥
+            </button>
           </div>
-          <div className="flex flex-col min-w-0">
-            <span className="font-medium text-gray-900 dark:text-dark-text-primary truncate">
-              {`${targetUser?.first_name ?? ''} ${targetUser?.last_name ?? ''}` || 'Đối phương'}
-            </span>
-            <span className="text-sm text-gray-500 dark:text-dark-text-secondary truncate">
-              {isTargetOnline ? 'Đang hoạt động' : lastSeen ? formatLastSeen(lastSeen) : 'Ngoại tuyến'}
-            </span>
-          </div>
-        </Link>
+        </div>
+
       </div>
 
       {/* Messages */}
