@@ -1,9 +1,16 @@
-// src/components/call/EndCallButton.tsx
-'use client';
-
 import { useCallStore } from '@/stores/useCallStore';
 
-export const EndCallButton = ({ socket }: { socket: any }) => {
+export const EndCallButton = ({
+  socket,
+  cleanup,
+  currentUserId,   // thêm props truyền từ trên xuống
+  peerUserId,      // thêm props truyền từ trên xuống
+}: {
+  socket: any;
+  cleanup: () => void;
+  currentUserId: number;
+  peerUserId: number;
+}) => {
   const { activeCallId, endCall } = useCallStore();
 
   const handleEndCall = () => {
@@ -11,9 +18,13 @@ export const EndCallButton = ({ socket }: { socket: any }) => {
       socket?.emit('end-call', {
         callId: activeCallId,
         status: 'ended',
+        callerId: currentUserId,
+        receiverId: peerUserId,
       });
     }
+
     endCall();
+    cleanup();
   };
 
   return (

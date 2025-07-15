@@ -6,6 +6,7 @@ import { useCallSocket } from '@/hooks/useCallSocket';
 import { IncomingCallModal } from './IncomingCallModal';
 import { CallingOverlay } from './CallingOverlay';
 import { CallUI } from './CallUI';
+import { useWebRTC } from '@/hooks/useWebRTC';
 
 interface Props {
   currentUserId: number;
@@ -14,7 +15,6 @@ interface Props {
 export const CallHandler = ({ currentUserId }: Props) => {
   const socketRef = useCallSocket(currentUserId);
   const socket = socketRef.current;
-
   const {
     openIncomingCall,
     isCalling,
@@ -27,7 +27,10 @@ export const CallHandler = ({ currentUserId }: Props) => {
     peerUserId,
     isCallStarted,
     setActiveCallId,
+    
   } = useCallStore();
+  
+  // const { cleanup} = useWebRTC(socket, currentUserId ,role,peerUserId)
 
   useEffect(() => {
     const socket = socketRef.current;
@@ -63,6 +66,7 @@ export const CallHandler = ({ currentUserId }: Props) => {
     const onCallEnded = () => {
       console.log('❌ [CallHandler] Cuộc gọi đã kết thúc');
       endCall();
+      
     };
 
     socket.on('incoming-call', onIncomingCall);

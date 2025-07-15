@@ -168,6 +168,26 @@ export const useWebRTC = (
       socket.off('ice-candidate');
     };
   }, [socket, activeCallId]);
+const cleanup = () => {
+    console.log('[WebRTC] Manual cleanup triggered...');
+    peerRef.current?.close();
+    peerRef.current = null;
 
-  return { localVideoRef, remoteVideoRef };
+    if (localStream.current) {
+      localStream.current.getTracks().forEach((track) => track.stop());
+      localStream.current = null;
+    }
+
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = null;
+    }
+
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = null;
+    }
+
+    startedRef.current = false;
+    console.log('Đã cleanup stream')
+  };
+  return { localVideoRef, remoteVideoRef, cleanup };
 };
