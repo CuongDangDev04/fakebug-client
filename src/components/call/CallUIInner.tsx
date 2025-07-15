@@ -1,8 +1,7 @@
-'use client';
-
-import { useEffect } from 'react';
-import { useWebRTC } from '@/hooks/useWebRTC';
+import { Mic, MicOff, Video, VideoOff } from 'lucide-react';
 import { EndCallButton } from './EndCallButton';
+import { useWebRTC } from '@/hooks/useWebRTC';
+import { useEffect, useState } from 'react';
 import { useCallStore } from '@/stores/useCallStore';
 
 interface Props {
@@ -12,15 +11,41 @@ interface Props {
   targetUserId: number;
 }
 
+const formatTime = (seconds: number) => {
+  const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+  const secs = (seconds % 60).toString().padStart(2, '0');
+  return `${mins}:${secs}`;
+};
+
 export const CallUIInner = ({ socket, currentUserId, role, targetUserId }: Props) => {
-  const { localVideoRef, remoteVideoRef, cleanup } = useWebRTC(socket, currentUserId, role, targetUserId);
-  const { endCall } = useCallStore()
+  const {
+    localVideoRef,
+    remoteVideoRef,
+    cleanup,
+    toggleMic,
+    toggleCam,
+    isMicEnabled,
+    isCamEnabled
+  } = useWebRTC(socket, currentUserId, role, targetUserId);
+
+  const { endCall } = useCallStore();
+
+  const [callDuration, setCallDuration] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCallDuration((prev) => prev + 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     if (!socket) return;
 
     const handleCallEnded = () => {
       console.log('[CallUIInner] 🔴 Đóng cuộc gọi do nhận sự kiện call-ended');
-      endCall()
+      endCall();
       cleanup();
     };
 
@@ -37,17 +62,46 @@ export const CallUIInner = ({ socket, currentUserId, role, targetUserId }: Props
         ref={remoteVideoRef}
         autoPlay
         playsInline
-        className="w-[70%] h-[60%] bg-gray-900 rounded-xl mb-4"
+        className="w-full h-full object-cover bg-black"
       />
+
+      <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+
       <video
         ref={localVideoRef}
         autoPlay
         playsInline
         muted
-        className="w-[30%] h-[20%] bg-gray-700 rounded-xl absolute bottom-6 right-6 border-4 border-white"
+        className="absolute bottom-6 right-6 w-60 h-30 bg-black rounded-xl border-2 border-white object-cover shadow-lg"
       />
-      <EndCallButton socket={socket} cleanup={cleanup} currentUserId={currentUserId}
-        peerUserId={targetUserId} />
+
+      {/* Call Duration Timer */}
+      <div className="absolute top-6 text-white text-lg bg-black bg-opacity-50 px-4 py-1 rounded-full">
+        {formatTime(callDuration)}
+      </div>
+
+      <div className="absolute bottom-8 flex space-x-4">
+        <button
+          onClick={toggleMic}
+          className="bg-gray-800 hover:bg-gray-700 text-white p-4 rounded-full shadow transition"
+        >
+          {isMicEnabled ? <Mic size={24} /> : <MicOff size={24} />}
+        </button>
+
+        <button
+          onClick={toggleCam}
+          className="bg-gray-800 hover:bg-gray-700 text-white p-4 rounded-full shadow transition"
+        >
+          {isCamEnabled ? <Video size={24} /> : <VideoOff size={24} />}
+        </button>
+
+        <EndCallButton
+          socket={socket}
+          cleanup={cleanup}
+          currentUserId={currentUserId}
+          peerUserId={targetUserId}
+        />
+      </div>
     </div>
   );
 };

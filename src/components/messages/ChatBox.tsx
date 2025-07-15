@@ -9,7 +9,7 @@ import { useFriendMessagesStore } from '@/stores/friendMessagesStore';
 import { ChatBoxProps } from '@/types/chatBoxProps';
 import Picker from '@emoji-mart/react';
 import data from '@emoji-mart/data';
-import { EllipsisVertical, Laugh } from 'lucide-react';
+import { EllipsisVertical, Laugh, Phone, Video } from 'lucide-react';
 import { messageService } from '@/services/messageService';
 import { useChatStore } from '@/stores/chatStore';
 
@@ -241,15 +241,15 @@ export default function ChatBox({
           <div className="flex gap-2">
             <button
               onClick={() => onStartCall?.('audio')}
-              className="text-green-600 hover:text-green-800 text-sm font-medium"
+              className="text-blue-600 hover:text-green-800  text-sm font-medium"
             >
-              📞
+              <Phone size= {20}/>
             </button>
             <button
               onClick={() => onStartCall?.('video')}
               className="text-blue-600 hover:text-blue-800 text-sm font-medium"
             >
-              🎥
+              <Video  size={24}/>
             </button>
           </div>
         </div>

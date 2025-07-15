@@ -1,4 +1,5 @@
 import { useCallStore } from '@/stores/useCallStore';
+import { PhoneOff } from 'lucide-react';
 
 export const EndCallButton = ({
   socket,
@@ -30,9 +31,9 @@ export const EndCallButton = ({
   return (
     <button
       onClick={handleEndCall}
-      className="mt-6 px-6 py-3 text-white bg-red-600 rounded-full hover:bg-red-700"
+      className=" p-4 rounded-full shadow transition text-white bg-red-600  hover:bg-red-700"
     >
-      Kết thúc cuộc gọi
+       <PhoneOff size={24} />
     </button>
   );
 };

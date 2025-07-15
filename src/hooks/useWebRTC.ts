@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useCallStore } from '@/stores/useCallStore';
 
 const ICE_SERVERS: RTCConfiguration = {
@@ -19,7 +19,8 @@ export const useWebRTC = (
   const localStream = useRef<MediaStream | null>(null);
   const iceQueue = useRef<any[]>([]);
   const startedRef = useRef(false);
-
+  const [isMicEnabled, setIsMicEnabled] = useState(true);
+  const [isCamEnabled, setIsCamEnabled] = useState(true);
   const { activeCallId, callType, setPeerConnected, isCallStarted } = useCallStore();
 
   const createPeerConnection = () => {
@@ -97,6 +98,21 @@ export const useWebRTC = (
       targetUserId,
     });
   };
+  const toggleMic = () => {
+    if (!localStream.current) return;
+    localStream.current.getAudioTracks().forEach(track => {
+      track.enabled = !track.enabled;
+    });
+    setIsMicEnabled((prev) => !prev);
+  };
+
+  const toggleCam = () => {
+    if (!localStream.current) return;
+    localStream.current.getVideoTracks().forEach(track => {
+      track.enabled = !track.enabled;
+    });
+    setIsCamEnabled((prev) => !prev);
+  };
 
   useEffect(() => {
     if (!isCallStarted || startedRef.current) return;
@@ -128,7 +144,7 @@ export const useWebRTC = (
   useEffect(() => {
     if (!socket) return;
 
-    socket.on('offer', async ({ offer, callId, from: callerId }) => {
+    socket.on('offer', async ({ offer, callId, from }: { offer: RTCSessionDescriptionInit; callId: number; from: number }) => {
       if (callId !== activeCallId) {
         console.warn('[WebRTC] Ignoring offer for wrong callId');
         return;
@@ -146,14 +162,14 @@ export const useWebRTC = (
       const answer = await peerRef.current!.createAnswer();
       await peerRef.current!.setLocalDescription(answer);
 
-      socket.emit('answer', { answer, targetUserId: callerId });
+      socket.emit('answer', { answer, targetUserId: from });
     });
 
-    socket.on('answer', async ({ answer }) => {
+    socket.on('answer', async ({ answer }: { answer: RTCSessionDescriptionInit }) => {
       await peerRef.current?.setRemoteDescription(new RTCSessionDescription(answer));
     });
 
-    socket.on('ice-candidate', async ({ candidate }) => {
+    socket.on('ice-candidate', async ({ candidate }: { candidate: RTCIceCandidateInit }) => {
       if (!peerRef.current) return;
       if (!peerRef.current.remoteDescription) {
         iceQueue.current.push(candidate);
@@ -168,7 +184,8 @@ export const useWebRTC = (
       socket.off('ice-candidate');
     };
   }, [socket, activeCallId]);
-const cleanup = () => {
+
+  const cleanup = () => {
     console.log('[WebRTC] Manual cleanup triggered...');
     peerRef.current?.close();
     peerRef.current = null;
@@ -189,5 +206,7 @@ const cleanup = () => {
     startedRef.current = false;
     console.log('Đã cleanup stream')
   };
-  return { localVideoRef, remoteVideoRef, cleanup };
+  return {
+    localVideoRef, remoteVideoRef, cleanup, toggleMic, toggleCam, isMicEnabled, isCamEnabled
+  };
 };
