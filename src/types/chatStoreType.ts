@@ -20,4 +20,5 @@ export interface ChatMessage {
   is_read?: boolean;
   is_revoked?: boolean;
   reactions: Reaction[];
+  type: 'text' | 'call';
 }

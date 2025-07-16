@@ -243,13 +243,13 @@ export default function ChatBox({
               onClick={() => onStartCall?.('audio')}
               className="text-blue-600 hover:text-green-800  text-sm font-medium"
             >
-              <Phone size= {20}/>
+              <Phone size={20} />
             </button>
             <button
               onClick={() => onStartCall?.('video')}
               className="text-blue-600 hover:text-blue-800 text-sm font-medium"
             >
-              <Video  size={24}/>
+              <Video size={24} />
             </button>
           </div>
         </div>
@@ -324,13 +324,47 @@ export default function ChatBox({
                             }))
                           }
                         >
-                          {(msg as any).is_revoked ? (
-                            <i className="text-sm text-white dark:text-dark-text-secondary italic">
-                              Tin nhắn đã được thu hồi
-                            </i>
-                          ) : (
-                            msg.content
-                          )}
+                          <div
+                            className={`px-4 py-2 break-words max-w-[320px] cursor-pointer ${isMe
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-gray-200 dark:bg-dark-hover text-gray-900 dark:text-dark-text-primary'
+                              }`}
+                            style={{
+                              borderRadius: 20,
+                              borderTopRightRadius: 20,
+                              borderTopLeftRadius: 20,
+                              borderBottomRightRadius: isMe ? 6 : 20,
+                              borderBottomLeftRadius: isMe ? 20 : 6,
+                            }}
+                            onClick={() =>
+                              setShowTime((prev) => ({
+                                ...prev,
+                                [msg.id]: !prev[msg.id],
+                              }))
+                            }
+                          >
+                            {(msg as any).is_revoked ? (
+                              <i className="text-sm text-white dark:text-dark-text-secondary italic">
+                                Tin nhắn đã được thu hồi
+                              </i>
+                            ) : msg.content.startsWith('Cuộc gọi') ? (
+                              <div className="flex items-center    gap-2" onClick={() => onStartCall?.(
+                                msg.content.includes('video') ? 'video' : 'audio'
+                              )}>
+
+                                {msg.content.includes('video') ? (
+                                  <Video size={30} className="text-white dark:text-dark-text-primary" />
+                                ) : (
+                                  <Phone size={30} className="text-white dark:text-dark-text-primary" />
+                                )}
+                                <span>
+                                  {msg.content}</span>
+                              </div>
+                            ) : (
+                              msg.content
+                            )}
+                          </div>
+
                         </div>
 
                         {/* Hiển thị reactions nếu có */}
