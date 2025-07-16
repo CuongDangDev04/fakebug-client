@@ -9,6 +9,7 @@ interface Props {
   currentUserId: number;
   role: 'caller' | 'receiver';
   targetUserId: number;
+  callType: 'audio' | 'video'
 }
 
 const formatTime = (seconds: number) => {
@@ -17,7 +18,9 @@ const formatTime = (seconds: number) => {
   return `${mins}:${secs}`;
 };
 
-export const CallUIInner = ({ socket, currentUserId, role, targetUserId }: Props) => {
+export const CallUIInner = ({ socket, currentUserId, role, targetUserId ,callType}: Props) => {
+  const { endCall } = useCallStore();
+
   const {
     localVideoRef,
     remoteVideoRef,
@@ -26,9 +29,8 @@ export const CallUIInner = ({ socket, currentUserId, role, targetUserId }: Props
     toggleCam,
     isMicEnabled,
     isCamEnabled
-  } = useWebRTC(socket, currentUserId, role, targetUserId);
+  } = useWebRTC(socket, currentUserId, role, targetUserId, callType);
 
-  const { endCall } = useCallStore();
 
   const [callDuration, setCallDuration] = useState(0);
 

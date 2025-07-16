@@ -15,7 +15,6 @@ export const IncomingCallModal = ({ socket, currentUserId }: Props) => {
     acceptCall,
     setPeerUserId,
   } = useCallStore();
-
   useEffect(() => {
     if (!incomingCall) return;
 
@@ -41,7 +40,7 @@ export const IncomingCallModal = ({ socket, currentUserId }: Props) => {
       // ✅ Gửi accept-call về server, cần truyền đúng callerId
       socket?.emit('accept-call', {
         callId: incomingCall.callId,
-        
+        callType: incomingCall.callType,
         callerId,         
         receiverId: currentUserId,       
       });

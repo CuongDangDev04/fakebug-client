@@ -9,7 +9,7 @@ interface Props {
 }
 
 export const CallUI = ({ socket, currentUserId }: Props) => {
-  const { isCalling, role,peerUserId ,isCallStarted} = useCallStore();
+  const { isCalling, role, peerUserId, isCallStarted , callType} = useCallStore();
   const targetId = Number(peerUserId);
   // ⛔ Không render gì nếu chưa vào cuộc gọi hoặc role chưa rõ ràng
   console.log('🔍 [CallUI] Render:', {
@@ -17,11 +17,11 @@ export const CallUI = ({ socket, currentUserId }: Props) => {
     role,
     isCallStarted,
     peerUserId,
-    
+
   });
-if (!isCalling || !role || !isCallStarted) {
-  return null;
-}
+  if (!isCalling || !role || !isCallStarted || !callType)  {
+    return null;
+  }
 
   // ✅ Render nội dung khi role đã sẵn sàng
   return (
@@ -29,7 +29,8 @@ if (!isCalling || !role || !isCallStarted) {
       socket={socket}
       currentUserId={currentUserId}
       role={role}
-       targetUserId={targetId} 
+      targetUserId={targetId}
+      callType={callType}
     />
   );
 };
