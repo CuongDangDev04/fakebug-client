@@ -15,6 +15,7 @@ export const IncomingCallModal = ({ socket, currentUserId }: Props) => {
     acceptCall,
     setPeerUserId,
   } = useCallStore();
+
   useEffect(() => {
     if (!incomingCall) return;
 
@@ -31,32 +32,30 @@ export const IncomingCallModal = ({ socket, currentUserId }: Props) => {
   if (!incomingCall) return null;
 
   const handleAccept = () => {
-    if (incomingCall) {
-      const callerId = incomingCall.callerId;
+    const callerId = incomingCall.callerId;
 
-      // ✅ Lưu lại ID người gọi
-      setPeerUserId(callerId);
+    setPeerUserId(callerId);
 
-      // ✅ Gửi accept-call về server, cần truyền đúng callerId
-      socket?.emit('accept-call', {
-        callId: incomingCall.callId,
-        callType: incomingCall.callType,
-        callerId,         
-        receiverId: currentUserId,       
-      });
+    socket?.emit('accept-call', {
+      callId: incomingCall.callId,
+      callType: incomingCall.callType,
+      callerId,
+      receiverId: currentUserId,
+    });
 
-      // ✅ Cập nhật trạng thái cuộc gọi phía client
-      acceptCall(incomingCall.callId, incomingCall.callType, callerId);
+    acceptCall(incomingCall.callId, incomingCall.callType, callerId);
 
-      closeIncomingCall();
-    }
+    closeIncomingCall();
   };
 
   const handleReject = () => {
     socket?.emit('end-call', {
       callId: incomingCall.callId,
       status: 'rejected',
+      callerId: incomingCall.callerId,  // ✅ Bổ sung rõ ràng
+      receiverId: currentUserId         // ✅ Bổ sung rõ ràng
     });
+
     closeIncomingCall();
   };
 

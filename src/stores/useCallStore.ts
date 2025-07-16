@@ -25,10 +25,12 @@ interface CallStore {
   startCalling: (callId: number, type: CallType, targetUserId: number) => void;
   acceptCall: (callId: number, type: CallType, targetUserId: number) => void;
   endCall: () => void;
+  rejectedMessage: string | null;
   setPeerConnected: (value: boolean) => void;
   setPeerUserId: (id: number) => void;
   setRole: (role: CallRole) => void;
-  setActiveCallId: (id: number) => void; 
+  setActiveCallId: (id: number) => void;
+  setRejectedMessage: (message: string | null) => void;
 }
 
 export const useCallStore = create<CallStore>((set) => ({
@@ -86,4 +88,7 @@ export const useCallStore = create<CallStore>((set) => ({
   setPeerUserId: (id) => set({ peerUserId: id }),
   setRole: (role) => set({ role }),
   setActiveCallId: (id) => set({ activeCallId: id }),
+  rejectedMessage: null,
+  setRejectedMessage: (message) => set({ rejectedMessage: message }),
+
 }));

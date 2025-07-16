@@ -27,10 +27,10 @@ export const CallHandler = ({ currentUserId }: Props) => {
     peerUserId,
     isCallStarted,
     setActiveCallId,
-    
+    rejectedMessage,
+    setRejectedMessage,
   } = useCallStore();
-  
-  // const { cleanup} = useWebRTC(socket, currentUserId ,role,peerUserId)
+
 
   useEffect(() => {
     const socket = socketRef.current;
@@ -63,11 +63,30 @@ export const CallHandler = ({ currentUserId }: Props) => {
       }
     };
 
-    const onCallEnded = () => {
-      console.log('❌ [CallHandler] Cuộc gọi đã kết thúc');
+    const onCallEnded = (data: any) => {
+      console.log('❌ [CallHandler] Cuộc gọi đã kết thúc:', data);
+
+      const isCaller = currentUserId === data.callerId;
+      const isReceiver = currentUserId === data.receiverId;
+
+      if (data.status === 'rejected') {
+        if (isCaller) {
+          setRejectedMessage('📵 Người nhận đã từ chối cuộc gọi.');
+        } else if (isReceiver) {
+          setRejectedMessage('❌ Bạn đã từ chối cuộc gọi.');
+        }
+      } else if (data.status === 'cancelled') {
+        if (isReceiver) {
+          setRejectedMessage('📵 Người gọi đã huỷ cuộc gọi.');
+        } else if (isCaller) {
+          setRejectedMessage('❌ Bạn đã huỷ cuộc gọi'); // Người gọi tự huỷ không hiển thị gì
+        }
+      }
+
       endCall();
-      
     };
+
+
 
     socket.on('incoming-call', onIncomingCall);
     socket.on('call-started', onCallStarted);
@@ -84,9 +103,15 @@ export const CallHandler = ({ currentUserId }: Props) => {
 
   const cancelCall = () => {
     if (!activeCallId) return;
-    socket?.emit('end-call', { callId: activeCallId, status: 'rejected' });
+    socket?.emit('end-call', {
+      callId: activeCallId,
+      status: 'cancelled',  // ✅ khác 'rejected'
+      callerId: currentUserId,
+      receiverId: peerUserId
+    });
     endCall();
   };
+
 
   return (
     <>
@@ -104,6 +129,20 @@ export const CallHandler = ({ currentUserId }: Props) => {
       {isCallStarted && (
         <CallUI socket={socket} currentUserId={currentUserId} />
       )}
+      {rejectedMessage && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50">
+          <div className="bg-white p-4 rounded-xl shadow-xl text-center space-y-2">
+            <p className="text-gray-800 font-medium">{rejectedMessage}</p>
+            <button
+              onClick={() => setRejectedMessage(null)}
+              className="mt-2 bg-blue-500 text-white px-4 py-2 rounded-xl hover:bg-blue-600"
+            >
+              Đóng
+            </button>
+          </div>
+        </div>
+      )}
+
     </>
   );
 };
