@@ -1,35 +1,29 @@
-import Link from "next/link";
 import { useUserOnlineStatus } from "@/hooks/useUserOnlineStatus";
 import { FriendsMessage } from "@/types/message";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/vi";
-import { useRouter } from "next/navigation";
 import { messageService } from "@/services/messageService";
 import { useFriendMessagesStore } from "@/stores/friendMessagesStore";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 dayjs.extend(relativeTime);
 dayjs.locale("vi");
 
 interface ConversationItemProps {
   fm: FriendsMessage;
+  onClick?: () => void;  // ✅ Thêm prop
 }
 
-export default function ConversationItem({ fm }: ConversationItemProps) {
+export default function ConversationItem({ fm, onClick }: ConversationItemProps) {
   const { isOnline } = useUserOnlineStatus(fm.friendId);
-
-  // Đảm bảo luôn có giá trị mặc định cho unreadCount
   const unreadCount = typeof fm.unreadCount === "number" ? fm.unreadCount : 0;
   const isUnread = unreadCount > 0;
-
-  // Xử lý thời gian
   const sentAtFormatted =
     fm.sent_at && !isNaN(new Date(fm.sent_at).getTime())
       ? dayjs(fm.sent_at).fromNow()
       : "Vừa xong";
 
-  const router = useRouter();
   const { setFriends } = useFriendMessagesStore();
   const [loading, setLoading] = useState(false);
 
@@ -38,23 +32,22 @@ export default function ConversationItem({ fm }: ConversationItemProps) {
     if (isUnread && !loading) {
       setLoading(true);
       await messageService.markAsRead(fm.friendId);
-      // Gọi lại getFriendMessages để cập nhật số chưa đọc
       const res = await messageService.getFriendMessages();
       if (res?.friends) setFriends(res.friends);
       setLoading(false);
     }
-    router.push(`/tin-nhan/${fm.friendId}`);
+    onClick?.();  // ✅ Gọi callback để mở ChatBox
   };
 
   return (
     <a
-      href={`/tin-nhan/${fm.friendId}`}
+      href="#"
       onClick={handleClick}
       className={`relative flex items-center gap-3 px-4 py-3 hover:bg-blue-50 dark:hover:bg-dark-hover transition cursor-pointer group
         ${isUnread ? "font-semibold bg-blue-50 dark:bg-dark-hover" : ""}`}
       style={{ opacity: loading ? 0.6 : 1, pointerEvents: loading ? "none" : "auto" }}
     >
-      {/* Avatar + Trạng thái online */}
+      {/* Avatar */}
       <div className="relative">
         {fm.avatar_url ? (
           <img
@@ -95,7 +88,7 @@ export default function ConversationItem({ fm }: ConversationItemProps) {
         </div>
       </div>
 
-      {/* Thời gian gửi và badge số chưa đọc */}
+      {/* Thời gian + badge */}
       <div className="flex flex-col items-end min-w-[48px] ml-2">
         <div className="text-xs text-gray-400 dark:text-dark-text-secondary whitespace-nowrap mb-1">
           {sentAtFormatted}

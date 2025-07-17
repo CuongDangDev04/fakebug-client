@@ -17,12 +17,13 @@ import { useChatStore } from '@/stores/chatStore';
 export default function ChatBox({
   currentUserId,
   targetUserId,
-  onOpenSidebar,
-  onStartCall
+  onStartCall,
+  onBack,
 }: ChatBoxProps & {
-  onOpenSidebar?: () => void;
   onStartCall?: (type: 'audio' | 'video') => void;
+  onBack?: () => void;
 }) {
+
 
   const { messages, loading, loadMore } = useChatMessages(currentUserId, targetUserId);
   const { isOnline: isTargetOnline, lastSeen, formatLastSeen } = useUserOnlineStatus(targetUserId);
@@ -199,18 +200,26 @@ export default function ChatBox({
   }
 
   return (
-    <div className="flex flex-col h-full border rounded bg-white dark:bg-dark-card border-gray-200 dark:border-dark-border md:rounded-none md:border-none w-full">
+    <div className="flex flex-col h-[85vh] md:h-[90vh] border rounded bg-white dark:bg-dark-card border-gray-200 dark:border-dark-border md:rounded-none md:border-none w-full">
       {/* Header */}
       <div className="flex items-center gap-3 p-3 border-b bg-gray-50 dark:bg-dark-hover border-gray-200 dark:border-dark-border hover:bg-gray-100 dark:hover:bg-dark-light transition-colors">
-        <button
-          className="md:hidden p-2 rounded hover:bg-gray-200 dark:hover:bg-dark-hover"
-          onClick={onOpenSidebar}
-          aria-label="Mở danh sách chat"
-        >
-          <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
-            <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-        </button>
+
+        {/* Nút Quay lại */}
+        {onBack && (
+          <button
+            className="md:hidden p-2 rounded hover:bg-gray-200 dark:hover:bg-dark-hover"
+            onClick={onBack}
+            aria-label="Quay lại"
+          >
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+              <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </button>
+        )}
+
+        {/* Nút Mở Sidebar */}
+       
+
         <div className="flex items-center justify-between gap-3 w-full">
           {/* Avatar + Tên + Trạng thái */}
           <Link
@@ -237,11 +246,11 @@ export default function ChatBox({
             </div>
           </Link>
 
-          {/* Nút gọi nằm ngoài Link */}
+          {/* Nút gọi */}
           <div className="flex gap-2">
             <button
               onClick={() => onStartCall?.('audio')}
-              className="text-blue-600 hover:text-green-800  text-sm font-medium"
+              className="text-blue-600 hover:text-green-800 text-sm font-medium"
             >
               <Phone size={20} />
             </button>
@@ -253,8 +262,8 @@ export default function ChatBox({
             </button>
           </div>
         </div>
-
       </div>
+
 
       {/* Messages */}
       <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-2 py-2 space-y-4 relative md:px-3" style={{ minHeight: 0, maxHeight: 'calc(100vh - 120px)' }}>
@@ -371,7 +380,7 @@ export default function ChatBox({
                         {msg.reactions && msg.reactions.length > 0 && (
                           <div
                             onClick={() => setViewingReactionsMsg(msg.id)} // 👈 mở modal
-                            className="absolute -bottom-2 -right-2 bg-white dark:bg-dark-card rounded-full border  py-[1px] text-sm flex items-center cursor-pointer"
+                            className="absolute -bottom-2 -right-2 bg-white dark:bg-dark-card dark:border-gray-700 rounded-full border  py-[1px] text-sm flex items-center cursor-pointer"
                           >
                             {Object.entries(
                               msg.reactions.reduce((acc: Record<string, number>, r) => {

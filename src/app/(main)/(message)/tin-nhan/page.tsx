@@ -1,17 +1,28 @@
 'use client'
+
 import ChatSidebar from "@/components/messages/ChatSidebar";
+import { useRouter } from "next/navigation";
 
 export default function ChatDefaultPage() {
+  const router = useRouter();
+
+  const handleSelectUser = (userId: number) => {
+    router.push(`/tin-nhan/${userId}`);
+  };
+
   return (
     <div className="flex h-[80vh] relative">
-      {/* Sidebar: ẩn trên mobile, hiện khi sidebarOpen */}
+      {/* Sidebar desktop */}
       <div className="hidden md:block w-80 border-r h-full">
-        <ChatSidebar />
+        <ChatSidebar onSelectUser={handleSelectUser} />
       </div>
+
       {/* Sidebar mobile */}
-      <div className="md:hidden fixed inset-0 z-50">
-        <ChatSidebar mobileOpen={true} />
+      <div className="md:hidden fixed inset-0 ">
+        <ChatSidebar mobileOpen={true} onSelectUser={handleSelectUser} />
       </div>
+
+      {/* Nội dung chính */}
       <div className="flex-1 flex items-center justify-center h-[90vh] bg-gray-50 dark:bg-dark-card">
         <div className="text-center">
           <img

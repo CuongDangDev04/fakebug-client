@@ -18,7 +18,7 @@ const formatTime = (seconds: number) => {
   return `${mins}:${secs}`;
 };
 
-export const CallUIInner = ({ socket, currentUserId, role, targetUserId ,callType}: Props) => {
+export const CallUIInner = ({ socket, currentUserId, role, targetUserId, callType }: Props) => {
   const { endCall } = useCallStore();
 
   const {
@@ -59,7 +59,8 @@ export const CallUIInner = ({ socket, currentUserId, role, targetUserId ,callTyp
   }, [socket, cleanup]);
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center">
+    <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center ">
+      {/* Remote video (toàn màn hình) */}
       <video
         ref={remoteVideoRef}
         autoPlay
@@ -67,35 +68,40 @@ export const CallUIInner = ({ socket, currentUserId, role, targetUserId ,callTyp
         className="w-full h-full object-cover bg-black"
       />
 
-      <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+      {/* Overlay mờ */}
+      <div className="absolute inset-0 bg-black/30"></div>
 
+      {/* Local video (góc dưới) */}
       <video
         ref={localVideoRef}
         autoPlay
         playsInline
         muted
-        className="absolute bottom-6 right-6 w-60 h-30 bg-black rounded-xl border-2 border-white object-cover shadow-lg"
+        className="absolute bottom-4 right-4 w-24 h-40 sm:w-32 sm:h-48 bg-black rounded-xl border-2 border-white object-cover shadow-lg"
       />
 
-      {/* Call Duration Timer */}
-      <div className="absolute top-6 text-white text-lg bg-black bg-opacity-50 px-4 py-1 rounded-full">
+      {/* Thời gian cuộc gọi */}
+      <div className="absolute top-5 left-1/2 -translate-x-1/2 text-white text-sm sm:text-base bg-black/60 px-4 py-1 rounded-full">
         {formatTime(callDuration)}
       </div>
 
-      <div className="absolute bottom-8 flex space-x-4">
+      {/* Điều khiển */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-3 sm:space-x-6">
         <button
           onClick={toggleMic}
-          className="bg-gray-800 hover:bg-gray-700 text-white p-4 rounded-full shadow transition"
+          className="bg-white/10 hover:bg-white/20 text-white p-3 sm:p-4 rounded-full transition backdrop-blur"
         >
-          {isMicEnabled ? <Mic size={24} /> : <MicOff size={24} />}
+          {isMicEnabled ? <Mic size={20} /> : <MicOff size={20} />}
         </button>
 
-        <button
-          onClick={toggleCam}
-          className="bg-gray-800 hover:bg-gray-700 text-white p-4 rounded-full shadow transition"
-        >
-          {isCamEnabled ? <Video size={24} /> : <VideoOff size={24} />}
-        </button>
+        {callType === 'video' && (
+          <button
+            onClick={toggleCam}
+            className="bg-white/10 hover:bg-white/20 text-white p-3 sm:p-4 rounded-full transition backdrop-blur"
+          >
+            {isCamEnabled ? <Video size={20} /> : <VideoOff size={20} />}
+          </button>
+        )}
 
         <EndCallButton
           socket={socket}
@@ -105,5 +111,6 @@ export const CallUIInner = ({ socket, currentUserId, role, targetUserId ,callTyp
         />
       </div>
     </div>
+
   );
 };
