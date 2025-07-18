@@ -13,7 +13,7 @@ import { ArrowDown, EllipsisVertical, Laugh, Phone, SendHorizontal, Video } from
 import { messageService } from '@/services/messageService';
 import { useChatStore } from '@/stores/chatStore';
 import ForwardFriendsModal from '@/components/messages/ForwardFriendsModal';
-
+import { useThemeStore } from '@/stores/themeStore';
 
 export default function ChatBox({
   currentUserId,
@@ -24,8 +24,6 @@ export default function ChatBox({
   onStartCall?: (type: 'audio' | 'video') => void;
   onBack?: () => void;
 }) {
-
-
   const { messages, loading, loadMore } = useChatMessages(currentUserId, targetUserId);
   const { isOnline: isTargetOnline, lastSeen, formatLastSeen } = useUserOnlineStatus(targetUserId);
   const markAsReadInSidebar = useFriendMessagesStore((state) => state.markAsRead);
@@ -44,10 +42,10 @@ export default function ChatBox({
   const reactionEmojis = ['❤️', '😆', '😮', '😢', '😡', '👍', '👎'];
   const [openedReactionMsgId, setOpenedReactionMsgId] = useState<number | null>(null);
   const [viewingReactionsMsg, setViewingReactionsMsg] = useState<number | null>(null);
-  const removeMessageById = useChatStore((state) => state.removeMessageById)
+  const removeMessageById = useChatStore((state) => state.removeMessageById);
   const [showForwardModal, setShowForwardModal] = useState(false);
   const [forwardMessageId, setForwardMessageId] = useState<number | null>(null);
-
+  const { isDark } = useThemeStore();
   useEffect(() => {
     const hasUnread = messages.some(msg => msg.sender.id === targetUserId && !msg.is_read);
     if (hasUnread) {
@@ -70,7 +68,6 @@ export default function ChatBox({
       ) {
         setShowEmojiPicker(false);
       }
-
     };
 
     if (showEmojiPicker) {
@@ -117,7 +114,6 @@ export default function ChatBox({
     setShowScrollToBottom(!isAtBottom);
   }, [messages]);
 
-
   const scrollToBottom = () => {
     const container = messagesContainerRef.current;
     if (container) {
@@ -137,7 +133,7 @@ export default function ChatBox({
     });
 
     setInput('');
-    setShowEmojiPicker(false)
+    setShowEmojiPicker(false);
   };
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -167,6 +163,7 @@ export default function ChatBox({
       isFirstLoadRef.current = false;
     }
   }, [targetUserId, messages.length]);
+
   const handleReactToMessage = (messageId: number, emoji: string | null) => {
     const socket = (window as any).chatSocket;
     const msg = messages.find(m => m.id === messageId);
@@ -175,14 +172,12 @@ export default function ChatBox({
     const userAlreadyReacted = msg.reactions?.some(r => r.user.id === currentUserId && r.emoji === emoji);
 
     if (userAlreadyReacted) {
-      // Gỡ reaction nếu đã tồn tại
       socket?.emit('removeReaction', {
         messageId,
         userId: currentUserId,
         emoji,
       });
     } else {
-      // Gửi reaction mới
       socket?.emit('reactToMessage', {
         messageId,
         userId: currentUserId,
@@ -192,91 +187,84 @@ export default function ChatBox({
 
     setShowEmojiPicker(false);
   };
-  const handdleDeteledMessageForMe = async (messageId: number) => {
-    try {
-      await messageService.deleteMessageForMe(messageId)
-      removeMessageById(messageId)
-    } catch (error) {
-      console.error("Lỗi: ", error)
-    }
 
-  }
+  const handleDeleteMessageForMe = async (messageId: number) => {
+    try {
+      await messageService.deleteMessageForMe(messageId);
+      removeMessageById(messageId);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
   const handleForwardMessage = (messageId: number) => {
     setForwardMessageId(messageId);
     setShowForwardModal(true);
   };
 
-
-
   return (
-    <div className="flex flex-col h-[85vh] md:h-[90vh] border rounded bg-white dark:bg-dark-card border-gray-200 dark:border-dark-border md:rounded-none md:border-none w-full">
+    <div className="flex flex-col h-[85vh] md:h-[90vh] bg-[#f0f2f5] dark:bg-[#242526] w-full">
       {/* Header */}
-      <div className="flex items-center gap-3 p-3 border-b bg-gray-50 dark:bg-dark-hover border-gray-200 dark:border-dark-border hover:bg-gray-100 dark:hover:bg-dark-light transition-colors">
-
-        {/* Nút Quay lại */}
+      <div className="flex items-center gap-2 p-2 bg-[#f0f2f5] dark:bg-[#3a3b3c] shadow-sm border-b border-gray-200 dark:border-[#4a4b4c]">
         {onBack && (
           <button
-            className="md:hidden p-2 rounded hover:bg-gray-200 dark:hover:bg-dark-hover"
+            className="md:hidden p-2 rounded-full hover:bg-gray-200 dark:hover:bg-[#4a4b4c]"
             onClick={onBack}
             aria-label="Quay lại"
           >
-            <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
-              <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M15 19l-7-7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
         )}
-
-        {/* Nút Mở Sidebar */}
-
-
         <div className="flex items-center justify-between gap-3 w-full">
-          {/* Avatar + Tên + Trạng thái */}
           <Link
             href={`/trang-ca-nhan/${targetUser?.id ?? targetUserId}`}
-            className="flex items-center gap-3 flex-1 min-w-0"
+            className="flex items-center gap-2 flex-1 min-w-0"
           >
             <div className="relative">
               <img
                 src={targetUser?.avatar_url || '/default-avatar.png'}
-                className="w-10 h-10 rounded-full object-cover"
+                className="w-9 h-9 rounded-full object-cover"
                 alt="avatar"
               />
               {isTargetOnline && (
-                <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-dark-card rounded-full"></span>
+                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#31a24c] border-2 border-[#f0f2f5] dark:border-[#3a3b3c] rounded-full"></span>
               )}
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="font-medium text-gray-900 dark:text-dark-text-primary truncate">
+              <span className="font-semibold text-base text-[#050505] dark:text-[#e4e6eb] truncate">
                 {`${targetUser?.first_name ?? ''} ${targetUser?.last_name ?? ''}` || 'Đối phương'}
               </span>
-              <span className="text-sm text-gray-500 dark:text-dark-text-secondary truncate">
+              <span className="text-xs text-[#65676b] dark:text-[#b0b3b8] truncate">
                 {isTargetOnline ? 'Đang hoạt động' : lastSeen ? formatLastSeen(lastSeen) : 'Ngoại tuyến'}
               </span>
             </div>
           </Link>
-
-          {/* Nút gọi */}
           <div className="flex gap-2">
             <button
               onClick={() => onStartCall?.('audio')}
-              className="text-gray-600 dark:text-dark-text-primary hover:text-green-800 text-sm font-medium"
+              className="text-[#0084ff] hover:bg-gray-200 dark:hover:bg-[#4a4b4c] p-2 rounded-full"
             >
               <Phone size={20} />
             </button>
             <button
               onClick={() => onStartCall?.('video')}
-              className="text-gray-600 dark:text-dark-text-primary hover:text-blue-800 text-sm font-medium"
+              className="text-[#0084ff] hover:bg-gray-200 dark:hover:bg-[#4a4b4c] p-2 rounded-full"
             >
-              <Video size={24} />
+              <Video size={20} />
             </button>
           </div>
         </div>
       </div>
 
-
       {/* Messages */}
-      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-2 py-2 space-y-4 relative md:px-3" style={{ minHeight: 0, maxHeight: 'calc(100vh - 120px)' }}>
-        {loading && <div className="text-gray-700 dark:text-dark-text-primary">Đang tải...</div>}
+      <div
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto p-4 space-y-2 bg-[#f0f2f5] dark:bg-[#242526]"
+        style={{ minHeight: 0, maxHeight: 'calc(100vh - 120px)' }}
+      >
+        {loading && <div className="text-[#65676b] dark:text-[#b0b3b8] text-center">Đang tải...</div>}
         {loadingMore && (
           <div className="flex justify-center py-2">
             <Loader />
@@ -285,11 +273,10 @@ export default function ChatBox({
         {showScrollToBottom && (
           <button
             onClick={scrollToBottom}
-            className="fixed left-1/2 transform -translate-x-1/2 bottom-24 z-50 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center"
-            style={{ width: 44, height: 44 }}
+            className="fixed left-1/2 transform -translate-x-1/2 bottom-24 z-50 bg-[#0084ff] hover:bg-[#006adc] text-white rounded-full shadow-lg flex items-center justify-center w-10 h-10"
             aria-label="Cuộn xuống cuối"
           >
-            <ArrowDown />
+            <ArrowDown size={20} />
           </button>
         )}
         {uniqueMessages.map((msg, idx) => {
@@ -306,32 +293,28 @@ export default function ChatBox({
               onMouseLeave={() => setHoveredMsgId(null)}
             >
               <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} w-full`}>
-                <div className={`flex ${isMe ? 'flex-row-reverse' : 'flex-row'} items-start gap-2 max-w-[75%]`}>
+                <div className={`flex ${isMe ? 'flex-row-reverse' : 'flex-row'} items-start gap-2 max-w-[70%]`}>
                   {!isMe && (
                     <img
-                      className="rounded-full w-8 h-8 object-cover"
+                      className="rounded-full w-7 h-7 object-cover mt-2"
                       src={(msg.sender as any).avatar_url}
                       alt="avatar"
                     />
                   )}
-
                   <div className="flex flex-col items-start">
-                    {/* Message bubble và icon */}
                     <div className={`flex items-start ${isMe ? 'flex-row-reverse' : 'flex-row'} gap-1`}>
-                      {/* Nội dung tin nhắn */}
                       <div className="relative inline-block">
-                        {/* Nội dung tin nhắn */}
                         <div
-                          className={`px-4 py-2 break-words max-w-[320px] cursor-pointer ${isMe
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-gray-200 dark:bg-dark-hover text-gray-900 dark:text-dark-text-primary'
+                          className={`px-3 py-2 my-2 text-sm max-w-[300px] cursor-pointer ${isMe
+                            ? 'bg-[#0084ff] text-white'
+                            : 'bg-white dark:bg-[#3a3b3c] text-[#050505] dark:text-[#e4e6eb]'
                             }`}
                           style={{
-                            borderRadius: 20,
-                            borderTopRightRadius: 20,
-                            borderTopLeftRadius: 20,
-                            borderBottomRightRadius: isMe ? 6 : 20,
-                            borderBottomLeftRadius: isMe ? 20 : 6,
+                            borderRadius: '18px',
+                            borderTopRightRadius: isMe ? '6px' : '18px',
+                            borderTopLeftRadius: isMe ? '18px' : '6px',
+                            borderBottomRightRadius: isMe ? '6px' : '18px',
+                            borderBottomLeftRadius: isMe ? '18px' : '6px',
                           }}
                           onClick={() =>
                             setShowTime((prev) => ({
@@ -340,54 +323,45 @@ export default function ChatBox({
                             }))
                           }
                         >
-                          <div
-                            className={`px-4 py-2 break-words max-w-[320px] cursor-pointer ${isMe
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-gray-200 dark:bg-dark-hover text-gray-900 dark:text-dark-text-primary'
-                              }`}
-                            style={{
-                              borderRadius: 20,
-                              borderTopRightRadius: 20,
-                              borderTopLeftRadius: 20,
-                              borderBottomRightRadius: isMe ? 6 : 20,
-                              borderBottomLeftRadius: isMe ? 20 : 6,
-                            }}
-                            onClick={() =>
-                              setShowTime((prev) => ({
-                                ...prev,
-                                [msg.id]: !prev[msg.id],
-                              }))
-                            }
-                          >
-                            {(msg as any).is_revoked ? (
-                              <i className="text-sm text-white dark:text-dark-text-secondary italic">
-                                Tin nhắn đã được thu hồi
-                              </i>
-                            ) : msg.content.startsWith('Cuộc gọi') ? (
-                              <div className="flex items-center    gap-2" onClick={() => onStartCall?.(
-                                msg.content.includes('video') ? 'video' : 'audio'
-                              )}>
+                          {(msg as any).is_revoked ? (
+                            <i className="text-xs italic text-gray-400 dark:text-[#b0b3b8]">
+                              Tin nhắn đã được thu hồi
+                            </i>
+                          ) : msg.content.startsWith('Cuộc gọi') ? (
+                            <div
+                              className="flex items-center gap-2"
+                              onClick={() => onStartCall?.(msg.content.includes('video') ? 'video' : 'audio')}
+                            >
+                              {msg.content.includes('video') ? (
+                                <Video
+                                  size={20}
+                                  className={
+                                    isMe
+                                      ? 'text-white dark:text-[#e4e6eb]'
+                                      : 'text-[#050505] dark:text-[#e4e6eb]'
+                                  }
+                                />
+                              ) : (
+                                <Phone
+                                  size={20}
+                                  className={
+                                    isMe
+                                      ? 'text-white dark:text-[#e4e6eb]'
+                                      : 'text-[#050505] dark:text-[#e4e6eb]'
+                                  }
+                                />
+                              )}
 
-                                {msg.content.includes('video') ? (
-                                  <Video size={30} className="text-white dark:text-dark-text-primary" />
-                                ) : (
-                                  <Phone size={30} className="text-white dark:text-dark-text-primary" />
-                                )}
-                                <span>
-                                  {msg.content}</span>
-                              </div>
-                            ) : (
-                              msg.content
-                            )}
-                          </div>
-
+                              <span>{msg.content}</span>
+                            </div>
+                          ) : (
+                            msg.content
+                          )}
                         </div>
-
-                        {/* Hiển thị reactions nếu có */}
                         {msg.reactions && msg.reactions.length > 0 && (
                           <div
-                            onClick={() => setViewingReactionsMsg(msg.id)} // 👈 mở modal
-                            className="absolute -bottom-2 -right-2 bg-white dark:bg-dark-card dark:border-gray-700 rounded-full border  py-[1px] text-sm flex items-center cursor-pointer"
+                            onClick={() => setViewingReactionsMsg(msg.id)}
+                            className="absolute -bottom-2 -right-2 bg-white dark:bg-[#3a3b3c] border border-gray-200 dark:border-[#4a4b4c] rounded-full py-0.5 px-1.5 text-sm flex items-center cursor-pointer"
                           >
                             {Object.entries(
                               msg.reactions.reduce((acc: Record<string, number>, r) => {
@@ -401,135 +375,19 @@ export default function ChatBox({
                               </span>
                             ))}
                           </div>
-
                         )}
                       </div>
-                      {/* modal reaction */}
-                      {viewingReactionsMsg !== null && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center">
-                          {/* Lớp nền mờ nhẹ, không đen thui */}
-                          <div className="absolute inset-0 pointer-events-none bg-black/5 " />
-
-                          {/* Modal nổi */}
-                          <div className="relative bg-white dark:bg-dark-card rounded-xl w-[95%] max-w-md z-10 max-h-[80vh] overflow-y-auto p-4">
-
-                            {/* Header */}
-                            <div className="flex justify-between items-center border-b pb-2 mb-3">
-                              <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Cảm xúc về tin nhắn</h2>
-                              <button
-                                onClick={() => setViewingReactionsMsg(null)}
-                                className="text-gray-400 hover:text-red-500 text-xl"
-                              >
-                                ×
-                              </button>
-                            </div>
-
-                            {/* Nội dung modal */}
-                            {(() => {
-                              const msg = messages.find(m => m.id === viewingReactionsMsg);
-                              if (!msg) return null;
-
-                              const grouped = msg.reactions.reduce((acc: Record<string, any[]>, r) => {
-                                if (!acc[r.emoji]) acc[r.emoji] = [];
-                                acc[r.emoji].push(r);
-                                return acc;
-                              }, {});
-
-                              return (
-                                <>
-                                  {Object.entries(grouped).map(([emoji, users]) => (
-                                    <div key={emoji} className="mb-4">
-                                      <div className="font-medium text-sm mb-2 text-gray-700 dark:text-gray-200">
-                                        {emoji} {users.length}
-                                      </div>
-                                      <div className="space-y-1">
-                                        {users.map(({ user }) => (
-                                          <div
-                                            key={user.id}
-                                            onClick={() => {
-                                              const socket = (window as any).chatSocket;
-                                              socket?.emit('removeReaction', {
-                                                messageId: msg.id,
-                                                userId: user.id,
-                                                emoji,
-                                              });
-
-                                              // Nếu là user hiện tại thì tự đóng modal
-                                              if (user.id === currentUserId) {
-                                                setViewingReactionsMsg(null);
-                                              }
-                                            }}
-                                            className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-hover cursor-pointer transition"
-                                          >
-                                            <div className="flex items-center gap-2 overflow-hidden">
-                                              <img
-                                                src={user.avatar_url || '/default-avatar.png'}
-                                                alt="avatar"
-                                                className="w-7 h-7 rounded-full object-cover"
-                                              />
-                                              <div className="flex flex-col overflow-hidden">
-                                                <span className="text-sm text-gray-800 dark:text-white truncate">
-                                                  {user.first_name} {user.last_name}
-                                                </span>
-                                                {user.id === currentUserId && (
-                                                  <span className="text-xs text-gray-500 dark:text-dark-text-secondary">Nhấp để gỡ</span>
-                                                )}
-                                              </div>
-
-                                            </div>
-                                            <span className="text-xl">{emoji}</span>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  ))}
-                                </>
-                              );
-                            })()}
-                          </div>
-                        </div>
-                      )}
-                      {showForwardModal && (
-                        <ForwardFriendsModal
-                          visible={showForwardModal}   // ✅ Bổ sung prop visible
-                          onSelect={(friendId) => {
-                            if (!forwardMessageId) return;
-
-                            const socket = (window as any).chatSocket;
-
-                            socket?.emit('forwardMessage', {
-                              originalMessageId: forwardMessageId,
-                              newReceiverId: friendId,
-                            });
-
-                            alert('Đã chuyển tiếp tin nhắn.');
-
-                            setShowForwardModal(false);
-                            setForwardMessageId(null);
-                          }}
-                          onClose={() => {
-                            setShowForwardModal(false);
-                            setForwardMessageId(null);
-                          }}
-                        />
-                      )}
-
-
-                      {/* Hiển thị icon nếu đang hover và chưa thu hồi */}
                       {hoveredMsgId === msg.id && !(msg as any).is_revoked && !msg.content.startsWith('Cuộc gọi') && (
                         <div className={`flex items-center gap-1 self-stretch ${isMe ? 'flex-row-reverse' : ''}`}>
-
-
-                          {/* Icon mặt cười */}
                           <div
-                            className="text-gray-500 hover:text-yellow-500 cursor-pointer relative"
+                            className="text-[#65676b] dark:text-[#b0b3b8] hover:text-[#0084ff] cursor-pointer relative"
                             onClick={() =>
                               setOpenedReactionMsgId((prev) => (prev === msg.id ? null : msg.id))
                             }
                           >
-                            <Laugh />
+                            <Laugh size={18} />
                             {openedReactionMsgId === msg.id && (
-                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-white dark:bg-dark-card border rounded shadow z-50 flex space-x-1">
+                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-white dark:bg-[#3a3b3c] border border-gray-200 dark:border-[#4a4b4c] rounded-full shadow z-50 flex space-x-1">
                                 {reactionEmojis.map((emoji) => (
                                   <button
                                     key={emoji}
@@ -537,7 +395,7 @@ export default function ChatBox({
                                       handleReactToMessage(msg.id, emoji);
                                       setOpenedReactionMsgId(null);
                                     }}
-                                    className="text-xl hover:scale-110 transition-transform"
+                                    className="text-lg hover:scale-110 transition-transform"
                                   >
                                     {emoji}
                                   </button>
@@ -545,45 +403,35 @@ export default function ChatBox({
                               </div>
                             )}
                           </div>
-
-                          {/* Icon ba chấm */}
-                          <div className="relative flex items-center ">
+                          <div className="relative flex items-center">
                             <button
                               ref={buttonRef}
-                              className="text-gray-500 hover:text-gray-700 dark:text-dark-text-secondary dark:hover:text-dark-text-primary"
+                              className="text-[#65676b] dark:text-[#b0b3b8] hover:text-[#0084ff]"
                               onClick={() =>
                                 setOpenedOptionsMsgId((prev) => (prev === msg.id ? null : msg.id))
                               }
                             >
-                              <EllipsisVertical />
+                              <EllipsisVertical size={18} />
                             </button>
-
-                            {/* Dropdown menu hiển thị trên */}
                             {openedOptionsMsgId === msg.id && (
                               <div
                                 ref={dropdownRef}
-                                className="absolute bottom-full dark:text-white right-0 mb-1 bg-white dark:bg-dark-card border border-gray-300 dark:border-dark-border rounded shadow-md py-1 z-30 min-w-[140px]"
+                                className="absolute bottom-full right-0 mb-1 bg-white dark:bg-[#3a3b3c] border border-gray-200 dark:border-[#4a4b4c] rounded-lg shadow-md py-1 z-30 min-w-[140px]"
                               >
-                                {/* Nếu là tin nhắn của mình mới hiển thị "Chỉnh sửa" và "Thu hồi" */}
                                 {isMe && (
-                                  <>
-
-                                    <button
-                                      className="block w-full text-left text-sm px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-hover"
-                                      onClick={() => {
-                                        const socket = (window as any).chatSocket;
-                                        socket?.emit('revokeMessage', { messageId: msg.id });
-                                        setOpenedOptionsMsgId(null);
-                                      }}
-                                    >
-                                      Thu hồi
-                                    </button>
-                                  </>
+                                  <button
+                                    className="block w-full text-left text-sm px-4 py-2 text-[#050505] dark:text-[#e4e6eb] hover:bg-gray-100 dark:hover:bg-[#4a4b4c]"
+                                    onClick={() => {
+                                      const socket = (window as any).chatSocket;
+                                      socket?.emit('revokeMessage', { messageId: msg.id });
+                                      setOpenedOptionsMsgId(null);
+                                    }}
+                                  >
+                                    Thu hồi
+                                  </button>
                                 )}
-
-                                {/* Còn lại luôn hiện */}
                                 <button
-                                  className="block w-full text-left text-sm px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-hover"
+                                  className="block w-full text-left text-sm px-4 py-2 text-[#050505] dark:text-[#e4e6eb] hover:bg-gray-100 dark:hover:bg-[#4a4b4c]"
                                   onClick={() => {
                                     handleForwardMessage(msg.id);
                                     setOpenedOptionsMsgId(null);
@@ -591,9 +439,8 @@ export default function ChatBox({
                                 >
                                   Chuyển tiếp
                                 </button>
-
                                 <button
-                                  className="block w-full text-left text-sm px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-hover"
+                                  className="block w-full text-left text-sm px-4 py-2 text-[#050505] dark:text-[#e4e6eb] hover:bg-gray-100 dark:hover:bg-[#4a4b4c]"
                                   onClick={() => {
                                     navigator.clipboard.writeText(msg.content);
                                     setOpenedOptionsMsgId(null);
@@ -602,33 +449,27 @@ export default function ChatBox({
                                   Sao chép
                                 </button>
                                 <button
-                                  className="block w-full text-left text-sm px-4 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-dark-hover"
+                                  className="block w-full text-left text-sm px-4 py-2 text-[#ff3b30] hover:bg-red-50 dark:hover:bg-[#4a4b4c]"
                                   onClick={() => {
-                                    handdleDeteledMessageForMe(msg.id)
+                                    handleDeleteMessageForMe(msg.id);
                                     setOpenedOptionsMsgId(null);
-                                  }
-                                  }
+                                  }}
                                 >
                                   Xóa ở phía tôi
                                 </button>
-
                               </div>
                             )}
-
                           </div>
-
                         </div>
                       )}
                     </div>
-
-                    {/* Hiển thị thời gian & đã xem */}
                     {showTime[msg.id] && (
-                      <div className="text-[11px] text-gray-500 dark:text-dark-text-secondary mt-0.5">
+                      <div className="text-[10px] text-[#65676b] dark:text-[#b0b3b8] mt-1">
                         {sentAt && new Date(sentAt).toLocaleString()}
                       </div>
                     )}
                     {isMe && isLastSentByMe && wasRead && (
-                      <div className="text-[11px] text-blue-500 dark:text-blue-400 mt-0.5">Đã xem</div>
+                      <div className="text-[10px] text-[#0084ff] mt-1">Đã xem</div>
                     )}
                   </div>
                 </div>
@@ -638,51 +479,139 @@ export default function ChatBox({
         })}
       </div>
 
+      {/* Reaction Modal */}
+      {viewingReactionsMsg !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/20" onClick={() => setViewingReactionsMsg(null)} />
+          <div className="relative bg-white dark:bg-[#3a3b3c] rounded-xl w-[95%] max-w-md max-h-[80vh] overflow-y-auto p-4 shadow-lg">
+            <div className="flex justify-between items-center border-b border-gray-200 dark:border-[#4a4b4c] pb-2 mb-3">
+              <h2 className="text-base font-semibold text-[#050505] dark:text-[#e4e6eb]">Cảm xúc về tin nhắn</h2>
+              <button
+                onClick={() => setViewingReactionsMsg(null)}
+                className="text-[#65676b] dark:text-[#b0b3b8] hover:text-[#ff3b30] text-lg"
+              >
+                ×
+              </button>
+            </div>
+            {(() => {
+              const msg = messages.find(m => m.id === viewingReactionsMsg);
+              if (!msg) return null;
+
+              const grouped = msg.reactions.reduce((acc: Record<string, any[]>, r) => {
+                if (!acc[r.emoji]) acc[r.emoji] = [];
+                acc[r.emoji].push(r);
+                return acc;
+              }, {});
+
+              return (
+                <>
+                  {Object.entries(grouped).map(([emoji, users]) => (
+                    <div key={emoji} className="mb-3">
+                      <div className="font-medium text-sm mb-2 text-[#65676b] dark:text-[#b0b3b8]">
+                        {emoji} {users.length}
+                      </div>
+                      <div className="space-y-1">
+                        {users.map(({ user }) => (
+                          <div
+                            key={user.id}
+                            onClick={() => {
+                              const socket = (window as any).chatSocket;
+                              socket?.emit('removeReaction', {
+                                messageId: msg.id,
+                                userId: user.id,
+                                emoji,
+                              });
+                              if (user.id === currentUserId) {
+                                setViewingReactionsMsg(null);
+                              }
+                            }}
+                            className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#4a4b4c] cursor-pointer"
+                          >
+                            <div className="flex items-center gap-2 overflow-hidden">
+                              <img
+                                src={user.avatar_url || '/default-avatar.png'}
+                                alt="avatar"
+                                className="w-6 h-6 rounded-full object-cover"
+                              />
+                              <div className="flex flex-col overflow-hidden">
+                                <span className="text-sm text-[#050505] dark:text-[#e4e6eb] truncate">
+                                  {user.first_name} {user.last_name}
+                                </span>
+                                {user.id === currentUserId && (
+                                  <span className="text-xs text-[#65676b] dark:text-[#b0b3b8]">Nhấp để gỡ</span>
+                                )}
+                              </div>
+                            </div>
+                            <span className="text-lg">{emoji}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </>
+              );
+            })()}
+          </div>
+        </div>
+      )}
+
+      {/* Forward Modal */}
+      {showForwardModal && (
+        <ForwardFriendsModal
+          visible={showForwardModal}
+          onSelect={(friendId) => {
+            if (!forwardMessageId) return;
+            const socket = (window as any).chatSocket;
+            socket?.emit('forwardMessage', {
+              originalMessageId: forwardMessageId,
+              newReceiverId: friendId,
+            });
+            alert('Đã chuyển tiếp tin nhắn.');
+            setShowForwardModal(false);
+            setForwardMessageId(null);
+          }}
+          onClose={() => {
+            setShowForwardModal(false);
+            setForwardMessageId(null);
+          }}
+        />
+      )}
+
       {/* Input */}
-      <div className="p-2 border-t flex items-center gap-2 border-gray-200 dark:border-dark-border bg-white dark:bg-dark-card relative">
+      <div className="p-2 border-t border-gray-200 dark:border-[#4a4b4c] bg-white dark:bg-[#3a3b3c] flex items-center gap-2 relative">
         <input
-          className="flex-1 border rounded px-3 py-2 text-gray-900 dark:text-dark-text-primary bg-white dark:bg-dark-card placeholder-gray-400 dark:placeholder-dark-text-secondary"
+          className="flex-1 border-0 rounded-full px-4 py-2 text-sm text-[#050505] dark:text-[#e4e6eb] bg-[#f0f2f5] dark:bg-[#4a4b4c] placeholder-[#65676b] dark:placeholder-[#b0b3b8] focus:outline-none"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleInputKeyDown}
           placeholder="Nhập tin nhắn..."
         />
-
-        {/* Nút emoji */}
         <button
           ref={buttonRef}
           onClick={() => setShowEmojiPicker((prev) => !prev)}
-          className="text-2xl text-gray-600 dark:text-dark-text-primary hover:text-yellow-500"
-          type="button"
+          className="text-[#65676b] dark:text-[#b0b3b8] hover:text-[#0084ff] p-2"
         >
-          <Laugh />
+          <Laugh size={20} />
         </button>
-
-
-        {/* Emoji Picker */}
         {showEmojiPicker && (
-          <div ref={emojiPickerRef} className="absolute  bottom-full right-2 mb-2 z-50">
+          <div ref={emojiPickerRef} className="absolute bottom-full right-2 mb-2 z-50">
             <Picker
               data={data}
               onEmojiSelect={(emoji: any) => {
                 setInput((prev) => prev + emoji.native);
               }}
-              theme="light"
+              theme={isDark ? 'dark' : 'light'}
             />
           </div>
         )}
-
-
-
         <button
-          className="  text-gray-600  dark:text-dark-text-primary px-4 py-2 rounded"
+          className="text-[#0084ff] hover:bg-[#f0f2f5] dark:hover:bg-[#4a4b4c] p-2 rounded-full"
           onClick={handleSend}
           disabled={!input.trim()}
         >
-          <SendHorizontal />
+          <SendHorizontal size={20} />
         </button>
       </div>
-
     </div>
   );
 }
