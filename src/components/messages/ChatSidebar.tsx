@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+"use client";
+import Link from "next/link";
 import ConversationItem from "./ConversationItem";
 import { messageService } from "@/services/messageService";
 import { useFriendMessagesStore } from "@/stores/friendMessagesStore";
+import { useEffect, useState } from "react";
 
 export default function ChatSidebar({
   mobileOpen = true,
@@ -41,8 +43,8 @@ export default function ChatSidebar({
 
     return () => {
       socket.off('newMessage', updateSidebar);
-      socket.off('reactionUpdated', updateSidebar);
       socket.off('message-read', updateSidebar);
+      socket.off('reactionUpdated', updateSidebar);
     };
   }, []);
 
@@ -71,7 +73,6 @@ export default function ChatSidebar({
             </span>
           )}
         </span>
-        {/* Đã bỏ hoàn toàn nút close */}
       </div>
 
       <div className="p-3 border-b bg-gray-50 dark:bg-dark-hover">
@@ -94,14 +95,15 @@ export default function ChatSidebar({
           <div className="text-center text-gray-400 dark:text-dark-text-secondary mt-8">Không có hội thoại nào</div>
         )}
         {filtered.map((fm) => (
-          <ConversationItem
-            key={fm.id || fm.friendId}
-            fm={fm}
-            onClick={() => {
-              onSelectUser?.(fm.friendId);
-              onClose?.();
-            }}
-          />
+          <Link key={fm.id || fm.friendId} href={`/tin-nhan/${fm.friendId}`} passHref>
+            <ConversationItem
+              fm={fm}
+              onClick={() => {
+                onSelectUser?.(fm.friendId);
+                onClose?.();
+              }}
+            />
+          </Link>
         ))}
       </div>
     </div>

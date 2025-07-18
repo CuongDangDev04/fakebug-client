@@ -9,7 +9,7 @@ import { useFriendMessagesStore } from '@/stores/friendMessagesStore';
 import { ChatBoxProps } from '@/types/chatBoxProps';
 import Picker from '@emoji-mart/react';
 import data from '@emoji-mart/data';
-import { EllipsisVertical, Laugh, Phone, Video } from 'lucide-react';
+import { ArrowDown, EllipsisVertical, Laugh, Phone, SendHorizontal, Video } from 'lucide-react';
 import { messageService } from '@/services/messageService';
 import { useChatStore } from '@/stores/chatStore';
 
@@ -250,13 +250,13 @@ export default function ChatBox({
           <div className="flex gap-2">
             <button
               onClick={() => onStartCall?.('audio')}
-              className="text-blue-600 hover:text-green-800 text-sm font-medium"
+              className="text-gray-600 dark:text-dark-text-primary hover:text-green-800 text-sm font-medium"
             >
               <Phone size={20} />
             </button>
             <button
               onClick={() => onStartCall?.('video')}
-              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+              className="text-gray-600 dark:text-dark-text-primary hover:text-blue-800 text-sm font-medium"
             >
               <Video size={24} />
             </button>
@@ -280,9 +280,7 @@ export default function ChatBox({
             style={{ width: 44, height: 44 }}
             aria-label="Cuộn xuống cuối"
           >
-            <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
-              <path d="M12 16c-.28 0-.53-.11-.71-.29l-6-6a1.003 1.003 0 011.42 1.42L12 13.59l5.29-5.3a1.003 1.003 0 111.42 1.42l-6 6c-.18.18-.43.29-.71.29z" fill="currentColor" />
-            </svg>
+             <ArrowDown />
           </button>
         )}
         {uniqueMessages.map((msg, idx) => {
@@ -485,7 +483,7 @@ export default function ChatBox({
 
 
                       {/* Hiển thị icon nếu đang hover và chưa thu hồi */}
-                      {hoveredMsgId === msg.id && !(msg as any).is_revoked && (
+                      {hoveredMsgId === msg.id && !(msg as any).is_revoked && !msg.content.startsWith('Cuộc gọi') &&  (
                         <div className={`flex items-center gap-1 self-stretch ${isMe ? 'flex-row-reverse' : ''}`}>
 
 
@@ -531,7 +529,7 @@ export default function ChatBox({
                             {openedOptionsMsgId === msg.id && (
                               <div
                                 ref={dropdownRef}
-                                className="absolute bottom-full right-0 mb-1 bg-white dark:bg-dark-card border border-gray-300 dark:border-dark-border rounded shadow-md py-1 z-30 min-w-[140px]"
+                                className="absolute bottom-full dark:text-white right-0 mb-1 bg-white dark:bg-dark-card border border-gray-300 dark:border-dark-border rounded shadow-md py-1 z-30 min-w-[140px]"
                               >
                                 {/* Nếu là tin nhắn của mình mới hiển thị "Chỉnh sửa" và "Thu hồi" */}
                                 {isMe && (
@@ -620,7 +618,7 @@ export default function ChatBox({
         <button
           ref={buttonRef}
           onClick={() => setShowEmojiPicker((prev) => !prev)}
-          className="text-2xl hover:text-yellow-500"
+          className="text-2xl text-gray-600 dark:text-dark-text-primary hover:text-yellow-500"
           type="button"
         >
           <Laugh />
@@ -643,11 +641,11 @@ export default function ChatBox({
 
 
         <button
-          className="bg-blue-500 text-white dark:text-dark-text-primary px-4 py-2 rounded"
+          className="  text-gray-600  dark:text-dark-text-primary px-4 py-2 rounded"
           onClick={handleSend}
           disabled={!input.trim()}
         >
-          Gửi
+          <SendHorizontal />
         </button>
       </div>
 

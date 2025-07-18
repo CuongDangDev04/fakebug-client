@@ -12,7 +12,7 @@ dayjs.locale("vi");
 
 interface ConversationItemProps {
   fm: FriendsMessage;
-  onClick?: () => void;  // ✅ Thêm prop
+  onClick?: () => void;
 }
 
 export default function ConversationItem({ fm, onClick }: ConversationItemProps) {
@@ -28,7 +28,7 @@ export default function ConversationItem({ fm, onClick }: ConversationItemProps)
   const [loading, setLoading] = useState(false);
 
   const handleClick = async (e: React.MouseEvent) => {
-    e.preventDefault();
+    // Bỏ e.preventDefault() để Link có thể chuyển hướng
     if (isUnread && !loading) {
       setLoading(true);
       await messageService.markAsRead(fm.friendId);
@@ -36,12 +36,11 @@ export default function ConversationItem({ fm, onClick }: ConversationItemProps)
       if (res?.friends) setFriends(res.friends);
       setLoading(false);
     }
-    onClick?.();  // ✅ Gọi callback để mở ChatBox
+    onClick?.();
   };
 
   return (
-    <a
-      href="#"
+    <div
       onClick={handleClick}
       className={`relative flex items-center gap-3 px-4 py-3 hover:bg-blue-50 dark:hover:bg-dark-hover transition cursor-pointer group
         ${isUnread ? "font-semibold bg-blue-50 dark:bg-dark-hover" : ""}`}
@@ -101,6 +100,6 @@ export default function ConversationItem({ fm, onClick }: ConversationItemProps)
           {unreadCount > 0 ? unreadCount : ""}
         </span>
       </div>
-    </a>
+    </div>
   );
 }
