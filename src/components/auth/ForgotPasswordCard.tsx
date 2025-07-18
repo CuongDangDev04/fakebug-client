@@ -17,7 +17,7 @@ export default function ForgotPasswordCard() {
           <ForgotPasswordForm />
           
           <div className="text-center text-sm lg:text-base text-gray-600">
-            <Link href="/login" className="text-[#40c9db] hover:text-[#2bb5c9] font-medium">
+            <Link href="/dang-nhap" className="text-[#40c9db] hover:text-[#2bb5c9] font-medium">
               Quay lại đăng nhập
             </Link>
           </div>
