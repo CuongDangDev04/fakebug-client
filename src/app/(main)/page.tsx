@@ -1,6 +1,11 @@
-export default function Home() {
+import CreatePostButton from "@/components/posts/CreatePostButton";
+import PostList from "@/components/posts/PostList";
+
+export default function HomePage() {
   return (
-    <>
-      <h1>Home page</h1></>
+    <div className="">
+      <CreatePostButton />
+      <PostList/>
+    </div>
   );
 }
