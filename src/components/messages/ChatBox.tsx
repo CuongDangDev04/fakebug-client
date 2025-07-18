@@ -12,6 +12,7 @@ import data from '@emoji-mart/data';
 import { ArrowDown, EllipsisVertical, Laugh, Phone, SendHorizontal, Video } from 'lucide-react';
 import { messageService } from '@/services/messageService';
 import { useChatStore } from '@/stores/chatStore';
+import ForwardFriendsModal from '@/components/messages/ForwardFriendsModal';
 
 
 export default function ChatBox({
@@ -44,6 +45,8 @@ export default function ChatBox({
   const [openedReactionMsgId, setOpenedReactionMsgId] = useState<number | null>(null);
   const [viewingReactionsMsg, setViewingReactionsMsg] = useState<number | null>(null);
   const removeMessageById = useChatStore((state) => state.removeMessageById)
+  const [showForwardModal, setShowForwardModal] = useState(false);
+  const [forwardMessageId, setForwardMessageId] = useState<number | null>(null);
 
   useEffect(() => {
     const hasUnread = messages.some(msg => msg.sender.id === targetUserId && !msg.is_read);
@@ -198,6 +201,12 @@ export default function ChatBox({
     }
 
   }
+  const handleForwardMessage = (messageId: number) => {
+    setForwardMessageId(messageId);
+    setShowForwardModal(true);
+  };
+
+
 
   return (
     <div className="flex flex-col h-[85vh] md:h-[90vh] border rounded bg-white dark:bg-dark-card border-gray-200 dark:border-dark-border md:rounded-none md:border-none w-full">
@@ -218,7 +227,7 @@ export default function ChatBox({
         )}
 
         {/* Nút Mở Sidebar */}
-       
+
 
         <div className="flex items-center justify-between gap-3 w-full">
           {/* Avatar + Tên + Trạng thái */}
@@ -280,7 +289,7 @@ export default function ChatBox({
             style={{ width: 44, height: 44 }}
             aria-label="Cuộn xuống cuối"
           >
-             <ArrowDown />
+            <ArrowDown />
           </button>
         )}
         {uniqueMessages.map((msg, idx) => {
@@ -480,10 +489,34 @@ export default function ChatBox({
                           </div>
                         </div>
                       )}
+                      {showForwardModal && (
+                        <ForwardFriendsModal
+                          visible={showForwardModal}   // ✅ Bổ sung prop visible
+                          onSelect={(friendId) => {
+                            if (!forwardMessageId) return;
+
+                            const socket = (window as any).chatSocket;
+
+                            socket?.emit('forwardMessage', {
+                              originalMessageId: forwardMessageId,
+                              newReceiverId: friendId,
+                            });
+
+                            alert('Đã chuyển tiếp tin nhắn.');
+
+                            setShowForwardModal(false);
+                            setForwardMessageId(null);
+                          }}
+                          onClose={() => {
+                            setShowForwardModal(false);
+                            setForwardMessageId(null);
+                          }}
+                        />
+                      )}
 
 
                       {/* Hiển thị icon nếu đang hover và chưa thu hồi */}
-                      {hoveredMsgId === msg.id && !(msg as any).is_revoked && !msg.content.startsWith('Cuộc gọi') &&  (
+                      {hoveredMsgId === msg.id && !(msg as any).is_revoked && !msg.content.startsWith('Cuộc gọi') && (
                         <div className={`flex items-center gap-1 self-stretch ${isMe ? 'flex-row-reverse' : ''}`}>
 
 
@@ -552,12 +585,13 @@ export default function ChatBox({
                                 <button
                                   className="block w-full text-left text-sm px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-hover"
                                   onClick={() => {
+                                    handleForwardMessage(msg.id);
                                     setOpenedOptionsMsgId(null);
-                                    alert('Chức năng chuyển tiếp đang được phát triển');
                                   }}
                                 >
                                   Chuyển tiếp
                                 </button>
+
                                 <button
                                   className="block w-full text-left text-sm px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-hover"
                                   onClick={() => {

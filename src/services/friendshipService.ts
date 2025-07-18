@@ -4,78 +4,147 @@ import type { FriendshipStatus } from '@/types/friendship';
 const BASE_URL = `${process.env.NEXT_PUBLIC_BASE_URL}/friendships`;
 
 export const friendshipService = {
-    // Gửi lời mời kết bạn
     async sendFriendRequest(receiverId: number) {
-        return api.post(`${BASE_URL}/send-request/${receiverId}`);
+        try {
+            const res = await api.post(`${BASE_URL}/send-request/${receiverId}`);
+            return res.data;
+        } catch (error: any) {
+            console.error('Lỗi gửi lời mời kết bạn:', error);
+        }
     },
 
-    // Phản hồi lời mời kết bạn
     async respondToRequest(requestId: number, accept: boolean) {
-        return api.post(`${BASE_URL}/respond/${requestId}`, { accept });
+        try {
+            const res = await api.post(`${BASE_URL}/respond/${requestId}`, { accept });
+            return res.data;
+        } catch (error: any) {
+            console.error('Lỗi phản hồi lời mời:', error);
+        }
     },
 
-    // Lấy danh sách bạn bè
     async getFriends() {
-        return api.get(`${BASE_URL}/friends`);
+        try {
+            const res = await api.get(`${BASE_URL}/friends`);
+            return res.data;
+        } catch (error: any) {
+            console.error('Lỗi lấy danh sách bạn bè:', error);
+        }
     },
 
-    // Hủy kết bạn
     async unfriend(targetId: number) {
-        return api.delete(`${BASE_URL}/unfriend/${targetId}`);
+        try {
+            const res = await api.delete(`${BASE_URL}/unfriend/${targetId}`);
+            return res.data;
+        } catch (error: any) {
+            console.error('Lỗi hủy kết bạn:', error);
+        }
     },
 
-    // Chặn người dùng
     async blockUser(targetId: number) {
-        return api.post(`${BASE_URL}/block/${targetId}`);
+        try {
+            const res = await api.post(`${BASE_URL}/block/${targetId}`);
+            return res.data;
+        } catch (error: any) {
+            console.error('Lỗi chặn người dùng:', error);
+        }
     },
 
-    // Bỏ chặn người dùng
     async unblockUser(targetId: number) {
-        return api.delete(`${BASE_URL}/unblock/${targetId}`);
+        try {
+            const res = await api.delete(`${BASE_URL}/unblock/${targetId}`);
+            return res.data;
+        } catch (error: any) {
+            console.error('Lỗi bỏ chặn người dùng:', error);
+        }
     },
 
-    // Lấy danh sách lời mời kết bạn đã nhận
     async getReceivedRequests() {
-        return api.get(`${BASE_URL}/requests/received`);
+        try {
+            const res = await api.get(`${BASE_URL}/requests/received`);
+            return res.data;
+        } catch (error: any) {
+            console.error('Lỗi lấy danh sách lời mời đã nhận:', error);
+        }
     },
 
-    // Lấy danh sách lời mời kết bạn đã gửi
     async getSentRequests() {
-        return api.get(`${BASE_URL}/requests/sent`);
+        try {
+            const res = await api.get(`${BASE_URL}/requests/sent`);
+            return res.data;
+        } catch (error: any) {
+            console.error('Lỗi lấy danh sách lời mời đã gửi:', error);
+        }
     },
 
-    // Hủy lời mời kết bạn đã gửi
     async cancelSentRequest(targetId: number) {
-        return api.delete(`${BASE_URL}/requests/cancel/${targetId}`);
+        try {
+            const res = await api.delete(`${BASE_URL}/requests/cancel/${targetId}`);
+            return res.data;
+        } catch (error: any) {
+            console.error('Lỗi hủy lời mời kết bạn:', error);
+        }
     },
 
-    //lấy danh sách bạn chung
     async getMutualFriends(targetId: number) {
-        return api.get(`${BASE_URL}/mutual/${targetId}`);
+        try {
+            const res = await api.get(`${BASE_URL}/mutual/${targetId}`);
+            return res.data;
+        } catch (error: any) {
+            console.error('Lỗi lấy danh sách bạn chung:', error);
+        }
     },
 
-    //gợi ý kết bạn dựa vào bạn chung
     async getFriendSuggestions() {
-        return api.get(`${BASE_URL}/suggestions`);
+        try {
+            const res = await api.get(`${BASE_URL}/suggestions`);
+            return res.data;
+        } catch (error: any) {
+            console.error('Lỗi lấy danh sách gợi ý kết bạn:', error);
+        }
     },
 
-    // Kiểm tra trạng thái kết bạn
     async checkFriendshipStatus(targetId: number) {
-        return api.get<FriendshipStatus>(`${BASE_URL}/status/${targetId}`);
+        try {
+            const res = await api.get<FriendshipStatus>(`${BASE_URL}/status/${targetId}`);
+            return res.data;
+        } catch (error: any) {
+            console.error('Lỗi kiểm tra trạng thái kết bạn:', error);
+        }
     },
 
-    // Lấy danh sách bạn bè của một user cụ thể
     async getUserFriends(userId: number) {
-        return api.get(`${BASE_URL}/user/${userId}/friends`);
+        try {
+            const res = await api.get(`${BASE_URL}/user/${userId}/friends`);
+            return res.data;
+        } catch (error: any) {
+            console.error('Lỗi lấy danh sách bạn của người dùng:', error);
+        }
     },
 
-    // Lấy thông tin chi tiết về mối quan hệ với một danh sách users
     async getFriendshipStatusBatch(userIds: number[]) {
-        return api.post(`${BASE_URL}/status-batch`, { userIds });
+        try {
+            const res = await api.post(`${BASE_URL}/status-batch`, { userIds });
+            return res.data;
+        } catch (error: any) {
+            console.error('Lỗi lấy trạng thái bạn bè theo danh sách:', error);
+        }
     },
 
-    // Lấy danh sách user bị chặn
     async getBlockedUsers() {
-        return api.get(`${BASE_URL}/blocked`);
-    }
+        try {
+            const res = await api.get(`${BASE_URL}/blocked`);
+            return res.data;
+        } catch (error: any) {
+            console.error('Lỗi lấy danh sách người bị chặn:', error);
+        }
+    },
+
+    async getMyFriends() {
+        try {
+            const res = await api.get(`${BASE_URL}/my-friends`);
+            return res.data;
+        } catch (error: any) {
+            console.error('Lỗi lấy danh sách bạn bè của chính mình:', error);
+        }
+    },
 };
