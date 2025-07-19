@@ -3,10 +3,12 @@ import api from '@/services/api';
 const BASE_URL = `${process.env.NEXT_PUBLIC_BASE_URL}/posts`;
 
 export const postService = {
-    async createPost(data: { content: string; userId: number; file?: File }) {
+    async createPost(data: { content: string; userId: number; file?: File; privacy: 'public' | 'friends' | 'private' }) {
         const formData = new FormData();
         formData.append('content', data.content);
         formData.append('userId', data.userId.toString());
+        formData.append('privacy', data.privacy);
+
         if (data.file) {
             formData.append('file', data.file);
         }
@@ -16,49 +18,89 @@ export const postService = {
         });
     },
 
-    async getMyPosts() {
-        return api.get(`${BASE_URL}/my`);
-    },
-
-    async getUserPosts(userId: number | string) {
-        return api.get(`${BASE_URL}/user/${userId}`);
-    },
-
     async deletePost(postId: number | string) {
-        return api.delete(`${BASE_URL}/${postId}`);
-    },
-    async getAllPosts() {
-        return api.get(`${BASE_URL}`);
-    },
-   async updatePost(postId: number, data: FormData | {
-    content: string;
-    userId: number;
-    file?: File;
-    removeImage?: boolean;
-}) {
-    let formData: FormData;
-
-    if (data instanceof FormData) {
-        formData = data;  // Nếu đã là FormData thì dùng luôn
-    } else {
-        formData = new FormData();
-        formData.append('content', data.content);
-        formData.append('userId', data.userId.toString());
-        if (data.file) {
-            formData.append('file', data.file);
+        try {
+            return await api.delete(`${BASE_URL}/${postId}`);
+        } catch (error) {
+            console.error('Lỗi khi xóa bài viết:', error);
+            throw error;
         }
-        if (data.removeImage) {
-            formData.append('removeImage', 'true');
+    },
+
+    async updatePost(postId: number, data: FormData | {
+        content: string;
+        userId: number;
+        file?: File;
+        removeImage?: boolean;
+        privacy: 'public' | 'friends' | 'private';
+    }) {
+        let formData: FormData;
+
+        if (data instanceof FormData) {
+            formData = data;
+        } else {
+            formData = new FormData();
+            formData.append('content', data.content);
+            formData.append('userId', data.userId.toString());
+            formData.append('privacy', data.privacy);
+
+            if (data.file) {
+                formData.append('file', data.file);
+            }
+            if (data.removeImage) {
+                formData.append('removeImage', 'true');
+            }
+        }
+
+        return api.put(`${BASE_URL}/${postId}`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+    },
+
+    async getPublicPosts() {
+        try {
+            const res= await api.get(`${BASE_URL}/public`);
+            console.log('res dt',res)
+            return res
+        } catch (error) {
+            console.error('Lỗi khi lấy bài viết công khai:', error);
+            throw error;
+        }
+    },
+
+    async getPrivatePosts() {
+        try {
+            return await api.get(`${BASE_URL}/private`);
+        } catch (error) {
+            console.error('Lỗi khi lấy bài viết riêng tư:', error);
+            throw error;
+        }
+    },
+
+    async getFriendPosts() {
+        try {
+            return await api.get(`${BASE_URL}/friends`);
+        } catch (error) {
+            console.error('Lỗi khi lấy bài viết bạn bè:', error);
+            throw error;
+        }
+    },
+
+    async getPostById(postId: number | string) {
+        try {
+            return await api.get(`${BASE_URL}/${postId}`);
+        } catch (error) {
+            console.error('Lỗi khi lấy chi tiết bài viết:', error);
+            throw error;
+        }
+    },
+    async getAllVisiblePosts(){
+        try{
+            const res = await api.get(`${BASE_URL}/feed`);
+            return res
+        }catch(error){
+            console.error('Lỗi: ',error);
+            throw error;
         }
     }
-
-    return api.put(`${BASE_URL}/${postId}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-    });
-}
-
-
-
-
-
 };

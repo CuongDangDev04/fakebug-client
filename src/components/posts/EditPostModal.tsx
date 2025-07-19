@@ -6,6 +6,7 @@ import { postService } from '@/services/postService';
 import { useUserStore } from '@/stores/userStore';
 import type { PostResponse } from '@/types/post';
 import Modal from './ModalCreat';
+import PrivacySelect from './PrivacySelect';
 
 interface EditPostModalProps {
     post: PostResponse;
@@ -24,6 +25,7 @@ export default function EditPostModal({
     const userId = user?.id;
 
     const [content, setContent] = useState(post.content);
+    const [privacy, setPrivacy] = useState<'public' | 'friends' | 'private'>(post.privacy || 'friends');
     const [imagePreview, setImagePreview] = useState<string | null>(post.media_url || null);
     const [file, setFile] = useState<File | null>(null);
     const [removeImage, setRemoveImage] = useState(false);
@@ -34,14 +36,14 @@ export default function EditPostModal({
         if (selectedFile) {
             setFile(selectedFile);
             setImagePreview(URL.createObjectURL(selectedFile));
-            setRemoveImage(false); // Nếu upload ảnh mới thì không cần xoá ảnh
+            setRemoveImage(false);
         }
     };
 
     const handleRemoveImage = () => {
         setImagePreview(null);
         setFile(null);
-        setRemoveImage(true); // Đánh dấu cần xoá ảnh
+        setRemoveImage(true);
     };
 
     const handleUpdatePost = async () => {
@@ -49,17 +51,14 @@ export default function EditPostModal({
         setLoading(true);
 
         try {
-            const formData = new FormData();
-            formData.append('content', content);
-            formData.append('userId', userId.toString());
-            if (file) {
-                formData.append('file', file);
-            }
-            if (removeImage) {
-                formData.append('removeImage', 'true');
-            }
+            const res = await postService.updatePost(post.id, {
+                content,
+                userId,
+                file: file || undefined,
+                removeImage,
+                privacy,
+            });
 
-            const res = await postService.updatePost(post.id, formData);
             onPostUpdated(res.data);
             onClose();
         } catch (error) {
@@ -72,6 +71,7 @@ export default function EditPostModal({
     useEffect(() => {
         if (isOpen) {
             setContent(post.content);
+            setPrivacy(post.privacy || 'friends');
             setImagePreview(post.media_url || null);
             setFile(null);
             setRemoveImage(false);
@@ -96,6 +96,9 @@ export default function EditPostModal({
                 placeholder={`${user?.first_name} ơi, bạn đang nghĩ gì thế?`}
                 className="w-full bg-gray-100 dark:bg-dark-bg dark:text-white rounded-xl px-3 py-2 mb-4 resize-none"
             />
+
+            {/* Privacy Select */}
+          <PrivacySelect value={privacy} onChange={setPrivacy} />
 
             {imagePreview && (
                 <div className="mb-4 relative">

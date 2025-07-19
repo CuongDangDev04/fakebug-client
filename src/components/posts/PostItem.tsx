@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { MessageCircle, Pencil, ThumbsUp } from 'lucide-react';
+import { Lock, Globe, Users, MessageCircle, Pencil, ThumbsUp } from 'lucide-react';
 import type { PostResponse } from '@/types/post';
 import { formatRelativeTime } from '@/utils/formatRelativeTime';
 import EditPostModal from './EditPostModal';
+import { useUserStore } from '@/stores/userStore';
 
 interface PostItemProps {
     post: PostResponse;
@@ -26,7 +27,9 @@ export default function PostItem({ post }: PostItemProps) {
     const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
     const [showReactions, setShowReactions] = useState(false);
 
-     const handleReact = (reaction: string) => {
+    const currentUser = useUserStore((state) => state.user);
+
+    const handleReact = (reaction: string) => {
         if (!selectedReaction) {
             setLikesCount(likesCount + 1);
         }
@@ -34,6 +37,20 @@ export default function PostItem({ post }: PostItemProps) {
         setShowReactions(false);
     };
 
+    const renderPrivacyIcon = () => {
+        switch (currentPost.privacy) {
+            case 'public':
+                return <Globe className="w-4 h-4 text-gray-500 inline-block ml-1" />;
+            case 'friends':
+                return <Users className="w-4 h-4 text-gray-500 inline-block ml-1" />;
+            case 'private':
+                return <Lock className="w-4 h-4 text-gray-500 inline-block ml-1" />;
+            default:
+                return null;
+        }
+    };
+
+    const isOwnPost = currentUser?.id === currentPost.user.id;
 
     return (
         <div className="bg-white dark:bg-dark-card rounded-xl shadow-sm p-4 space-y-3 relative">
@@ -51,16 +68,22 @@ export default function PostItem({ post }: PostItemProps) {
                         <p className="font-semibold text-sm dark:text-white">
                             {currentPost.user.first_name} {currentPost.user.last_name}
                         </p>
-                        <p className="text-xs text-gray-500">{formatRelativeTime(currentPost.created_at)}</p>
+                        <p className="text-xs text-gray-500 flex items-center">
+                            {formatRelativeTime(currentPost.created_at)}
+                            {renderPrivacyIcon()}
+                        </p>
                     </div>
                 </div>
-                <button
-                    onClick={() => setShowEditModal(true)}
-                    className="p-1 rounded hover:bg-gray-200 dark:hover:bg-dark-hover"
-                    title="Chỉnh sửa bài viết"
-                >
-                    <Pencil className="w-4 h-4" />
-                </button>
+
+                {isOwnPost && (
+                    <button
+                        onClick={() => setShowEditModal(true)}
+                        className="p-1 rounded hover:bg-gray-200 dark:hover:bg-dark-hover"
+                        title="Chỉnh sửa bài viết"
+                    >
+                        <Pencil className="w-4 h-4" />
+                    </button>
+                )}
             </div>
 
             {/* Content */}
@@ -88,22 +111,21 @@ export default function PostItem({ post }: PostItemProps) {
 
             {/* Actions */}
             <div className="flex justify-around border-t border-gray-200 dark:border-gray-700 pt-2 relative">
-                {/* Nút Thích + Reaction Picker */}
                 <div
                     onMouseEnter={() => setShowReactions(true)}
                     onMouseLeave={() => setShowReactions(false)}
                     className="relative"
                 >
-                    {/* Nút chính */}
                     <button
-                        className={`flex items-center dark:text-gray-300 gap-1 px-4 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-hover ${selectedReaction ? 'text-blue-600 dark:text-[#4497f5]' : ''
-                            }`}
+                        className={`flex items-center dark:text-gray-300 gap-1 px-4 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-hover ${
+                            selectedReaction ? 'text-blue-600 dark:text-[#4497f5]' : ''
+                        }`}
                     >
                         {selectedReaction ? (
                             <img
                                 src={reactions.find(r => r.name === selectedReaction)?.url || ''}
                                 alt={selectedReaction}
-                                className="w-6 h-4 "
+                                className="w-6 h-4"
                             />
                         ) : (
                             <ThumbsUp size={18} />
@@ -111,9 +133,8 @@ export default function PostItem({ post }: PostItemProps) {
                         {selectedReaction || 'Thích'}
                     </button>
 
-                    {/* Popup reactions - CHỈ CÓ 1 DIV */}
                     {showReactions && (
-                        <div className="absolute bottom-10 left-0  bg-white dark:bg-dark-card rounded-full shadow-lg flex gap-3 px-4 py-3 z-50 min-w-[340px] justify-center">
+                        <div className="absolute bottom-10 left-0 bg-white dark:bg-dark-card rounded-full shadow-lg flex gap-3 px-4 py-3 z-50 min-w-[340px] justify-center">
                             {reactions.map(r => (
                                 <button
                                     key={r.name}
@@ -127,14 +148,12 @@ export default function PostItem({ post }: PostItemProps) {
                     )}
                 </div>
 
-                {/* Nút bình luận */}
                 <button className="flex items-center gap-1 px-4 py-1 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-hover">
                     <MessageCircle className="w-4 h-4" />
                     Bình luận
                 </button>
             </div>
 
-            {/* Modal chỉnh sửa bài viết */}
             {showEditModal && (
                 <EditPostModal
                     post={currentPost}
