@@ -51,7 +51,7 @@ export default function CreatePost({ onPostSuccess }: { onPostSuccess?: () => vo
     };
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-4 bg-white dark:bg-dark-card rounded-lg p-4 shadow">
             {/* Header */}
             <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
@@ -61,7 +61,7 @@ export default function CreatePost({ onPostSuccess }: { onPostSuccess?: () => vo
                         className="object-cover w-full h-full"
                     />
                 </div>
-                <div className="font-semibold text-sm">
+                <div className="font-semibold text-sm text-gray-800 dark:text-gray-200">
                     {currentUser.first_name} {currentUser.last_name}
                 </div>
             </div>
@@ -72,11 +72,11 @@ export default function CreatePost({ onPostSuccess }: { onPostSuccess?: () => vo
                 onChange={(e) => setContent(e.target.value)}
                 rows={4}
                 placeholder="Cường ơi, bạn đang nghĩ gì thế?"
-                className="w-full resize-none bg-gray-100 dark:bg-dark-hover rounded-lg p-3 text-sm focus:outline-none placeholder:text-gray-500"
+                className="w-full resize-none bg-gray-100 dark:bg-dark-hover dark:text-gray-200 rounded-lg p-3 text-sm focus:outline-none placeholder:text-gray-500 dark:placeholder:text-gray-400"
             />
 
             {/* Privacy Select */}
-         <PrivacySelect value={privacy} onChange={setPrivacy} />
+            <PrivacySelect value={privacy} onChange={setPrivacy} />
 
             {/* Image Preview */}
             {imagePreview && (
@@ -99,7 +99,7 @@ export default function CreatePost({ onPostSuccess }: { onPostSuccess?: () => vo
             )}
 
             {/* Actions */}
-            <div className="flex justify-between items-center border-t pt-3">
+            <div className="flex justify-between items-center border-t dark:border-gray-700 pt-3">
                 <div>
                     <input
                         ref={fileInputRef}
@@ -110,7 +110,7 @@ export default function CreatePost({ onPostSuccess }: { onPostSuccess?: () => vo
                     />
                     <button
                         onClick={() => fileInputRef.current?.click()}
-                        className="flex items-center gap-2 text-blue-600 text-sm font-semibold"
+                        className="flex items-center gap-2 text-blue-600 dark:text-blue-400 text-sm font-semibold"
                     >
                         <Image className="w-5 h-5" />
                         Ảnh
@@ -120,7 +120,7 @@ export default function CreatePost({ onPostSuccess }: { onPostSuccess?: () => vo
                 <button
                     onClick={handleSubmit}
                     disabled={loading}
-                    className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-full disabled:opacity-50"
+                    className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-full disabled:opacity-50"
                 >
                     {loading ? 'Đang đăng...' : 'Đăng'}
                 </button>

@@ -1,14 +1,9 @@
 import { useUserOnlineStatus } from "@/hooks/useUserOnlineStatus";
 import { FriendsMessage } from "@/types/message";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
-import "dayjs/locale/vi";
 import { messageService } from "@/services/messageService";
 import { useFriendMessagesStore } from "@/stores/friendMessagesStore";
 import { useState } from "react";
-
-dayjs.extend(relativeTime);
-dayjs.locale("vi");
+import { formatRelativeTime } from "@/utils/formatRelativeTime";
 
 interface ConversationItemProps {
   fm: FriendsMessage;
@@ -19,16 +14,16 @@ export default function ConversationItem({ fm, onClick }: ConversationItemProps)
   const { isOnline } = useUserOnlineStatus(fm.friendId);
   const unreadCount = typeof fm.unreadCount === "number" ? fm.unreadCount : 0;
   const isUnread = unreadCount > 0;
+
   const sentAtFormatted =
     fm.sent_at && !isNaN(new Date(fm.sent_at).getTime())
-      ? dayjs(fm.sent_at).fromNow()
+      ? formatRelativeTime(fm.sent_at)
       : "Vừa xong";
 
   const { setFriends } = useFriendMessagesStore();
   const [loading, setLoading] = useState(false);
 
   const handleClick = async (e: React.MouseEvent) => {
-    // Bỏ e.preventDefault() để Link có thể chuyển hướng
     if (isUnread && !loading) {
       setLoading(true);
       await messageService.markAsRead(fm.friendId);

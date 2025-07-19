@@ -3,8 +3,9 @@
 import { ReactionListModalProps } from '@/types/post';
 import { MessageCircleMore } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
-
+import { useEffect, useState } from 'react';
+import { useFriendship } from '@/hooks/useFriendship';
+import { useUserStore } from '@/stores/userStore';
 
 const reactions = [
     { name: 'Tất cả', url: '', type: 'all' },
@@ -18,6 +19,34 @@ const reactions = [
 
 export default function ReactionListModal({ users, onClose }: ReactionListModalProps) {
     const [activeTab, setActiveTab] = useState('all');
+    const { checkMutualFriends } = useFriendship();
+    const [mutualCounts, setMutualCounts] = useState<Record<number, number>>({});
+    const currentUser = useUserStore((state) => state.user);
+
+    useEffect(() => {
+        const fetchMutualFriends = async () => {
+            const counts: Record<number, number> = {};
+
+            for (const user of users) {
+                const mutualFriends = await checkMutualFriends(user.id);
+
+                console.log(`[MutualFriends] Đang kiểm tra userId=${user.id}`);
+                console.log(`[MutualFriends] Kết quả API:`, mutualFriends);
+
+                counts[user.id] = mutualFriends?.total || 0;  // SỬA TẠI ĐÂY
+
+                if (counts[user.id] === 0) {
+                    console.warn(`[MutualFriends] Cảnh báo: userId=${user.id} không có bạn chung.`);
+                }
+            }
+
+            console.log('[MutualFriends] Bảng tổng:', counts);
+            setMutualCounts(counts);
+        };
+
+        fetchMutualFriends();
+    }, [users]);
+
 
     const filteredUsers = activeTab === 'all'
         ? users
@@ -82,43 +111,54 @@ export default function ReactionListModal({ users, onClose }: ReactionListModalP
                         <p className="text-center text-sm text-gray-500 dark:text-[#b0b3b8]">Không có ai.</p>
                     )}
 
-                    {filteredUsers.map(user => {
-                        const reaction = reactions.find(r => r.type === user.type);
+                   {filteredUsers.map(user => {
+    const reaction = reactions.find(r => r.type === user.type);
+    const isCurrentUser = user.id === currentUser?.id;
 
-                        return (
-                            <div key={user.id} className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="relative">
-                                        <img
-                                            src={user.avatar_url || '/default-avatar.png'}
-                                            alt={user.first_name}
-                                            className="w-10 h-10 rounded-full object-cover"
-                                        />
-                                        {reaction && (
-                                            <img
-                                                src={reaction.url}
-                                                alt={reaction.name}
-                                                className="w-4 h-4 absolute -bottom-1 -right-1 bg-white dark:bg-[#242526] rounded-full p-[1px]"
-                                            />
-                                        )}
-                                    </div>
+    return (
+        <div key={user.id} className="flex items-center justify-between">
+            <Link href={`/trang-ca-nhan/${user.id}`} className="flex items-center gap-3 cursor-pointer">
+                <div className="relative">
+                    <img
+                        src={user.avatar_url || '/default-avatar.png'}
+                        alt={user.first_name}
+                        className="w-10 h-10 rounded-full object-cover"
+                    />
+                    {reaction && (
+                        <img
+                            src={reaction.url}
+                            alt={reaction.name}
+                            className="w-4 h-4 absolute -bottom-1 -right-1 bg-white dark:bg-[#242526] rounded-full p-[1px]"
+                        />
+                    )}
+                </div>
 
-                                    <div>
-                                        <p className="font-medium dark:text-white">
-                                            {user.first_name} {user.last_name}
-                                        </p>
-                                        <p className="text-xs text-gray-500 dark:text-[#b0b3b8]">Bạn chung (giả lập)</p>
-                                    </div>
-                                </div>
-                                <Link href={`/tin-nhan/${user.id}`}>
-                                    <button className="text-sm flex flex-row items-center bg-[#e4e6eb] dark:bg-[#3a3b3c] hover:bg-[#d8dadf] dark:hover:bg-[#4e4f50] text-black dark:text-white px-3 py-1 rounded-lg">
-                                        <MessageCircleMore/> Nhắn tin
-                                    </button>
-                                </Link>
+                <div>
+                    <p className="font-medium dark:text-white">
+                        {user.first_name} {user.last_name}
+                    </p>
 
-                            </div>
-                        );
-                    })}
+                    {!isCurrentUser && (
+                        <p className="text-xs text-gray-500 dark:text-[#b0b3b8]">
+                            {mutualCounts[user.id] !== undefined
+                                ? `${mutualCounts[user.id]} bạn chung`
+                                : 'Đang tải...'}
+                        </p>
+                    )}
+                </div>
+            </Link>
+
+            {!isCurrentUser && (
+                <Link href={`/tin-nhan/${user.id}`}>
+                    <button className="text-sm flex flex-row items-center bg-[#e4e6eb] dark:bg-[#3a3b3c] hover:bg-[#d8dadf] dark:hover:bg-[#4e4f50] text-black dark:text-white px-3 py-1 rounded-lg">
+                        <MessageCircleMore /> Nhắn tin
+                    </button>
+                </Link>
+            )}
+        </div>
+    );
+})}
+
 
                 </div>
             </div>

@@ -1,8 +1,6 @@
-'use client';
-
 import { useMemo, useState } from 'react';
-import { Lock, Globe, Users, MessageCircle, Pencil } from 'lucide-react';
-import type { PostItemProps, PostResponse, ReactionType } from '@/types/post';
+import { Lock, Globe, Users, MessageCircle, Pencil, Share } from 'lucide-react';
+import type { PostItemProps, ReactionType } from '@/types/post';
 import { formatRelativeTime } from '@/utils/formatRelativeTime';
 import EditPostModal from './EditPostModal';
 import { useUserStore } from '@/stores/userStore';
@@ -25,11 +23,10 @@ export default function PostItem({ post }: PostItemProps) {
             counts[reaction.type] = (counts[reaction.type] || 0) + 1;
         });
 
-        const sorted = Object.entries(counts)
+        return Object.entries(counts)
             .sort((a, b) => b[1] - a[1])
-            .slice(0, 3);
-
-        return sorted.map(([type]) => type);
+            .slice(0, 3)
+            .map(([type]) => type);
     }, [currentPost.reactions]);
 
     const handleReaction = (reaction: ReactionType | null) => {
@@ -43,13 +40,11 @@ export default function PostItem({ post }: PostItemProps) {
 
         if (reaction) {
             if (existedReactionIndex !== undefined && existedReactionIndex >= 0) {
-                // Cập nhật loại reaction mới
                 updatedReactedUsers[existedReactionIndex] = {
                     ...updatedReactedUsers[existedReactionIndex],
                     type: reaction,
                 };
             } else {
-                // Người dùng lần đầu thả reaction
                 updatedReactedUsers.push({
                     id: currentUser.id,
                     first_name: currentUser.first_name,
@@ -59,7 +54,6 @@ export default function PostItem({ post }: PostItemProps) {
                 });
             }
         } else {
-            // Xóa reaction
             updatedReactedUsers = updatedReactedUsers.filter(user => user.id !== currentUser.id);
         }
 
@@ -68,12 +62,11 @@ export default function PostItem({ post }: PostItemProps) {
             reacted_users: updatedReactedUsers,
             reactions: updatedReactedUsers.map(user => ({
                 id: user.id,
-                type: user.type
-            })),  // Optional: nếu bạn muốn cập nhật lại reactions mảng đơn giản
+                type: user.type,
+            })),
             total_reactions: updatedReactedUsers.length,
         });
     };
-
 
     const reactions = [
         { name: 'Thích', url: '/reactions/like.svg', type: 'like' },
@@ -86,7 +79,6 @@ export default function PostItem({ post }: PostItemProps) {
 
     const renderReactionIcon = (type: string) => {
         const reaction = reactions.find((r) => r.type === type);
-
         if (!reaction) return null;
 
         return (
@@ -94,12 +86,11 @@ export default function PostItem({ post }: PostItemProps) {
                 key={type}
                 src={reaction.url}
                 alt={reaction.name}
-                title={reaction.name}  // Tooltip khi hover
+                title={reaction.name}
                 className="w-5 h-5"
             />
         );
     };
-
 
     const renderPrivacyIcon = () => {
         switch (currentPost.privacy) {
@@ -128,7 +119,7 @@ export default function PostItem({ post }: PostItemProps) {
                         />
                     </div>
                     <div>
-                        <p className="font-semibold text-sm dark:text-white">
+                        <p className="font-semibold text-sm text-gray-800 dark:text-white">
                             {currentPost.user.first_name} {currentPost.user.last_name}
                         </p>
                         <p className="text-xs text-gray-500 flex items-center">
@@ -144,12 +135,12 @@ export default function PostItem({ post }: PostItemProps) {
                         className="p-1 rounded hover:bg-gray-200 dark:hover:bg-dark-hover"
                         title="Chỉnh sửa bài viết"
                     >
-                        <Pencil className="w-4 h-4" />
+                        <Pencil className="w-4 h-4 text-gray-600 dark:text-gray-300" />
                     </button>
                 )}
             </div>
 
-            <div className="text-sm dark:text-white whitespace-pre-line">
+            <div className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-line">
                 {currentPost.content}
             </div>
 
@@ -169,10 +160,9 @@ export default function PostItem({ post }: PostItemProps) {
                     onClick={() => setShowReactionList(true)}
                 >
                     {topReactions.map(renderReactionIcon)}
-                    <span className="text-sm dark:text-white">{totalReactions}</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{totalReactions}</span>
                 </div>
             )}
-
 
             {showReactionList && (
                 <ReactionListModal
@@ -184,14 +174,28 @@ export default function PostItem({ post }: PostItemProps) {
             <div className="flex justify-around border-t border-gray-200 dark:border-gray-700 pt-2 relative">
                 <ReactionButton
                     postId={post.id}
-                    reactedUsers={post.reacted_users}
+                    reactedUsers={currentPost.reacted_users}
                     onReacted={handleReaction}
                 />
-                <button className="flex items-center gap-1 px-4 py-1 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-hover">
+
+                <button className="flex items-center gap-1 px-4 py-1 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-hover">
                     <MessageCircle className="w-4 h-4" />
                     Bình luận
                 </button>
+
+                {currentPost.privacy === 'public' && (
+                    <button
+                        onClick={() => {
+                            alert('Tính năng chưa phát tiển!');
+                        }}
+                        className="flex items-center gap-1 px-4 py-1 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-hover"
+                    >
+                        <Share />
+                        Chia sẻ
+                    </button>
+                )}
             </div>
+
 
             {showEditModal && (
                 <EditPostModal

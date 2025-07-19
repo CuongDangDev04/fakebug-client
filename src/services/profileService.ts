@@ -20,7 +20,7 @@ export const ProfileService = {
     },
     async getOtherUserProfile(userId: string | undefined) {
         try {
-            const res = await api.get<ProfileResponse>(`${BASE_URL}profile/${userId}`);
+            const res = await api.get<ProfileResponse>(`${BASE_URL}/profile/${userId}`);
             return res.data;
         } catch (error: any) {
             console.error('Error:', error.message); console.error('Error:', error.message);

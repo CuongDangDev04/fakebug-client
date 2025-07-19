@@ -1,5 +1,5 @@
 'use client';
-import { UserPlus, Mail, UserMinus, Clock, Check, X } from 'lucide-react';
+import { UserPlus, Mail, UserMinus, Clock, Check, X, Camera } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import type { ProfileResponse } from '@/types/profile';
@@ -231,32 +231,60 @@ export default function UserProfile() {
 
   return (
     <div className="space-y-4 md:space-y-6">
+      <div className="relative bg-gray-200 dark:bg-dark-card">
+        {user.detail?.cover_url ? (
+          <img
+            src={user.detail.cover_url}
+            alt="Cover"
+            className="w-full h-40 md:h-72 object-cover"
+          />
+        ) : (
+          <div className="w-full h-40 md:h-60 bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm">
+            Chưa có ảnh bìa
+          </div>
+        )}
+
+        {/* Upload Cover Button */}
+
+
+      </div>
+
       {/* Profile Header */}
-      <div className="relative bg-gradient-to-b from-gray-50 to-gray-200 dark:from-dark-card dark:to-dark-bg">
-        <div className="absolute inset-0 bg-black/20" />
-        <div className="relative px-4 py-8 sm:px-6 max-w-5xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8">
-            {/* Avatar */}
-            <div className="relative shrink-0">
-              <div className="w-32 h-32 md:w-40 md:h-40 rounded-full ring-4 md:ring-8 ring-white/30 overflow-hidden">
-                <img
-                  src={user.avatar_url || "https://i.pravatar.cc/300"}
-                  alt="Avatar"
-                  className="object-cover w-full h-full"
-                />
-              </div>
+      <div className="relative px-4 py-4 sm:px-6 max-w-5xl mx-auto">
+        <div className="flex flex-col md:flex-row items-center md:items-end gap-4 md:gap-8">
+
+          {/* Avatar */}
+          <div className="relative shrink-0 -mt-16 md:-mt-20">
+            <div className="w-28 h-28 md:w-36 md:h-36 rounded-full ring-4 ring-white dark:ring-dark-bg overflow-hidden bg-gray-200">
+              <img
+                src={user.avatar_url || "https://i.pravatar.cc/300"}
+                alt="Avatar"
+                className="object-cover w-full h-full"
+              />
+            </div>
+          </div>
+
+          {/* Basic Info + Actions */}
+          <div className="flex-1 text-center md:text-left text-dark dark:text-white w-full">
+
+            {/* Tên và nút */}
+            <div className="flex flex-col md:flex-row items-center md:items-center justify-between gap-4 w-full">
+              <h1 className="text-2xl md:text-4xl  font-bold">{`${user.first_name} ${user.last_name}`}</h1>
+
+
             </div>
 
-            {/* Basic Info */}
-            <div className="flex-1 text-center md:text-left text-white">
-              <h1 className="text-2xl md:text-4xl font-bold mb-2 md:mb-3">{`${user.first_name} ${user.last_name}`}</h1>
-              <p className="text-base md:text-lg text-white/80">{friends.total} bạn bè</p>
+            <div className='flex flex-row w-full items-center justify-between'>
+              {/* Tổng số bạn bè */}
+              <p className="text-base md:text-sm text-gray-600 dark:text-white/80">
+                {friends.total} bạn bè
+              </p>
 
               {/* Actions */}
-              <div className="mt-4 md:mt-6 flex flex-row gap-2 justify-center md:justify-start w-full">
+              <div className="flex flex-row gap-2 justify-end flex-wrap">
                 {renderFriendshipButton()}
                 <Link href={`/tin-nhan/${user.id}`}>
-                  <button className="flex items-center justify-center gap-2 px-3 md:px-6 py-2 rounded-full font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">
+                  <button className="flex items-center justify-center gap-2 px-3 md:px-6 py-2 rounded-full font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white">
                     <Mail className="w-4 h-4" />
                     <span className="hidden sm:inline">Nhắn tin</span>
                   </button>
@@ -264,7 +292,7 @@ export default function UserProfile() {
                 {!isBlocked ? (
                   <button
                     onClick={handleBlockUser}
-                    className="flex items-center justify-center gap-2 px-3 md:px-6 py-2 rounded-full font-medium transition-colors bg-red-600 hover:bg-red-700 text-white w-full sm:w-auto"
+                    className="flex items-center justify-center gap-2 px-3 md:px-6 py-2 rounded-full font-medium transition-colors bg-red-600 hover:bg-red-700 text-white"
                     disabled={isBlocking}
                   >
                     <X className="w-4 h-4" />
@@ -273,9 +301,12 @@ export default function UserProfile() {
                 ) : null}
               </div>
             </div>
+
+
           </div>
         </div>
       </div>
+
 
       {/* Navigation */}
       <div className="bg-white dark:bg-dark-card shadow-sm overflow-x-auto">
@@ -374,6 +405,6 @@ export default function UserProfile() {
           renderTabContent()
         )}
       </div>
-    </div>
+    </div >
   );
 }

@@ -90,7 +90,7 @@ export const useFriendship = () => {
         try {
             setLoading(true);
             const response = await friendshipService.getUserFriends(userId);
-            return response.data;
+            return response?.data ;
         } catch (error) {
             console.error('Lỗi khi tải danh sách bạn bè:', error);
             return null;
@@ -120,7 +120,7 @@ export const useFriendship = () => {
     const checkMutualFriends = async (targetId: number) => {
         try {
             const response = await friendshipService.getMutualFriends(targetId);
-            return response.data;
+            return response?.data;
         } catch (error) {
             console.error('Lỗi khi kiểm tra bạn chung:', error);
             return null;
