@@ -176,6 +176,7 @@ export default function PostItem({ post }: PostItemProps) {
                     postId={post.id}
                     reactedUsers={currentPost.reacted_users}
                     onReacted={handleReaction}
+                    postOwnerId={currentPost.user.id}
                 />
 
                 <button className="flex items-center gap-1 px-4 py-1 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-hover">

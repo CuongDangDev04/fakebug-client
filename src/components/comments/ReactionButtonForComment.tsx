@@ -2,11 +2,9 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { ThumbsUp } from 'lucide-react';
-import { postReactionsService } from '@/services/postReactionsService';
+import { commentService } from '@/services/commentService';
 import { useUserStore } from '@/stores/userStore';
-import { ReactedUser, ReactionType } from '@/types/post';
-import { notificationService } from '@/services/notificationService';
-
+import type { ReactionType } from '@/types/post';
 
 const reactions = [
     { name: 'Thích', url: '/reactions/like.svg', type: 'like' },
@@ -26,44 +24,25 @@ const reactionColors: Record<ReactionType, string> = {
     angry: 'text-orange-500',
 };
 
-export default function ReactionButton({
-    postId,
-    reactedUsers,
-    postOwnerId,
+export default function ReactionButtonForComment({
+    commentId,
+    initialReaction,
     onReacted,
 }: {
-    postId: number;
-    reactedUsers: ReactedUser[];
-    postOwnerId: number;
+    commentId: number;
+    initialReaction: ReactionType | null;
     onReacted?: (reaction: ReactionType | null) => void;
 }) {
     const currentUser = useUserStore(state => state.user);
 
-    const [selectedReaction, setSelectedReaction] = useState<ReactionType | null>(null);
+    const [selectedReaction, setSelectedReaction] = useState<ReactionType | null>(initialReaction);
     const [showReactions, setShowReactions] = useState(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-    useEffect(() => {
-        if (currentUser) {
-            const userReaction = reactedUsers.find(u => u.id === currentUser.id);
-            setSelectedReaction(userReaction ? userReaction.type : null);
-        }
-    }, [currentUser, reactedUsers]);
 
     const handleReact = async (reaction: ReactionType) => {
         if (!currentUser) return;
 
-        await postReactionsService.react(postId, currentUser.id, reaction);
-
-        // Gửi notification cho chủ bài viết
-        if (currentUser.id !== postOwnerId) {  // Không tự gửi thông báo cho chính mình
-            await notificationService.sendNotification(
-                postOwnerId,
-                `${currentUser.first_name} ${currentUser.last_name}  đã ${reactionName(reaction)} bài viết của bạn.`,
-                `/bai-viet/${postId}`,
-                currentUser.avatar_url || ''
-            );
-        }
+        await commentService.reactToComment(commentId, currentUser.id, reaction);
 
         setSelectedReaction(reaction);
         setShowReactions(false);
@@ -71,23 +50,10 @@ export default function ReactionButton({
         if (onReacted) onReacted(reaction);
     };
 
-    const reactionName = (reaction: ReactionType) => {
-        switch (reaction) {
-            case 'like': return 'thích';
-            case 'love': return 'yêu thích';
-            case 'haha': return 'cười haha';
-            case 'wow': return 'thể hiện sự ngạc nhiên';
-            case 'sad': return 'cảm thấy buồn';
-            case 'angry': return 'phẫn nộ';
-            default: return 'phản ứng';
-        }
-    };
-
     const handleRemoveReaction = async () => {
         if (!currentUser) return;
 
-        await postReactionsService.removeReaction(postId, currentUser.id);
-
+        await commentService.reactToComment(commentId, currentUser.id, null);
         setSelectedReaction(null);
 
         if (onReacted) onReacted(null);
@@ -117,7 +83,7 @@ export default function ReactionButton({
             <button
                 onClick={handleButtonClick}
                 className={`
-                    flex items-center justify-center gap-1 px-4 h-9 rounded-lg 
+                    flex items-center justify-center gap-1 px-3 h-8 rounded-lg 
                     dark:text-gray-300 
                     hover:bg-gray-100 dark:hover:bg-dark-hover 
                     ${selectedReaction ? reactionColors[selectedReaction] : ''}
@@ -127,12 +93,12 @@ export default function ReactionButton({
                     <img
                         src={reactions.find(r => r.type === selectedReaction)?.url || '/reactions/like.svg'}
                         alt={selectedReaction}
-                        className="w-5 h-5"
+                        className="w-4 h-4"
                     />
                 ) : (
-                    <ThumbsUp size={18} />
+                    <ThumbsUp size={16} />
                 )}
-                <span className="text-sm font-medium">
+                <span className="text-xs font-medium">
                     {selectedReaction
                         ? reactions.find(r => r.type === selectedReaction)?.name
                         : 'Thích'}
@@ -140,14 +106,14 @@ export default function ReactionButton({
             </button>
 
             {showReactions && (
-                <div className="absolute bottom-10 left-0 bg-white dark:bg-dark-card rounded-full shadow-lg flex gap-3 px-4 py-3 z-50 min-w-[340px] justify-center">
+                <div className="absolute bottom-10 left-0 bg-white dark:bg-dark-card rounded-full shadow-lg flex gap-3 px-4 py-2 z-50 min-w-[300px] justify-center">
                     {reactions.map(r => (
                         <button
                             key={r.type}
                             onClick={() => handleReact(r.type as ReactionType)}
                             className="hover:scale-125 transition-transform"
                         >
-                            <img src={r.url} alt={r.name} className="w-16 h-10" />
+                            <img src={r.url} alt={r.name} className="w-14 h-8" />
                         </button>
                     ))}
                 </div>
