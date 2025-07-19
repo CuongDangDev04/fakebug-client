@@ -1,41 +1,105 @@
 'use client';
 
-import { useState } from 'react';
-import { Lock, Globe, Users, MessageCircle, Pencil, ThumbsUp } from 'lucide-react';
-import type { PostResponse } from '@/types/post';
+import { useMemo, useState } from 'react';
+import { Lock, Globe, Users, MessageCircle, Pencil } from 'lucide-react';
+import type { PostItemProps, PostResponse, ReactionType } from '@/types/post';
 import { formatRelativeTime } from '@/utils/formatRelativeTime';
 import EditPostModal from './EditPostModal';
 import { useUserStore } from '@/stores/userStore';
-
-interface PostItemProps {
-    post: PostResponse;
-}
-
-const reactions = [
-    { name: 'Thích', url: '/reactions/like.svg' },
-    { name: 'Yêu thích', url: '/reactions/love.svg' },
-    { name: 'Haha', url: '/reactions/haha.svg' },
-    { name: 'Wow', url: '/reactions/wow.svg' },
-    { name: 'Buồn', url: '/reactions/sad.svg' },
-    { name: 'Phẫn nộ', url: '/reactions/angry.svg' },
-];
+import ReactionButton from './ReactionButton';
+import ReactionListModal from './ReactionListModal';
 
 export default function PostItem({ post }: PostItemProps) {
-    const [likesCount, setLikesCount] = useState(post.likes.length);
-    const [showEditModal, setShowEditModal] = useState(false);
     const [currentPost, setCurrentPost] = useState(post);
-    const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
-    const [showReactions, setShowReactions] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [showReactionList, setShowReactionList] = useState(false);
 
     const currentUser = useUserStore((state) => state.user);
 
-    const handleReact = (reaction: string) => {
-        if (!selectedReaction) {
-            setLikesCount(likesCount + 1);
+    const totalReactions = currentPost.total_reactions || currentPost.reactions?.length || 0;
+
+    const topReactions = useMemo(() => {
+        const counts: Record<string, number> = {};
+
+        currentPost.reactions?.forEach((reaction) => {
+            counts[reaction.type] = (counts[reaction.type] || 0) + 1;
+        });
+
+        const sorted = Object.entries(counts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 3);
+
+        return sorted.map(([type]) => type);
+    }, [currentPost.reactions]);
+
+    const handleReaction = (reaction: ReactionType | null) => {
+        if (!currentUser) return;
+
+        const existedReactionIndex = currentPost.reacted_users?.findIndex(
+            (user) => user.id === currentUser.id
+        );
+
+        let updatedReactedUsers = [...(currentPost.reacted_users || [])];
+
+        if (reaction) {
+            if (existedReactionIndex !== undefined && existedReactionIndex >= 0) {
+                // Cập nhật loại reaction mới
+                updatedReactedUsers[existedReactionIndex] = {
+                    ...updatedReactedUsers[existedReactionIndex],
+                    type: reaction,
+                };
+            } else {
+                // Người dùng lần đầu thả reaction
+                updatedReactedUsers.push({
+                    id: currentUser.id,
+                    first_name: currentUser.first_name,
+                    last_name: currentUser.last_name,
+                    avatar_url: currentUser.avatar_url ?? undefined,
+                    type: reaction,
+                });
+            }
+        } else {
+            // Xóa reaction
+            updatedReactedUsers = updatedReactedUsers.filter(user => user.id !== currentUser.id);
         }
-        setSelectedReaction(reaction);
-        setShowReactions(false);
+
+        setCurrentPost({
+            ...currentPost,
+            reacted_users: updatedReactedUsers,
+            reactions: updatedReactedUsers.map(user => ({
+                id: user.id,
+                type: user.type
+            })),  // Optional: nếu bạn muốn cập nhật lại reactions mảng đơn giản
+            total_reactions: updatedReactedUsers.length,
+        });
     };
+
+
+    const reactions = [
+        { name: 'Thích', url: '/reactions/like.svg', type: 'like' },
+        { name: 'Yêu thích', url: '/reactions/love.svg', type: 'love' },
+        { name: 'Haha', url: '/reactions/haha.svg', type: 'haha' },
+        { name: 'Wow', url: '/reactions/wow.svg', type: 'wow' },
+        { name: 'Buồn', url: '/reactions/sad.svg', type: 'sad' },
+        { name: 'Phẫn nộ', url: '/reactions/angry.svg', type: 'angry' },
+    ];
+
+    const renderReactionIcon = (type: string) => {
+        const reaction = reactions.find((r) => r.type === type);
+
+        if (!reaction) return null;
+
+        return (
+            <img
+                key={type}
+                src={reaction.url}
+                alt={reaction.name}
+                title={reaction.name}  // Tooltip khi hover
+                className="w-5 h-5"
+            />
+        );
+    };
+
 
     const renderPrivacyIcon = () => {
         switch (currentPost.privacy) {
@@ -54,7 +118,6 @@ export default function PostItem({ post }: PostItemProps) {
 
     return (
         <div className="bg-white dark:bg-dark-card rounded-xl shadow-sm p-4 space-y-3 relative">
-            {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
@@ -86,12 +149,10 @@ export default function PostItem({ post }: PostItemProps) {
                 )}
             </div>
 
-            {/* Content */}
             <div className="text-sm dark:text-white whitespace-pre-line">
                 {currentPost.content}
             </div>
 
-            {/* Image */}
             {currentPost.media_url && (
                 <div className="overflow-hidden rounded-lg">
                     <img
@@ -102,52 +163,30 @@ export default function PostItem({ post }: PostItemProps) {
                 </div>
             )}
 
-            {/* Stats */}
-            <div className="flex items-center justify-between text-sm text-gray-600 dark:text-[#b0b3b8]">
-                <p>
-                    {likesCount} lượt thích · {currentPost.comments?.length || 0} bình luận
-                </p>
-            </div>
-
-            {/* Actions */}
-            <div className="flex justify-around border-t border-gray-200 dark:border-gray-700 pt-2 relative">
+            {totalReactions > 0 && (
                 <div
-                    onMouseEnter={() => setShowReactions(true)}
-                    onMouseLeave={() => setShowReactions(false)}
-                    className="relative"
+                    className="flex items-center space-x-1 cursor-pointer hover:underline"
+                    onClick={() => setShowReactionList(true)}
                 >
-                    <button
-                        className={`flex items-center dark:text-gray-300 gap-1 px-4 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-hover ${
-                            selectedReaction ? 'text-blue-600 dark:text-[#4497f5]' : ''
-                        }`}
-                    >
-                        {selectedReaction ? (
-                            <img
-                                src={reactions.find(r => r.name === selectedReaction)?.url || ''}
-                                alt={selectedReaction}
-                                className="w-6 h-4"
-                            />
-                        ) : (
-                            <ThumbsUp size={18} />
-                        )}
-                        {selectedReaction || 'Thích'}
-                    </button>
-
-                    {showReactions && (
-                        <div className="absolute bottom-10 left-0 bg-white dark:bg-dark-card rounded-full shadow-lg flex gap-3 px-4 py-3 z-50 min-w-[340px] justify-center">
-                            {reactions.map(r => (
-                                <button
-                                    key={r.name}
-                                    onClick={() => handleReact(r.name)}
-                                    className="hover:scale-125 transition-transform"
-                                >
-                                    <img src={r.url} alt={r.name} className="w-16 h-10" />
-                                </button>
-                            ))}
-                        </div>
-                    )}
+                    {topReactions.map(renderReactionIcon)}
+                    <span className="text-sm dark:text-white">{totalReactions}</span>
                 </div>
+            )}
 
+
+            {showReactionList && (
+                <ReactionListModal
+                    users={currentPost.reacted_users || []}
+                    onClose={() => setShowReactionList(false)}
+                />
+            )}
+
+            <div className="flex justify-around border-t border-gray-200 dark:border-gray-700 pt-2 relative">
+                <ReactionButton
+                    postId={post.id}
+                    reactedUsers={post.reacted_users}
+                    onReacted={handleReaction}
+                />
                 <button className="flex items-center gap-1 px-4 py-1 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-hover">
                     <MessageCircle className="w-4 h-4" />
                     Bình luận

@@ -1,11 +1,9 @@
 'use client';
 
+import { PrivacySelectProps } from '@/types/post';
 import { useState } from 'react';
 
-interface PrivacySelectProps {
-    value: 'public' | 'friends' | 'private';
-    onChange: (value: 'public' | 'friends' | 'private') => void;
-}
+
 
 const PRIVACY_OPTIONS = [
     { value: 'public', label: 'Công khai', icon: '🌐', description: 'Bất kỳ ai cũng có thể xem' },

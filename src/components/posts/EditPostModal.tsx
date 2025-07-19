@@ -4,16 +4,11 @@ import { useState, useEffect } from 'react';
 import { Image as ImageIcon, X } from 'lucide-react';
 import { postService } from '@/services/postService';
 import { useUserStore } from '@/stores/userStore';
-import type { PostResponse } from '@/types/post';
+import type { EditPostModalProps, PostResponse } from '@/types/post';
 import Modal from './ModalCreat';
 import PrivacySelect from './PrivacySelect';
 
-interface EditPostModalProps {
-    post: PostResponse;
-    isOpen: boolean;
-    onClose: () => void;
-    onPostUpdated: (updatedPost: PostResponse) => void;
-}
+
 
 export default function EditPostModal({
     post,

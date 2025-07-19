@@ -3,9 +3,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { postService } from '@/services/postService';
 import PostItem from './PostItem';
-import type { PostResponse } from '@/types/post';
+import type { FeedType, PostResponse } from '@/types/post';
 
-type FeedType = 'feed' | 'public' | 'friends' | 'private';
 
 export default function PostList() {
   const [posts, setPosts] = useState<PostResponse[]>([]);
