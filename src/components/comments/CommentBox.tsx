@@ -9,7 +9,9 @@ export default function CommentBox({ postId }: { postId: number }) {
     const currentUser = useUserStore(state => state.user);
     const [comments, setComments] = useState<any[]>([]);
     const [newComment, setNewComment] = useState('');
-    if(!currentUser) return null
+
+    if (!currentUser) return null;
+
     const fetchComments = async () => {
         const res = await commentService.getCommentsByPost(postId);
         if (res) setComments(res);
@@ -32,13 +34,15 @@ export default function CommentBox({ postId }: { postId: number }) {
         fetchComments();
     };
 
-    if (!currentUser) return null;
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            handleNewComment();
+        }
+    };
 
     return (
         <div className="mt-4">
-
-            {/* Nhập bình luận chính */}
-            <div className="flex items-center py-4 px-4 rounded-xl bg-white dark:bg-[#1d1d1d]  gap-2 mb-4">
+            <div className="flex items-center py-4 px-4 rounded-xl bg-white dark:bg-dark-card gap-2 mb-4">
                 <img
                     src={currentUser?.avatar_url || '/default-avatar.png'}
                     alt="avatar"
@@ -47,6 +51,7 @@ export default function CommentBox({ postId }: { postId: number }) {
                 <input
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
+                    onKeyDown={handleKeyDown}
                     placeholder="Viết bình luận công khai..."
                     className="flex-1 bg-gray-200 dark:bg-[#333] rounded-full px-4 py-2 text-sm dark:text-white focus:outline-none"
                 />
@@ -58,7 +63,6 @@ export default function CommentBox({ postId }: { postId: number }) {
                 </button>
             </div>
 
-            {/* Danh sách bình luận */}
             <div className="space-y-4">
                 {comments.map(comment => (
                     <CommentItem

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { ThumbsUp } from 'lucide-react';
 import { commentService } from '@/services/commentService';
 import { useUserStore } from '@/stores/userStore';
@@ -27,17 +27,25 @@ const reactionColors: Record<ReactionType, string> = {
 export default function ReactionButtonForComment({
     commentId,
     initialReaction,
-    onReacted,
+    initialReactions,
+    onReactionsUpdated,
 }: {
     commentId: number;
     initialReaction: ReactionType | null;
-    onReacted?: (reaction: ReactionType | null) => void;
+    initialReactions: any[]; // mảng reactions từ backend
+    onReactionsUpdated?: (reactions: any[]) => void; // callback để update tổng số
 }) {
     const currentUser = useUserStore(state => state.user);
 
     const [selectedReaction, setSelectedReaction] = useState<ReactionType | null>(initialReaction);
+    const [reactionsList, setReactionsList] = useState<any[]>(initialReactions);
     const [showReactions, setShowReactions] = useState(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    const updateAndNotify = (newReactions: any[]) => {
+        setReactionsList(newReactions);
+        if (onReactionsUpdated) onReactionsUpdated(newReactions);
+    };
 
     const handleReact = async (reaction: ReactionType) => {
         if (!currentUser) return;
@@ -47,16 +55,22 @@ export default function ReactionButtonForComment({
         setSelectedReaction(reaction);
         setShowReactions(false);
 
-        if (onReacted) onReacted(reaction);
+        // Cập nhật local reactions:
+        const otherReactions = reactionsList.filter(r => r.user.id !== currentUser.id);
+        const newReactions = [...otherReactions, { user: currentUser, type: reaction }];
+        updateAndNotify(newReactions);
     };
 
     const handleRemoveReaction = async () => {
         if (!currentUser) return;
 
         await commentService.reactToComment(commentId, currentUser.id, null);
+
         setSelectedReaction(null);
 
-        if (onReacted) onReacted(null);
+        // Xóa reaction khỏi danh sách local:
+        const newReactions = reactionsList.filter(r => r.user.id !== currentUser.id);
+        updateAndNotify(newReactions);
     };
 
     const handleButtonClick = async () => {
@@ -96,15 +110,18 @@ export default function ReactionButtonForComment({
                         className="w-4 h-4"
                     />
                 ) : (
-                    <ThumbsUp size={16} />
+                    <ThumbsUp size={14} />
                 )}
-                <span className="text-xs font-medium">
+                <span className="text-xs">
                     {selectedReaction
                         ? reactions.find(r => r.type === selectedReaction)?.name
                         : 'Thích'}
                 </span>
             </button>
 
+            
+
+            {/* Bảng chọn reactions */}
             {showReactions && (
                 <div className="absolute bottom-10 left-0 bg-white dark:bg-dark-card rounded-full shadow-lg flex gap-3 px-4 py-2 z-50 min-w-[300px] justify-center">
                     {reactions.map(r => (

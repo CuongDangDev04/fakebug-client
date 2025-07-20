@@ -6,6 +6,7 @@ import EditPostModal from './EditPostModal';
 import { useUserStore } from '@/stores/userStore';
 import ReactionButton from './ReactionButton';
 import ReactionListModal from './ReactionListModal';
+import Link from 'next/link';
 
 export default function PostItem({ post }: PostItemProps) {
     const [currentPost, setCurrentPost] = useState(post);
@@ -178,11 +179,12 @@ export default function PostItem({ post }: PostItemProps) {
                     onReacted={handleReaction}
                     postOwnerId={currentPost.user.id}
                 />
-
-                <button className="flex items-center gap-1 px-4 py-1 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-hover">
-                    <MessageCircle className="w-4 h-4" />
-                    Bình luận
-                </button>
+                <Link href={`/bai-viet/${post.id}`}>
+                    <button className="flex items-center gap-1 px-4 py-1 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-hover">
+                        <MessageCircle className="w-4 h-4" />
+                        Bình luận
+                    </button>
+                </Link>
 
                 {currentPost.privacy === 'public' && (
                     <button
