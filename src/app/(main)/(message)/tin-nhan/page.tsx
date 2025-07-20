@@ -27,7 +27,7 @@ export default function ChatDefaultPage() {
         <div className="text-center">
           <img
             src="/lg.png"
-            alt="Zalo Chat Banner"
+            alt=" Chat Banner"
             className="mx-auto mb-6 max-w-xs md:max-w-md"
             style={{ maxHeight: 240 }}
           />

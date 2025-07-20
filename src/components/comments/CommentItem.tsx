@@ -4,8 +4,8 @@ import { useMemo, useState } from 'react';
 import ReactionButtonForComment from './ReactionButtonForComment';
 import type { ReactionType } from '@/types/post';
 import ReactionListModal from '../posts/ReactionListModal';
+import Link from 'next/link';
 
-// Hàm định dạng thời gian đơn giản
 function formatRelativeTime(dateString: string) {
     const date = new Date(dateString);
     const now = new Date();
@@ -43,11 +43,16 @@ export default function CommentItem({
     const [replyContent, setReplyContent] = useState('');
     const [reactions, setReactions] = useState<any[]>(comment.reactions || []);
     const [showReactionList, setShowReactionList] = useState(false);
+
+    const isLevelTwo = comment.parent !== null;
+
+    console.log('isLevelTwo', isLevelTwo)
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
             handleReply();
         }
     };
+
     const handleReply = () => {
         if (!replyContent.trim()) return;
         onReply(comment.id, replyContent);
@@ -83,16 +88,17 @@ export default function CommentItem({
     return (
         <div className="bg-white dark:bg-dark-card rounded-xl p-3">
             <div className="flex items-start gap-3">
-                <img
-                    src={comment.user.avatar_url}
-                    alt="avatar"
-                    className="w-9 h-9 rounded-full object-cover"
-                />
+                <Link href={`/trang-ca-nhan/${comment.user.id}`}>
+                    <img
+                        src={comment.user.avatar_url}
+                        alt="avatar"
+                        className="w-9 h-9 rounded-full object-cover"
+                    />
+                </Link>
                 <div className="flex-1">
                     <div className="font-semibold dark:text-white text-sm">
                         {comment.user.first_name} {comment.user.last_name}
                     </div>
-
 
                     <div className="text-sm text-gray-800 dark:text-gray-200">
                         {comment.content}
@@ -117,20 +123,23 @@ export default function CommentItem({
                         </div>
                     )}
 
-                    <div className="flex gap-3  items-center mt-1">
-
+                    <div className="flex gap-3 items-center mt-1">
                         <ReactionButtonForComment
                             commentId={comment.id}
                             initialReaction={currentUserReaction}
                             initialReactions={reactions}
                             onReactionsUpdated={setReactions}
                         />
-                        <button
-                            onClick={() => setShowReplies(true)}
-                            className="text-xs text-blue-500"
-                        >
-                            Trả lời
-                        </button>
+
+                        {!isLevelTwo && (
+                            <button
+                                onClick={() => setShowReplies(true)}
+                                className="text-xs text-blue-500"
+                            >
+                                Trả lời
+                            </button>
+                        )}
+
                         {comment.user.id === currentUserId && (
                             <button
                                 onClick={() => onDelete(comment.id)}
@@ -139,16 +148,16 @@ export default function CommentItem({
                                 Xóa
                             </button>
                         )}
-                        {/* Thời gian bình luận */}
-                        <p className="text-xs text-gray-500 dark:text-gray-400  ">
+
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                             {formatRelativeTime(comment.created_at)}
                         </p>
-
                     </div>
                 </div>
             </div>
 
-            {showReplies && (
+            {/* Chỉ hiển thị form trả lời nếu là bình luận cấp 1 */}
+            {!isLevelTwo && showReplies && (
                 <div className="flex items-center gap-2 mt-2 ml-12">
                     <input
                         value={replyContent}
@@ -166,7 +175,8 @@ export default function CommentItem({
                 </div>
             )}
 
-            {comment.replies?.length > 0 && !showReplies && (
+            {/* Chỉ render replies nếu là bình luận cấp 1 */}
+            {!isLevelTwo && comment.replies?.length > 0 && !showReplies && (
                 <button
                     onClick={() => setShowReplies(true)}
                     className="ml-12 text-xs text-gray-500 dark:text-gray-400 mt-1"
@@ -175,7 +185,7 @@ export default function CommentItem({
                 </button>
             )}
 
-            {showReplies && comment.replies?.length > 0 && (
+            {!isLevelTwo && showReplies && comment.replies?.length > 0 && (
                 <div className="mt-3 ml-8 border-l border-gray-300 dark:border-gray-700 pl-4 space-y-3">
                     {comment.replies.map((reply: any) => (
                         <CommentItem

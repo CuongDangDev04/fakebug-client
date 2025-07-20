@@ -107,11 +107,11 @@ export default function PostItem({ post }: PostItemProps) {
     };
 
     const isOwnPost = currentUser?.id === currentPost.user.id;
-
+    const totalComments = currentPost.comments?.length || 0;
     return (
         <div className="bg-white dark:bg-dark-card rounded-xl shadow-sm p-4 space-y-3 relative">
             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
+                <Link href={`/trang-ca-nhan/${currentPost.user.id}`} className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
                         <img
                             src={currentPost.user.avatar_url || '/default-avatar.png'}
@@ -128,7 +128,7 @@ export default function PostItem({ post }: PostItemProps) {
                             {renderPrivacyIcon()}
                         </p>
                     </div>
-                </div>
+                </Link>
 
                 {isOwnPost && (
                     <button
@@ -154,16 +154,26 @@ export default function PostItem({ post }: PostItemProps) {
                     />
                 </div>
             )}
+            <div className="flex justify-between items-center">
+                {totalReactions > 0 ? (
+                    <div
+                        className="flex items-center space-x-1 cursor-pointer hover:underline"
+                        onClick={() => setShowReactionList(true)}
+                    >
+                        {topReactions.map(renderReactionIcon)}
+                        <span className="text-sm text-gray-700 dark:text-gray-300">{totalReactions}</span>
+                    </div>
+                ) : <div />}
 
-            {totalReactions > 0 && (
-                <div
-                    className="flex items-center space-x-1 cursor-pointer hover:underline"
-                    onClick={() => setShowReactionList(true)}
-                >
-                    {topReactions.map(renderReactionIcon)}
-                    <span className="text-sm text-gray-700 dark:text-gray-300">{totalReactions}</span>
-                </div>
-            )}
+                {totalComments > 0 ? (
+                    <Link href={`/bai-viet/${post.id}`}>
+
+                        <span className="text-sm text-gray-700 dark:text-gray-300">{totalComments} Bình luận</span>
+                    </Link>
+                ) : <div />}
+            </div>
+
+
 
             {showReactionList && (
                 <ReactionListModal

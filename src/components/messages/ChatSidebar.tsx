@@ -66,7 +66,7 @@ export default function ChatSidebar({
     >
       <div className="flex items-center justify-between p-4 border-b">
         <span className="font-bold text-xl text-gray-900 dark:text-dark-text-primary flex items-center gap-2">
-          Chat
+          Đoạn chat
           {totalUnread > 0 && (
             <span className="ml-2 bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5 min-w-[20px] text-center" style={{ lineHeight: "18px" }}>
               {totalUnread}

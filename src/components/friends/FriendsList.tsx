@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { friendshipService } from '@/services/friendshipService';
 import type { FriendType } from '@/types/friendship';
-import { MessageCircle, UserMinus } from 'lucide-react';
+import {  MessageCircleMore, UserMinus } from 'lucide-react';
 import FriendSkeletonCard from '../skeleton/FriendSkeletonCard';
 import { useFriendship } from '@/hooks/useFriendship';
 
@@ -90,8 +90,8 @@ export default function FriendsList() {
                   </div>
                   <div className="flex gap-2">
                     <Link href={`/tin-nhan/${friend.id}`}>
-                      <button className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 bg-[#e7f3ff] dark:bg-dark-button-primary hover:bg-[#dbe7f2] dark:hover:bg-dark-button-hover text-blue-600 dark:text-primary-400 px-3 py-1.5 rounded-full text-sm font-medium transition-colors">
-                        <MessageCircle className="w-4 h-4" />
+                      <button className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 bg-[#e4e6eb]  dark:bg-dark-button-primary hover:bg-[#dbe7f2] dark:hover:bg-dark-button-hover text-gray-600 dark:text-primary-400 px-3 py-1.5 rounded-full text-sm font-medium transition-colors">
+                        <MessageCircleMore className="w-4 h-4" />
                         <span className="hidden sm:inline">Nhắn tin</span>
                       </button>
                     </Link>

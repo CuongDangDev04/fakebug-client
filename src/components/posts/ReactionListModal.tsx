@@ -152,7 +152,7 @@ export default function ReactionListModal({ users, onClose }: ReactionListModalP
 
                                 {!isCurrentUser && (
                                     <Link href={`/tin-nhan/${user.id}`}>
-                                        <button className="text-sm flex flex-row items-center bg-[#e4e6eb] dark:bg-[#3a3b3c] hover:bg-[#d8dadf] dark:hover:bg-[#4e4f50] text-black dark:text-white px-3 py-1 rounded-lg">
+                                        <button className="text-sm flex flex-row items-center bg-[#e4e6eb] dark:bg-[#3a3b3c] hover:bg-[#d8dadf] dark:hover:bg-[#4e4f50] text-gray-700 dark:text-white px-3 py-1 rounded-lg">
                                             <MessageCircleMore /> Nhắn tin
                                         </button>
                                     </Link>

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { commentService } from '@/services/commentService';
 import CommentItem from './CommentItem';
 import { useUserStore } from '@/stores/userStore';
+import Link from 'next/link';
 
 export default function CommentBox({ postId }: { postId: number }) {
     const currentUser = useUserStore(state => state.user);
@@ -40,14 +41,20 @@ export default function CommentBox({ postId }: { postId: number }) {
         }
     };
 
+    //  Chỉ hiển thị bình luận cấp 1 (parent === null)
+    const topLevelComments = comments.filter(c => c.parent === null);
+    
     return (
         <div className="mt-4">
+            {/* Ô nhập bình luận mới */}
             <div className="flex items-center py-4 px-4 rounded-xl bg-white dark:bg-dark-card gap-2 mb-4">
-                <img
-                    src={currentUser?.avatar_url || '/default-avatar.png'}
-                    alt="avatar"
-                    className="w-9 h-9 rounded-full object-cover"
-                />
+                <Link href={`/trang-ca-nhan/${currentUser.id}`}>
+                    <img
+                        src={currentUser?.avatar_url || '/default-avatar.png'}
+                        alt="avatar"
+                        className="w-9 h-9 rounded-full object-cover"
+                    />
+                </Link>
                 <input
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
@@ -63,8 +70,9 @@ export default function CommentBox({ postId }: { postId: number }) {
                 </button>
             </div>
 
+            {/* Danh sách bình luận cấp 1 */}
             <div className="space-y-4">
-                {comments.map(comment => (
+                {topLevelComments.map(comment => (
                     <CommentItem
                         key={comment.id}
                         comment={comment}
