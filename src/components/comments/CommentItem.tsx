@@ -5,6 +5,8 @@ import ReactionButtonForComment from './ReactionButtonForComment';
 import type { ReactionType } from '@/types/post';
 import ReactionListModal from '../posts/ReactionListModal';
 import Link from 'next/link';
+import { notificationService } from '@/services/notificationService';
+import { useUserStore } from '@/stores/userStore';
 
 function formatRelativeTime(dateString: string) {
     const date = new Date(dateString);
@@ -31,22 +33,30 @@ const reactionOrder: ReactionType[] = ['like', 'love', 'haha', 'wow', 'sad', 'an
 export default function CommentItem({
     comment,
     currentUserId,
+    postId,
+    cmtOwnerId,
     onReply,
+    postOwnerId,
+    fullNamePostOwner,
     onDelete,
 }: {
     comment: any;
     currentUserId: number;
+    postId: number;
+    cmtOwnerId: number;
     onReply: (parentId: number, content: string) => void;
+    postOwnerId: number;
+    fullNamePostOwner: string;
     onDelete: (commentId: number) => void;
 }) {
     const [showReplies, setShowReplies] = useState(false);
     const [replyContent, setReplyContent] = useState('');
     const [reactions, setReactions] = useState<any[]>(comment.reactions || []);
     const [showReactionList, setShowReactionList] = useState(false);
-
     const isLevelTwo = comment.parent !== null;
+    const currentUser = useUserStore(state => state.user);
+    if (!currentUser) return null
 
-    console.log('isLevelTwo', isLevelTwo)
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
             handleReply();
@@ -56,6 +66,15 @@ export default function CommentItem({
     const handleReply = () => {
         if (!replyContent.trim()) return;
         onReply(comment.id, replyContent);
+        if (postOwnerId !== cmtOwnerId) {
+            notificationService.sendNotification(
+                cmtOwnerId,
+                `${currentUser.first_name} ${currentUser.last_name} trả lời bình luận của bạn về bài viết của ${fullNamePostOwner}`,
+                `/bai-viet/${postId}`,
+                `${currentUser.avatar_url}`
+            )
+        }
+
         setReplyContent('');
         setShowReplies(true);
     };
@@ -69,7 +88,7 @@ export default function CommentItem({
             like: 0, love: 0, haha: 0, wow: 0, sad: 0, angry: 0,
         };
 
-        reactions.forEach((r: any) => {
+        reactions.forEach((r: { type: ReactionType }) => {
             if (r.type in counts) counts[r.type]++;
         });
 
@@ -192,7 +211,11 @@ export default function CommentItem({
                             key={reply.id}
                             comment={reply}
                             currentUserId={currentUserId}
+                            postId={postId}
+                            cmtOwnerId={cmtOwnerId}
                             onReply={onReply}
+                            postOwnerId={postOwnerId}
+                            fullNamePostOwner={fullNamePostOwner}
                             onDelete={onDelete}
                         />
                     ))}

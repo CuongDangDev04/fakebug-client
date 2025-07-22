@@ -14,14 +14,17 @@ interface PostDetailProps {
 export default function PostDetail({ postId }: PostDetailProps) {
     const [post, setPost] = useState<PostResponse | null>(null);
     const [loading, setLoading] = useState(true);
-
+    const [postOwnerId, setPostOwneId] = useState<number>();
     const currentUserId = useUserStore((state) => state.user?.id);
-
+    const [fullNamePostOwner, setFullNamePostOwner] = useState<String>('')
     useEffect(() => {
         const fetchPost = async () => {
             try {
                 const res = await postService.getPostById(postId);
+                console.log('resp', res.data)
                 setPost(res.data);
+                setPostOwneId(res.data.user.id)
+                setFullNamePostOwner(`${res.data.user.first_name}  ${res.data.user.last_name}`)
             } catch (error) {
                 console.error('Lỗi tải bài viết:', error);
             } finally {
@@ -44,7 +47,7 @@ export default function PostDetail({ postId }: PostDetailProps) {
         <>
             <PostItem post={post} />
             {currentUserId && (
-                <CommentBox postId={post.id} />
+                <CommentBox postId={post.id} postOwnerId={postOwnerId ?? 0} fullNamePostOwner={String(fullNamePostOwner) }/>
             )}
         </>
     );
