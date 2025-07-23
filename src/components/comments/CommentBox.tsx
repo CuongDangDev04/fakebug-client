@@ -14,75 +14,63 @@ export default function CommentBox({ postId, postOwnerId, fullNamePostOwner }: {
     const [fullNameCommentParent, setFullNameCommentParent] = useState<String>('')
     if (!currentUser) return null;
 
-
     const fetchComments = async () => {
         const res = await commentService.getCommentsByPost(postId);
-        console.log('rescmt', res)
         if (res) setComments(res);
     };
+
     useEffect(() => {
         fetchComments();
     }, [postId]);
 
     const handleReply = async (parentId: number, content: string) => {
-        console.log('parentid', parentId)
         if (!content.trim()) return;
         await commentService.createComment(postId, currentUser.id, content, parentId);
-
         fetchComments();
-        if (comments) {
-            const getFullNameFromUser = (user: any[], parentId: number): string => {
-                const usercmt = user.find(r => r.id === parentId);
-                if (usercmt) {
-                    return `${usercmt.user.first_name} ${usercmt.user.last_name}`;
-                }
-                return '';
-            };
-            const name = getFullNameFromUser(comments, parentId)
 
-            if (name) {
-                setFullNameCommentParent(name)
-            }
+        const getFullNameFromUser = (user: any[], parentId: number): string => {
+            const usercmt = user.find(r => r.id === parentId);
+            return usercmt ? `${usercmt.user.first_name} ${usercmt.user.last_name}` : '';
+        };
 
-        }
+        const name = getFullNameFromUser(comments, parentId);
+        if (name) setFullNameCommentParent(name);
 
         if (currentUser.id !== postOwnerId) {
             await notificationService.sendNotification(
                 postOwnerId,
-                `${currentUser.first_name} ${currentUser.last_name} đã trả lời bình luận của ${fullNameCommentParent} về bài viết của bạn`,
+                `${currentUser.first_name} ${currentUser.last_name} đã trả lời bình luận của ${name} về bài viết của bạn`,
                 `/bai-viet/${postId}`,
                 `${currentUser.avatar_url}`
-            )
+            );
         }
     };
 
     const handleNewComment = async () => {
         if (!newComment.trim()) return;
         await commentService.createComment(postId, currentUser.id, newComment);
+
         if (currentUser.id !== postOwnerId) {
             await notificationService.sendNotification(
                 postOwnerId,
                 `${currentUser.first_name} ${currentUser.last_name} đã bình luận về bài viết của bạn`,
                 `/bai-viet/${postId}`,
                 `${currentUser.avatar_url}`
-            )
+            );
         }
+
         setNewComment('');
         fetchComments();
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') {
-            handleNewComment();
-        }
+        if (e.key === 'Enter') handleNewComment();
     };
 
-    //  Chỉ hiển thị bình luận cấp 1 (parent === null)
     const topLevelComments = comments.filter(c => c.parent === null);
 
     return (
         <div className="mt-4">
-            {/* Ô nhập bình luận mới */}
             <div className="flex items-center py-4 px-4 rounded-xl bg-white dark:bg-dark-card gap-2 mb-4">
                 <Link href={`/trang-ca-nhan/${currentUser.id}`}>
                     <img
@@ -106,7 +94,6 @@ export default function CommentBox({ postId, postOwnerId, fullNamePostOwner }: {
                 </button>
             </div>
 
-            {/* Danh sách bình luận cấp 1 */}
             <div className="space-y-4">
                 {topLevelComments.map(comment => (
                     <CommentItem

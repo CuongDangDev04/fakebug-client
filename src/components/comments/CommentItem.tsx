@@ -7,6 +7,7 @@ import ReactionListModal from '../posts/ReactionListModal';
 import Link from 'next/link';
 import { notificationService } from '@/services/notificationService';
 import { useUserStore } from '@/stores/userStore';
+import { ConfirmDelete } from '../common/ui/ConfirmDelete';
 
 function formatRelativeTime(dateString: string) {
     const date = new Date(dateString);
@@ -55,24 +56,23 @@ export default function CommentItem({
     const [showReactionList, setShowReactionList] = useState(false);
     const isLevelTwo = comment.parent !== null;
     const currentUser = useUserStore(state => state.user);
-    if (!currentUser) return null
+    if (!currentUser) return null;
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') {
-            handleReply();
-        }
+        if (e.key === 'Enter') handleReply();
     };
 
     const handleReply = () => {
         if (!replyContent.trim()) return;
         onReply(comment.id, replyContent);
+
         if (postOwnerId !== cmtOwnerId) {
             notificationService.sendNotification(
                 cmtOwnerId,
                 `${currentUser.first_name} ${currentUser.last_name} trả lời bình luận của bạn về bài viết của ${fullNamePostOwner}`,
                 `/bai-viet/${postId}`,
                 `${currentUser.avatar_url}`
-            )
+            );
         }
 
         setReplyContent('');
@@ -161,10 +161,20 @@ export default function CommentItem({
 
                         {comment.user.id === currentUserId && (
                             <button
-                                onClick={() => onDelete(comment.id)}
+                                onClick={() => {
+                                    ConfirmDelete({
+                                        title: 'Xác nhận xoá bình luận?',
+                                        description: 'Bình luận này sẽ bị xoá vĩnh viễn.',
+                                        onConfirm: async () => {
+                                            await onDelete(comment.id);
+                                        },
+                                        confirmText: 'Xoá',
+                                        cancelText: 'Huỷ',
+                                    });
+                                }}
                                 className="text-xs text-red-500"
                             >
-                                Xóa
+                                Xoá
                             </button>
                         )}
 
@@ -175,7 +185,6 @@ export default function CommentItem({
                 </div>
             </div>
 
-            {/* Chỉ hiển thị form trả lời nếu là bình luận cấp 1 */}
             {!isLevelTwo && showReplies && (
                 <div className="flex items-center gap-2 mt-2 ml-12">
                     <input
@@ -194,7 +203,6 @@ export default function CommentItem({
                 </div>
             )}
 
-            {/* Chỉ render replies nếu là bình luận cấp 1 */}
             {!isLevelTwo && comment.replies?.length > 0 && !showReplies && (
                 <button
                     onClick={() => setShowReplies(true)}

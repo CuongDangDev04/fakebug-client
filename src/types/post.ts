@@ -43,6 +43,8 @@ export type FeedType = 'feed' | 'public' | 'friends' | 'private';
 
 export interface PostItemProps {
   post: PostResponse;
+  onDeleted?: (postId: number) => void;
+
 }
 
 export interface EditPostModalProps {
@@ -57,14 +59,14 @@ export interface PrivacySelectProps {
 }
 
 export interface UserReaction {
-    id: number;
-    first_name: string;
-    last_name: string;
-    avatar_url?: string;
-    type: string;
+  id: number;
+  first_name: string;
+  last_name: string;
+  avatar_url?: string;
+  type: string;
 }
 
 export interface ReactionListModalProps {
-    users: UserReaction[];
-    onClose: () => void;
+  users: UserReaction[];
+  onClose: () => void;
 }

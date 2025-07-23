@@ -35,9 +35,12 @@ export default function PostList() {
     fetchPosts(feedType);
   }, [feedType, fetchPosts]);
 
+  const handlePostDeleted = (postId: number) => {
+    setPosts((prev) => prev.filter((post) => post.id !== postId));
+  };
+
   return (
     <div className="w-full md:w-3/4 m-auto space-y-4">
-
       {/* Tabs chọn loại bài viết */}
       <div className="flex justify-center flex-wrap gap-2 mb-4">
         {(['feed', 'public', 'friends', 'private'] as FeedType[]).map((type) => (
@@ -71,9 +74,10 @@ export default function PostList() {
           Chưa có bài viết nào.
         </p>
       ) : (
-        posts.map((post) => <PostItem key={post.id} post={post} />)
+        posts.map((post) => (
+          <PostItem key={post.id} post={post} onDeleted={handlePostDeleted} />
+        ))
       )}
-
     </div>
   );
 }

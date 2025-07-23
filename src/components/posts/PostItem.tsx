@@ -1,5 +1,7 @@
+'use client';
+
 import { useMemo, useState } from 'react';
-import { Lock, Globe, Users, MessageCircle, Pencil, Share } from 'lucide-react';
+import { Lock, Globe, Users, MessageCircle, Pencil, Share, Trash2 } from 'lucide-react';
 import type { PostItemProps, ReactionType } from '@/types/post';
 import { formatRelativeTime } from '@/utils/formatRelativeTime';
 import EditPostModal from './EditPostModal';
@@ -7,23 +9,25 @@ import { useUserStore } from '@/stores/userStore';
 import ReactionButton from './ReactionButton';
 import ReactionListModal from './ReactionListModal';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { postService } from '@/services/postService';
+import { ConfirmDelete } from '../common/ui/ConfirmDelete';
 
-export default function PostItem({ post }: PostItemProps) {
+export default function PostItem({ post, onDeleted }: PostItemProps) {
     const [currentPost, setCurrentPost] = useState(post);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showReactionList, setShowReactionList] = useState(false);
 
     const currentUser = useUserStore((state) => state.user);
+    const router = useRouter();
 
     const totalReactions = currentPost.total_reactions || currentPost.reactions?.length || 0;
 
     const topReactions = useMemo(() => {
         const counts: Record<string, number> = {};
-
         currentPost.reactions?.forEach((reaction) => {
             counts[reaction.type] = (counts[reaction.type] || 0) + 1;
         });
-
         return Object.entries(counts)
             .sort((a, b) => b[1] - a[1])
             .slice(0, 3)
@@ -32,13 +36,10 @@ export default function PostItem({ post }: PostItemProps) {
 
     const handleReaction = (reaction: ReactionType | null) => {
         if (!currentUser) return;
-
         const existedReactionIndex = currentPost.reacted_users?.findIndex(
             (user) => user.id === currentUser.id
         );
-
         let updatedReactedUsers = [...(currentPost.reacted_users || [])];
-
         if (reaction) {
             if (existedReactionIndex !== undefined && existedReactionIndex >= 0) {
                 updatedReactedUsers[existedReactionIndex] = {
@@ -66,6 +67,20 @@ export default function PostItem({ post }: PostItemProps) {
                 type: user.type,
             })),
             total_reactions: updatedReactedUsers.length,
+        });
+    };
+    const handleDeletePost = () => {
+        ConfirmDelete({
+            title: 'Bạn có chắc chắn muốn xoá bài viết này?',
+            description: 'Hành động này không thể hoàn tác.',
+            onConfirm: async () => {
+                await postService.deletePost(currentPost.id);
+                if (typeof onDeleted === 'function') {
+                    onDeleted(currentPost.id);
+                } else {
+                    router.refresh();
+                }
+            },
         });
     };
 
@@ -108,6 +123,7 @@ export default function PostItem({ post }: PostItemProps) {
 
     const isOwnPost = currentUser?.id === currentPost.user.id;
     const totalComments = currentPost.comments?.length || 0;
+
     return (
         <div className="bg-white dark:bg-dark-card rounded-xl shadow-sm p-4 space-y-3 relative">
             <div className="flex items-center justify-between">
@@ -131,13 +147,22 @@ export default function PostItem({ post }: PostItemProps) {
                 </Link>
 
                 {isOwnPost && (
-                    <button
-                        onClick={() => setShowEditModal(true)}
-                        className="p-1 rounded hover:bg-gray-200 dark:hover:bg-dark-hover"
-                        title="Chỉnh sửa bài viết"
-                    >
-                        <Pencil className="w-4 h-4 text-gray-600 dark:text-gray-300" />
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setShowEditModal(true)}
+                            className="p-1 rounded hover:bg-gray-200 dark:hover:bg-dark-hover"
+                            title="Chỉnh sửa bài viết"
+                        >
+                            <Pencil className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+                        </button>
+                        <button
+                            onClick={handleDeletePost}
+                            className="p-1 rounded hover:bg-red-200 dark:hover:bg-red-900"
+                            title="Xoá bài viết"
+                        >
+                            <Trash2 className="w-4 h-4 text-red-600 dark:text-red-300" />
+                        </button>
+                    </div>
                 )}
             </div>
 
@@ -154,6 +179,7 @@ export default function PostItem({ post }: PostItemProps) {
                     />
                 </div>
             )}
+
             <div className="flex justify-between items-center">
                 {totalReactions > 0 ? (
                     <div
@@ -167,13 +193,10 @@ export default function PostItem({ post }: PostItemProps) {
 
                 {totalComments > 0 ? (
                     <Link href={`/bai-viet/${post.id}`}>
-
                         <span className="text-sm text-gray-700 dark:text-gray-300">{totalComments} Bình luận</span>
                     </Link>
                 ) : <div />}
             </div>
-
-
 
             {showReactionList && (
                 <ReactionListModal
@@ -198,9 +221,7 @@ export default function PostItem({ post }: PostItemProps) {
 
                 {currentPost.privacy === 'public' && (
                     <button
-                        onClick={() => {
-                            alert('Tính năng chưa phát tiển!');
-                        }}
+                        onClick={() => alert('Tính năng chưa phát triển!')}
                         className="flex items-center gap-1 px-4 py-1 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-hover"
                     >
                         <Share />
@@ -208,7 +229,6 @@ export default function PostItem({ post }: PostItemProps) {
                     </button>
                 )}
             </div>
-
 
             {showEditModal && (
                 <EditPostModal
