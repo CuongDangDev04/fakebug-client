@@ -38,6 +38,17 @@ export interface PostResponse {
   comments: any[];
   reactions: Reaction[];
   reacted_users: ReactedUser[];
+  originalPost?: {
+    id: number;
+    content: string;
+    media_url?: string;
+    user: {
+      id: number;
+      first_name: string;
+      last_name: string;
+      avatar_url?: string;
+    };
+  };
 }
 export type FeedType = 'feed' | 'public' | 'friends' | 'private';
 

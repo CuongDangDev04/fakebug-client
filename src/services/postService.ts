@@ -59,8 +59,8 @@ export const postService = {
 
     async getPublicPosts() {
         try {
-            const res= await api.get(`${BASE_URL}/public`);
-            console.log('res dt',res)
+            const res = await api.get(`${BASE_URL}/public`);
+            console.log('res dt', res)
             return res
         } catch (error) {
             console.error('Lỗi khi lấy bài viết công khai:', error);
@@ -94,13 +94,24 @@ export const postService = {
             throw error;
         }
     },
-    async getAllVisiblePosts(){
-        try{
+    async getAllVisiblePosts() {
+        try {
             const res = await api.get(`${BASE_URL}/feed`);
             return res
-        }catch(error){
-            console.error('Lỗi: ',error);
+        } catch (error) {
+            console.error('Lỗi: ', error);
+            throw error;
+        }
+    },
+    async sharePost(postId: number | string, data: { content: string; privacy: 'public' | 'friends' | 'private' }) {
+        try {
+            const response = await api.post(`${BASE_URL}/${postId}/share`, data);
+            console.log('response', response)
+            return response.data;
+        } catch (error) {
+            console.error('Lỗi khi chia sẻ bài viết:', error);
             throw error;
         }
     }
+
 };

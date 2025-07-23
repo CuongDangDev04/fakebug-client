@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { postService } from '@/services/postService';
 import { ConfirmDelete } from '../common/ui/ConfirmDelete';
+import SharePostModal from './SharePostModal';
 
 export default function PostItem({ post, onDeleted }: PostItemProps) {
     const [currentPost, setCurrentPost] = useState(post);
@@ -22,6 +23,7 @@ export default function PostItem({ post, onDeleted }: PostItemProps) {
     const router = useRouter();
 
     const totalReactions = currentPost.total_reactions || currentPost.reactions?.length || 0;
+    const [showShareModal, setShowShareModal] = useState(false);
 
     const topReactions = useMemo(() => {
         const counts: Record<string, number> = {};
@@ -125,6 +127,7 @@ export default function PostItem({ post, onDeleted }: PostItemProps) {
     const totalComments = currentPost.comments?.length || 0;
 
     return (
+
         <div className="bg-white dark:bg-dark-card rounded-xl shadow-sm p-4 space-y-3 relative">
             <div className="flex items-center justify-between">
                 <Link href={`/trang-ca-nhan/${currentPost.user.id}`} className="flex items-center gap-3">
@@ -169,6 +172,32 @@ export default function PostItem({ post, onDeleted }: PostItemProps) {
             <div className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-line">
                 {currentPost.content}
             </div>
+            {currentPost.originalPost && (
+                <div className="mt-3 p-3 border rounded-lg bg-gray-50 dark:bg-dark-bg text-sm text-gray-800 dark:text-gray-300">
+                    <Link href={`/trang-ca-nhan/${currentPost.originalPost.user.id}`} className="flex items-center gap-2 mb-2">
+                        <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-600">
+                            <img
+                                src={currentPost.originalPost.user.avatar_url || '/default-avatar.png'}
+                                alt="Avatar"
+                                className="object-cover w-full h-full"
+                            />
+                        </div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-white">
+                            {currentPost.originalPost.user.first_name} {currentPost.originalPost.user.last_name}
+                        </p>
+                    </Link>
+                    <p className="whitespace-pre-line">{currentPost.originalPost.content}</p>
+                    {currentPost.originalPost.media_url && (
+                        <Link href={`/bai-viet/${currentPost.originalPost.id}`} className="mt-2 overflow-hidden rounded-md">
+                            <img
+                                src={currentPost.originalPost.media_url}
+                                alt="Ảnh gốc"
+                                className="object-cover w-full max-h-[400px]"
+                            />
+                        </Link>
+                    )}
+                </div>
+            )}
 
             {currentPost.media_url && (
                 <div className="overflow-hidden rounded-lg">
@@ -221,13 +250,23 @@ export default function PostItem({ post, onDeleted }: PostItemProps) {
 
                 {currentPost.privacy === 'public' && (
                     <button
-                        onClick={() => alert('Tính năng chưa phát triển!')}
+                        onClick={() => setShowShareModal(true)}
                         className="flex items-center gap-1 px-4 py-1 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-hover"
                     >
-                        <Share />
+                        <Share className="w-4 h-4" />
                         Chia sẻ
                     </button>
                 )}
+                {showShareModal && (
+                    <SharePostModal
+                        originalPost={currentPost.originalPost || currentPost as any } 
+                        isOpen={showShareModal}
+                        onClose={() => setShowShareModal(false)}
+                    />
+                )}
+
+
+
             </div>
 
             {showEditModal && (
