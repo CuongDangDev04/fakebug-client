@@ -7,6 +7,7 @@ import { ProfileService } from '@/services/profileService'
 import SkeletonProfile from '../skeleton/SkeletonProfile'
 import MyProfileFriends from './MyProfileFriends'
 import Link from 'next/link'
+import MyPostOnProfile from '../posts/MyPostOnProfile'
 
 type TabType = 'posts' | 'friends' | 'photos'
 
@@ -24,7 +25,9 @@ export default function MyProfile() {
     try {
       setIsLoading(true)
       setError(null)
+
       const data = await ProfileService.getProfile()
+    
       setProfileData(data || null)
     } catch {
       setError('Đã có lỗi xảy ra khi tải profile')
@@ -51,7 +54,9 @@ export default function MyProfile() {
   }
 
   useEffect(() => {
+
     fetchProfile()
+
   }, [])
 
   if (isLoading) return <SkeletonProfile />
@@ -59,7 +64,6 @@ export default function MyProfile() {
   if (!profileData) return null
 
   const { user, friends } = profileData
-  console.log('user', user)
   const renderTabContent = () => {
     switch (activeTab) {
       case 'friends':
@@ -75,12 +79,9 @@ export default function MyProfile() {
         )
       default:
         return (
-          <div className="bg-white dark:bg-dark-card rounded-xl p-4">
-            <h2 className="font-semibold mb-4 dark:text-[#e4e6eb]">Bài viết</h2>
-            <div className="h-32 flex items-center justify-center text-gray-500 dark:text-[#b0b3b8]">
-              Chưa có bài viết nào
-            </div>
-          </div>
+          <div className="bg-white dark:bg-dark-card rounded-xl ">
+              <MyPostOnProfile/>
+              </div>
         )
     }
   }
@@ -88,7 +89,6 @@ export default function MyProfile() {
   return (
     <div className="space-y-4 md:space-y-6">
 
-      {/* Cover Image */}
       {/* Cover Image */}
       <div className="relative bg-gray-200 dark:bg-dark-card">
         {user.detail?.cover_url ? (
@@ -118,7 +118,7 @@ export default function MyProfile() {
           onClick={() => coverInputRef.current?.click()}
           className="absolute flex flex-row justify-center items-center bottom-2 right-2 bg-white/80 dark:bg-gray-700 dark:text-white text-sm px-4 py-1 rounded-full hover:bg-white dark:hover:bg-dark-active"
         >
-           <Camera /> Thêm/Đổi ảnh bìa
+          <Camera /> Thêm/Đổi ảnh bìa
         </button>
       </div>
 
@@ -176,8 +176,8 @@ export default function MyProfile() {
               key={tab}
               onClick={() => setActiveTab(tab as TabType)}
               className={`flex-1 px-4 py-3 font-medium relative ${activeTab === tab
-                  ? 'text-blue-600 dark:text-[#4497f5]'
-                  : 'text-gray-600 dark:text-[#b0b3b8] hover:text-gray-900 dark:hover:text-[#e4e6eb]'
+                ? 'text-blue-600 dark:text-[#4497f5]'
+                : 'text-gray-600 dark:text-[#b0b3b8] hover:text-gray-900 dark:hover:text-[#e4e6eb]'
                 }`}
             >
               {tab === 'posts' ? 'Bài viết' : tab === 'friends' ? 'Bạn bè' : 'Ảnh'}
@@ -190,11 +190,11 @@ export default function MyProfile() {
       </div>
 
       {/* Content */}
-      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6">
+      <div className="w-full  mx-auto px-4 sm:px-6">
         {activeTab === 'posts' ? (
-          <div className="flex flex-col lg:flex-row gap-4">
+          <div className="flex justify-center">
             {/* Friends List */}
-            <div className="w-full lg:w-[40%]">
+            <div className="w-full max-w-md mx-2">
               <div className="bg-white dark:bg-dark-card rounded-xl p-4">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="font-semibold dark:text-[#e4e6eb]">
@@ -231,8 +231,9 @@ export default function MyProfile() {
             </div>
 
             {/* Posts */}
-            <div className="w-full lg:w-[60%]">
+            <div className="w-full mx-2 lg:w-[60%]">
               {renderTabContent()}
+
             </div>
           </div>
         ) : (

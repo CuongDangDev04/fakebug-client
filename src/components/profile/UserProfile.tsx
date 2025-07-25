@@ -356,11 +356,11 @@ export default function UserProfile() {
       </div>
 
       {/* Main content */}
-      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6">
+      <div className="w-full  mx-auto px-4 sm:px-6">
         {activeTab === 'posts' ? (
-          <div className="flex flex-col lg:flex-row gap-4">
+          <div className="flex justify-center">
             {/* Friends list */}
-            <div className="w-full lg:w-[40%]">
+            <div className="w-full max-w-md mx-2">
               <div className="bg-white dark:bg-dark-card rounded-xl p-4">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-base md:text-lg font-semibold text-gray-900 dark:text-[#e4e6eb]">
@@ -397,7 +397,7 @@ export default function UserProfile() {
             </div>
 
             {/* Posts */}
-            <div className="w-full lg:w-[60%]">
+            <div className="w-full mx-2 lg:w-[60%]">
               {renderTabContent()}
             </div>
           </div>
