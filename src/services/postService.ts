@@ -57,72 +57,73 @@ export const postService = {
         });
     },
 
-    async getPublicPosts() {
+    async getPublicPosts(offset = 0, limit = 5) {
         try {
-            const res = await api.get(`${BASE_URL}/public`);
-            console.log('res dt', res)
-            return res
+            const res = await api.get(`${BASE_URL}/public?offset=${offset}&limit=${limit}`);
+            return res.data;
         } catch (error) {
             console.error('Lỗi khi lấy bài viết công khai:', error);
             throw error;
         }
     },
 
-    async getPrivatePosts() {
+    async getPrivatePosts(offset = 0, limit = 5) {
         try {
-            return await api.get(`${BASE_URL}/private`);
+            const res = await api.get(`${BASE_URL}/private?offset=${offset}&limit=${limit}`);
+            return res.data;
         } catch (error) {
             console.error('Lỗi khi lấy bài viết riêng tư:', error);
             throw error;
         }
     },
 
-    async getFriendPosts() {
+    async getFriendPosts(offset = 0, limit = 5) {
         try {
-            return await api.get(`${BASE_URL}/friends`);
+            const res = await api.get(`${BASE_URL}/friends?offset=${offset}&limit=${limit}`);
+            return res.data;
         } catch (error) {
             console.error('Lỗi khi lấy bài viết bạn bè:', error);
             throw error;
         }
     },
 
+    async getAllVisiblePosts(offset = 0, limit = 5) {
+        try {
+            const res = await api.get(`${BASE_URL}/feed?offset=${offset}&limit=${limit}`);
+            return res.data;
+        } catch (error) {
+            console.error('Lỗi khi lấy tất cả bài viết hiển thị:', error);
+            throw error;
+        }
+    },
+
     async getPostById(postId: number | string) {
         try {
-            return await api.get(`${BASE_URL}/${postId}`);
+            const res = await api.get(`${BASE_URL}/${postId}`);
+            return res;
         } catch (error) {
             console.error('Lỗi khi lấy chi tiết bài viết:', error);
             throw error;
         }
     },
-    async getAllVisiblePosts() {
-        try {
-            const res = await api.get(`${BASE_URL}/feed`);
-            return res
-        } catch (error) {
-            console.error('Lỗi: ', error);
-            throw error;
-        }
-    },
+
     async sharePost(postId: number | string, data: { content: string; privacy: 'public' | 'friends' | 'private' }) {
         try {
             const response = await api.post(`${BASE_URL}/${postId}/share`, data);
-            console.log('response', response)
             return response.data;
         } catch (error) {
             console.error('Lỗi khi chia sẻ bài viết:', error);
             throw error;
         }
     },
-   async getPostMyUser(offset = 0, limit = 5) {
-    try {
-        const res = await api.get(`${BASE_URL}/mypost?offset=${offset}&limit=${limit}`);
-        return res.data;
-    } catch (error: any) {
-        console.error('❌ Lỗi khi lấy bài viết người dùng:', error);
-        throw error;
+
+    async getPostMyUser(offset = 0, limit = 5) {
+        try {
+            const res = await api.get(`${BASE_URL}/mypost?offset=${offset}&limit=${limit}`);
+            return res.data;
+        } catch (error) {
+            console.error('❌ Lỗi khi lấy bài viết người dùng:', error);
+            throw error;
+        }
     }
-}
-
-
-
 };
