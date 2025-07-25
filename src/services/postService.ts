@@ -125,5 +125,15 @@ export const postService = {
             console.error('❌ Lỗi khi lấy bài viết người dùng:', error);
             throw error;
         }
+    },
+
+    async getPostOfOtherUser(userId: number, offset = 0, limit = 5) {
+        try {
+            const res = await api.get(`${BASE_URL}/all-post-in-other-user/${userId}?offset=${offset}&limit=${limit}`);
+            return res.data;
+        } catch (error) {
+            console.error('❌ Lỗi khi lấy bài viết người dùng khác:', error);
+            throw error;
+        }
     }
 };

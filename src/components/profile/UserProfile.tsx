@@ -10,6 +10,7 @@ import Link from 'next/link';
 import SkeletonProfile from '../skeleton/SkeletonProfile';
 import { useUserStore } from '@/stores/userStore';
 import UserFriendList from './UserFriendList';
+import OtherUserPosts from '../posts/OtherUserPosts';
 
 type TabType = 'posts' | 'friends' | 'photos';
 
@@ -55,6 +56,7 @@ export default function UserProfile() {
     const fetchFriendshipStatus = async () => {
       try {
         const response = await friendshipService.checkFriendshipStatus(Number(userId));
+        if(!response) return null
         setFriendshipStatus(response.data);
       } catch (error) {
         console.error('Error fetching friendship status:', error);
@@ -73,6 +75,7 @@ export default function UserProfile() {
       switch (friendshipStatus?.status) {
         case 'not_friend':
           const response = await friendshipService.sendFriendRequest(Number(userId));
+          if(!response) return null;
           if (response.data) {
             setFriendshipStatus({ status: 'pending', message: 'Đã gửi lời mời kết bạn' });
           }
@@ -199,11 +202,8 @@ export default function UserProfile() {
         );
       default:
         return (
-          <div className="bg-white dark:bg-dark-card rounded-xl p-4">
-            <h2 className="text-base md:text-lg font-semibold mb-4 dark:text-[#e4e6eb]">Bài viết</h2>
-            <div className="h-32 flex items-center justify-center text-sm md:text-base text-gray-500 dark:text-[#b0b3b8]">
-              Chưa có bài viết nào
-            </div>
+          <div className="bg-white dark:bg-dark-card rounded-xl ">
+            <OtherUserPosts />
           </div>
         );
     }
