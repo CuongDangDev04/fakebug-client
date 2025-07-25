@@ -11,6 +11,7 @@ import { authService } from '@/services/authService'
 import NotificationList from '@/components/notifications/NotificationList'
 import { notificationService } from '@/services/notificationService'
 import { messageService } from '@/services/messageService'
+import { useNotificationStore } from '@/stores/notificationStore'
 
 const navItems = [
     { icon: <Home size={32} />, href: '/' },
@@ -33,6 +34,7 @@ export default function HeaderUser({ onMenuClick }: Props) {
     const [totalUnread, setTotalUnread] = useState(0);
     const bellRef = useRef<HTMLDivElement>(null)
     const dropdownRef = useRef<HTMLDivElement>(null)
+    const { clearNotifications, notifications } = useNotificationStore()
 
     const handleNavigate = () => {
         setShowDropdown(false)
@@ -95,14 +97,14 @@ export default function HeaderUser({ onMenuClick }: Props) {
         };
     }, []);
 
-    const handleMarkAllAsRead = async () => {
-        try {
-            await notificationService.markAllAsRead();
-            // Có thể thêm logic cập nhật UI ở đây nếu cần
-        } catch (error) {
-            console.error('Error marking all as read:', error);
-        }
-    };
+  const handleMarkAllAsRead = async () => {
+    try {
+        await notificationService.markAllAsRead();
+        clearNotifications(); // ✅ Xóa tất cả noti trong store
+    } catch (error) {
+        console.error('Error marking all as read:', error);
+    }
+};
 
     const handleToggleNotification = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -165,7 +167,7 @@ export default function HeaderUser({ onMenuClick }: Props) {
                     {isDark ? <Sun size={22} /> : <Moon size={22} />}
                 </button>
                 <div className="relative">
-                    <div 
+                    <div
                         ref={bellRef}
                         onClick={handleToggleNotification}
                         className="p-2.5 text-gray-700 dark:text-dark-text-primary hover:bg-gray-100 dark:hover:bg-dark-hover rounded-lg relative cursor-pointer"
@@ -174,14 +176,14 @@ export default function HeaderUser({ onMenuClick }: Props) {
                         <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
                     </div>
                     {showNotiDropdown && (
-                        <div 
-                            ref={dropdownRef} 
+                        <div
+                            ref={dropdownRef}
                             className="absolute right-0 mt-2 w-96 bg-white dark:bg-dark-card rounded-xl shadow-xl border border-gray-200 dark:border-dark-border z-50 max-h-[500px] overflow-y-auto"
                         >
                             <div className="px-4 py-3 border-b border-gray-200 dark:border-dark-border flex items-center justify-between">
                                 <h3 className="text-lg font-semibold text-gray-800 dark:text-dark-text-primary">Thông báo</h3>
                                 <div className="flex items-center gap-4">
-                                    <span 
+                                    <span
                                         onClick={handleMarkAllAsRead}
                                         className="text-sm text-blue-600 hover:text-red-800 cursor-pointer"
                                     >
