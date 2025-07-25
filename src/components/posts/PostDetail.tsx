@@ -6,7 +6,8 @@ import PostItem from '@/components/posts/PostItem';
 import CommentBox from '@/components/comments/CommentBox';
 import { useUserStore } from '@/stores/userStore';
 import type { PostResponse } from '@/types/post';
-import { useRouter } from 'next/navigation';  
+import { useRouter } from 'next/navigation';
+import PostSkeleton from '../skeleton/PostSkeleton';
 
 interface PostDetailProps {
     postId: number;
@@ -19,7 +20,7 @@ export default function PostDetail({ postId }: PostDetailProps) {
     const [postOwnerId, setPostOwneId] = useState<number>();
     const currentUserId = useUserStore((state) => state.user?.id);
     const [fullNamePostOwner, setFullNamePostOwner] = useState<String>('');
-    const router = useRouter(); 
+    const router = useRouter();
 
     useEffect(() => {
         const fetchPost = async () => {
@@ -39,7 +40,11 @@ export default function PostDetail({ postId }: PostDetailProps) {
     }, [postId]);
 
     if (loading) {
-        return <p className="text-center py-4">Đang tải bài viết...</p>;
+        return (
+            <div>
+                <PostSkeleton />
+            </div>
+        )
     }
 
     if (!post) {

@@ -4,6 +4,7 @@ import ConversationItem from "./ConversationItem";
 import { messageService } from "@/services/messageService";
 import { useFriendMessagesStore } from "@/stores/friendMessagesStore";
 import { useEffect, useState } from "react";
+import SidebarSkeleton from "../skeleton/SidebarSkeleton";
 
 export default function ChatSidebar({
   mobileOpen = true,
@@ -17,12 +18,15 @@ export default function ChatSidebar({
   const { friends, setFriends } = useFriendMessagesStore();
   const [search, setSearch] = useState('');
   const [totalUnread, setTotalUnread] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchFriendsMessages = async () => {
+      setIsLoading(true);
       const res = await messageService.getFriendMessages();
       setFriends(res?.friends || []);
       setTotalUnread(res?.totalUnreadCount ?? 0);
+      setIsLoading(false);
     };
     fetchFriendsMessages();
   }, []);
@@ -91,9 +95,30 @@ export default function ChatSidebar({
       </div>
 
       <div className="flex-1 overflow-y-auto" style={{ maxHeight: '91vh' }}>
-        {filtered.length === 0 && (
-          <div className="text-center text-gray-400 dark:text-dark-text-secondary mt-8">Không có hội thoại nào</div>
+        {isLoading ? (
+          <SidebarSkeleton />
+        ) : (
+          <>
+            {filtered.length === 0 ? (
+              <div className="text-center text-gray-400 dark:text-dark-text-secondary mt-8">
+                Không có hội thoại nào
+              </div>
+            ) : (
+              filtered.map((fm) => (
+                <Link key={fm.id || fm.friendId} href={`/tin-nhan/${fm.friendId}`} passHref>
+                  <ConversationItem
+                    fm={fm}
+                    onClick={() => {
+                      onSelectUser?.(fm.friendId);
+                      onClose?.();
+                    }}
+                  />
+                </Link>
+              ))
+            )}
+          </>
         )}
+
         {filtered.map((fm) => (
           <Link key={fm.id || fm.friendId} href={`/tin-nhan/${fm.friendId}`} passHref>
             <ConversationItem

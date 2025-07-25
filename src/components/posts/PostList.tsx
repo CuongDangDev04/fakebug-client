@@ -5,6 +5,7 @@ import { postService } from '@/services/postService';
 import PostItem from './PostItem';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import type { FeedType, PostResponse } from '@/types/post';
+import PostSkeleton from '../skeleton/PostSkeleton';
 
 function PostFeed({ feedType }: { feedType: FeedType }) {
   const fetchPosts = useCallback(
@@ -59,9 +60,9 @@ function PostFeed({ feedType }: { feedType: FeedType }) {
       )}
 
       {loading && (
-        <p className="text-center py-4 text-gray-600 dark:text-gray-300">
-          Đang tải thêm bài viết...
-        </p>
+        <>
+        <PostSkeleton />
+        </>
       )}
 
       {!hasMore && !loading && posts.length > 0 && (

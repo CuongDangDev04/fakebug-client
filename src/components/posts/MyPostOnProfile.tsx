@@ -4,6 +4,7 @@ import { postService } from '@/services/postService';
 import PostItem from './PostItem';
 import type { PostResponse } from '@/types/post';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import PostSkeleton from '../skeleton/PostSkeleton';
 
 export default function MyPostOnProfile() {
   const {
@@ -32,9 +33,9 @@ export default function MyPostOnProfile() {
         );
       })}
       {loading && (
-        <p className="text-center py-4 text-gray-600 dark:text-gray-300">
-          Đang tải thêm...
-        </p>
+        <>
+        <PostSkeleton/>
+        </>
       )}
       {!loading && !hasMore && (
         <p className="text-center py-4 text-gray-400 text-sm">

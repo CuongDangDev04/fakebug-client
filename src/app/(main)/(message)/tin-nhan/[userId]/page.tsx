@@ -21,7 +21,7 @@ export default function ChatPage(props: ChatPageProps) {
   const [chattingUserId, setChattingUserId] = useState<number | null>(null);
 
   if (!currentUserId) {
-    return <div>Đang tải thông tin người dùng...</div>;
+    return null
   }
 
   return (
