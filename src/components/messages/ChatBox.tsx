@@ -14,6 +14,7 @@ import { messageService } from '@/services/messageService';
 import { useChatStore } from '@/stores/chatStore';
 import ForwardFriendsModal from '@/components/messages/ForwardFriendsModal';
 import { useThemeStore } from '@/stores/themeStore';
+import { useChatInfiniteScroll } from '@/hooks/useChatInfiniteScroll';
 
 export default function ChatBox({
   currentUserId,
@@ -27,12 +28,12 @@ export default function ChatBox({
   const { messages, loading, loadMore } = useChatMessages(currentUserId, targetUserId);
   const { isOnline: isTargetOnline, lastSeen, formatLastSeen } = useUserOnlineStatus(targetUserId);
   const markAsReadInSidebar = useFriendMessagesStore((state) => state.markAsRead);
+  // Explicitly type the ref as HTMLDivElement, ensuring it's not null
+  const messagesContainerRef = useRef<HTMLDivElement>(null!);
+  const { loadingMore, showScrollToBottom, scrollToBottom } = useChatInfiniteScroll(messagesContainerRef, loadMore, messages);
 
   const [input, setInput] = useState('');
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [showTime, setShowTime] = useState<{ [id: string]: boolean }>({});
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const [hoveredMsgId, setHoveredMsgId] = useState<number | null>(null);
   const [openedOptionsMsgId, setOpenedOptionsMsgId] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -46,6 +47,7 @@ export default function ChatBox({
   const [showForwardModal, setShowForwardModal] = useState(false);
   const [forwardMessageId, setForwardMessageId] = useState<number | null>(null);
   const { isDark } = useThemeStore();
+
   useEffect(() => {
     const hasUnread = messages.some(msg => msg.sender.id === targetUserId && !msg.is_read);
     if (hasUnread) {
@@ -79,48 +81,6 @@ export default function ChatBox({
     };
   }, [showEmojiPicker]);
 
-  useEffect(() => {
-    const container = messagesContainerRef.current;
-    if (!container) return;
-
-    const handleScroll = async () => {
-      const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 20;
-      setShowScrollToBottom(!isAtBottom);
-
-      if (container.scrollTop <= 20 && !loadingMore) {
-        setLoadingMore(true);
-        const prevScrollHeight = container.scrollHeight;
-        const prevMsgLength = messages.length;
-        await loadMore();
-
-        setTimeout(() => {
-          const newScrollHeight = container.scrollHeight;
-          if (messages.length > prevMsgLength) {
-            container.scrollTop = newScrollHeight - prevScrollHeight;
-          }
-          setLoadingMore(false);
-        }, 0);
-      }
-    };
-
-    container.addEventListener('scroll', handleScroll);
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, [loadMore, loadingMore, messages]);
-
-  useEffect(() => {
-    const container = messagesContainerRef.current;
-    if (!container) return;
-    const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 20;
-    setShowScrollToBottom(!isAtBottom);
-  }, [messages]);
-
-  const scrollToBottom = () => {
-    const container = messagesContainerRef.current;
-    if (container) {
-      container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
-    }
-  };
-
   const handleSend = () => {
     const content = input.trim();
     if (!content) return;
@@ -152,17 +112,6 @@ export default function ChatBox({
   const lastSentByMe = [...uniqueMessages].reverse().find((msg) => msg.sender.id === currentUserId);
 
   const targetUser = messages[0]?.sender.id === currentUserId ? messages[0]?.receiver : messages[0]?.sender;
-
-  const isFirstLoadRef = useRef(true);
-  useEffect(() => {
-    const container = messagesContainerRef.current;
-    if (container && messages.length > 0 && isFirstLoadRef.current) {
-      requestAnimationFrame(() => {
-        container.scrollTop = container.scrollHeight;
-      });
-      isFirstLoadRef.current = false;
-    }
-  }, [targetUserId, messages.length]);
 
   const handleReactToMessage = (messageId: number, emoji: string | null) => {
     const socket = (window as any).chatSocket;
