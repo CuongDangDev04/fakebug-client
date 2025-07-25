@@ -85,9 +85,18 @@ export const CallHandler = ({ currentUserId }: Props) => {
 
       endCall();
     };
+    const onUserNotOnline = (data: any) => {
+      console.log('❌ [Caller] Người nhận không online:', data);
+      if (data.callerId === currentUserId) {
+        setRejectedMessage('📴 Người nhận hiện không trực tuyến.');
+        endCall();
+      }
+    };
 
 
 
+
+    socket.on('user-not-online', onUserNotOnline);
     socket.on('incoming-call', onIncomingCall);
     socket.on('call-started', onCallStarted);
     socket.on('receiver-accepted', onReceiverAccepted);
@@ -98,6 +107,8 @@ export const CallHandler = ({ currentUserId }: Props) => {
       socket.off('call-started', onCallStarted);
       socket.off('receiver-accepted', onReceiverAccepted);
       socket.off('call-ended', onCallEnded);
+      socket.off('user-not-online', onUserNotOnline);
+
     };
   }, [socketRef.current]);
 
@@ -129,44 +140,44 @@ export const CallHandler = ({ currentUserId }: Props) => {
       {isCallStarted && (
         <CallUI socket={socket} currentUserId={currentUserId} />
       )}
-     {rejectedMessage && (
-  <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 dark:bg-black/80 animate-fade-in">
-    <div className="bg-white dark:bg-[#1f1f1f] rounded-2xl shadow-xl w-[340px] text-center py-6 px-5 relative">
+      {rejectedMessage && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 dark:bg-black/80 animate-fade-in">
+          <div className="bg-white dark:bg-[#1f1f1f] rounded-2xl shadow-xl w-[340px] text-center py-6 px-5 relative">
 
-      {/* Icon cảnh báo lớn */}
-      <div className="flex justify-center mb-4">
-        <div className="bg-red-500 p-4 rounded-full shadow-lg">
-          <svg
-            className="w-8 h-8 text-white"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M12 5c-4 0-7 3-7 7s3 7 7 7 7-3 7-7-3-7-7-7z" />
-          </svg>
+            {/* Icon cảnh báo lớn */}
+            <div className="flex justify-center mb-4">
+              <div className="bg-red-500 p-4 rounded-full shadow-lg">
+                <svg
+                  className="w-8 h-8 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M12 5c-4 0-7 3-7 7s3 7 7 7 7-3 7-7-3-7-7-7z" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Nội dung thông báo */}
+            <p className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              Cuộc gọi không thành công
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {rejectedMessage}
+            </p>
+
+            {/* Nút đóng kiểu hiện đại */}
+            <button
+              onClick={() => setRejectedMessage(null)}
+              className="mt-6 bg-red-500 hover:from-red-600 hover:to-pink-600 text-white font-semibold py-2 px-6 rounded-full shadow-md transition-transform active:scale-95"
+            >
+              Đã hiểu
+            </button>
+
+          </div>
         </div>
-      </div>
-
-      {/* Nội dung thông báo */}
-      <p className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-        Cuộc gọi không thành công
-      </p>
-      <p className="text-sm text-gray-500 dark:text-gray-400">
-        {rejectedMessage}
-      </p>
-
-      {/* Nút đóng kiểu hiện đại */}
-      <button
-        onClick={() => setRejectedMessage(null)}
-        className="mt-6 bg-red-500 hover:from-red-600 hover:to-pink-600 text-white font-semibold py-2 px-6 rounded-full shadow-md transition-transform active:scale-95"
-      >
-        Đã hiểu
-      </button>
-
-    </div>
-  </div>
-)}
+      )}
 
 
     </>
