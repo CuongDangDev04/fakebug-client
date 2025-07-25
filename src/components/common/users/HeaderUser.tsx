@@ -15,6 +15,7 @@ import NotificationList from '@/components/notifications/NotificationList'
 import { notificationService } from '@/services/notificationService'
 import { messageService } from '@/services/messageService'
 import { useNotificationStore } from '@/stores/notificationStore'
+import UserSearchBox from '@/components/search/UserSearchBox'
 
 const navItems = [
     { icon: <Home size={32} />, href: '/' },
@@ -147,14 +148,7 @@ export default function HeaderUser({ onMenuClick }: Props) {
                         className="object-contain"
                     />
                 </div>
-                <div className="hidden md:flex items-center bg-gray-100 dark:bg-dark-hover rounded-full px-4 py-2">
-                    <Search size={20} className="text-gray-500 dark:text-dark-text-secondary mr-2" />
-                    <input
-                        type="text"
-                        placeholder="Tìm kiếm trên Fakebug..."
-                        className="bg-transparent outline-none text-sm w-60 placeholder:text-gray-500 dark:placeholder:text-dark-text-secondary dark:text-dark-text-primary"
-                    />
-                </div>
+                <UserSearchBox />
             </div>
 
             <nav className="fixed left-0 md:left-1/2 bottom-0 md:bottom-auto md:-translate-x-1/2 flex items-center justify-around md:justify-center gap-1 md:gap-16 w-full md:w-auto bg-white dark:bg-dark-card md:bg-transparent border-t md:border-none border-gray-200 dark:border-dark-border p-1 md:p-0">

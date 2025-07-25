@@ -8,9 +8,23 @@ export const userService = {
             const response = await api.get(`${BASE_URL}/public/${userId}`);
             return response.data;
         } catch (error: any) {
-            console.error('Lỗi: ', error)
+            console.error('Lỗi: ', error);
         }
-
     },
-    
+
+    async searchUsers(query: string, page = 1, limit = 10) {
+        try {
+            const response = await api.get(`${BASE_URL}/search`, {
+                params: {
+                    q: query,
+                    page,
+                    limit,
+                },
+            });
+            return response.data;
+        } catch (error: any) {
+            console.error('Lỗi tìm kiếm user: ', error);
+            return { data: [], pagination: { total: 0, page, limit, totalPages: 0 } };
+        }
+    },
 };

@@ -26,7 +26,7 @@ export default function UserFriendList({ userId }: { userId: number }) {
 
                     // Convert array to object map
                     const statusMap: StatusMap = {};
-                    statusResponse.data.forEach((statusObj: StatusResponse) => {
+                    statusResponse?.data.forEach((statusObj: StatusResponse) => {
                         console.log('Full status object:', statusObj);
                         // Check all possible status properties
                         const status = statusObj.status || statusObj.friendshipStatus || statusObj.friendship_status;

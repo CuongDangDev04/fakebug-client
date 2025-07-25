@@ -86,3 +86,5 @@ export interface StatusResponse {
 export interface StatusMap {
     [key: number]: string;
 }
+
+export type FriendshipStatuss = 'FRIEND' | 'NOT_FRIEND' | 'PENDING_SENT' | 'PENDING_RECEIVED';
