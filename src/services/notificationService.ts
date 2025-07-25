@@ -49,6 +49,7 @@ export const notificationService = {
     async getUnreadNotification() {
         try {
             const response = await api.get(`${BASE_URL}/unread`)
+            console.log('response noti',response.data)
             return response.data;
         } catch (error: any) {
             console.error('Lỗi: ', error)

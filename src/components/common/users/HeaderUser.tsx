@@ -1,6 +1,9 @@
 'use client'
 
-import { Menu, Search, Bell, User, Sun, Moon, Home, Users, UsersRound, LogOut, MessageCircleMore } from 'lucide-react'
+import {
+    Menu, Search, Bell, User, Sun, Moon,
+    Home, Users, UsersRound, LogOut, MessageCircleMore
+} from 'lucide-react'
 import { useThemeStore } from '@/stores/themeStore'
 import { useUserStore } from '@/stores/userStore'
 import Link from 'next/link'
@@ -34,11 +37,14 @@ export default function HeaderUser({ onMenuClick }: Props) {
     const [totalUnread, setTotalUnread] = useState(0);
     const bellRef = useRef<HTMLDivElement>(null)
     const dropdownRef = useRef<HTMLDivElement>(null)
-    const { clearNotifications, notifications } = useNotificationStore()
 
-    const handleNavigate = () => {
-        setShowDropdown(false)
-    }
+    const {
+        clearNotifications,
+        getUnreadCount,
+        setUnreadNotifications
+    } = useNotificationStore()
+
+    const handleNavigate = () => setShowDropdown(false)
 
     const handleLogout = async () => {
         try {
@@ -54,8 +60,22 @@ export default function HeaderUser({ onMenuClick }: Props) {
     }
 
     useEffect(() => {
-        init();
-    }, [init]);
+        init()
+    }, [init])
+
+    useEffect(() => {
+        const fetchUnreadNoti = async () => {
+            try {
+                const res = await notificationService.getUnreadNotification();
+                if (res?.noti) {
+                    setUnreadNotifications(res.noti);
+                }
+            } catch (error) {
+                console.error("Lỗi khi lấy thông báo chưa đọc:", error);
+            }
+        };
+        fetchUnreadNoti();
+    }, [setUnreadNotifications])
 
     useEffect(() => {
         let isMounted = true;
@@ -65,7 +85,6 @@ export default function HeaderUser({ onMenuClick }: Props) {
         };
         fetchTotalUnread();
 
-        // Đảm bảo socket luôn tồn tại trước khi lắng nghe
         let socket: any;
         const waitForSocket = () => {
             socket = (window as any).chatSocket;
@@ -82,7 +101,6 @@ export default function HeaderUser({ onMenuClick }: Props) {
             socket.on('newMessage', updateUnread);
             socket.on('message-read', updateUnread);
 
-            // Cleanup
             return () => {
                 socket.off('newMessage', updateUnread);
                 socket.off('message-read', updateUnread);
@@ -97,14 +115,14 @@ export default function HeaderUser({ onMenuClick }: Props) {
         };
     }, []);
 
-  const handleMarkAllAsRead = async () => {
-    try {
-        await notificationService.markAllAsRead();
-        clearNotifications(); // ✅ Xóa tất cả noti trong store
-    } catch (error) {
-        console.error('Error marking all as read:', error);
-    }
-};
+    const handleMarkAllAsRead = async () => {
+        try {
+            await notificationService.markAllAsRead();
+            clearNotifications();
+        } catch (error) {
+            console.error('Error marking all as read:', error);
+        }
+    };
 
     const handleToggleNotification = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -148,7 +166,6 @@ export default function HeaderUser({ onMenuClick }: Props) {
                     >
                         <span className="relative inline-block">
                             {item.icon}
-                            {/* Badge đè lên viền icon chat */}
                             {item.href === '/tin-nhan' && totalUnread > 0 && (
                                 <span className="absolute -bottom-1 -right-1 translate-x-1/4 translate-y-1/4 bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center leading-none z-10 shadow-md border-2 border-white dark:border-dark-card">
                                     {totalUnread}
@@ -166,6 +183,7 @@ export default function HeaderUser({ onMenuClick }: Props) {
                 >
                     {isDark ? <Sun size={22} /> : <Moon size={22} />}
                 </button>
+
                 <div className="relative">
                     <div
                         ref={bellRef}
@@ -173,7 +191,11 @@ export default function HeaderUser({ onMenuClick }: Props) {
                         className="p-2.5 text-gray-700 dark:text-dark-text-primary hover:bg-gray-100 dark:hover:bg-dark-hover rounded-lg relative cursor-pointer"
                     >
                         <Bell size={22} />
-                        <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
+                        {getUnreadCount() > 0 && (
+                            <span className="absolute -top-1 -right-1 translate-x-1/4 translate-y-1/4 bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center leading-none z-10 shadow-md border-2 border-white dark:border-dark-card">
+                                {getUnreadCount()}
+                            </span>
+                        )}
                     </div>
                     {showNotiDropdown && (
                         <div
@@ -196,6 +218,7 @@ export default function HeaderUser({ onMenuClick }: Props) {
                         </div>
                     )}
                 </div>
+
                 <div className="relative">
                     <button
                         className="p-1.5 hover:bg-gray-100 dark:hover:bg-dark-hover rounded-lg"
@@ -225,7 +248,6 @@ export default function HeaderUser({ onMenuClick }: Props) {
                                         <p className="font-semibold text-gray-900 dark:text-dark-text-primary">
                                             {user?.first_name} {user?.last_name}
                                         </p>
-
                                     </div>
                                 </div>
                             </div>
