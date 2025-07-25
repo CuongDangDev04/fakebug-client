@@ -119,17 +119,6 @@ export default function ChatSidebar({
           </>
         )}
 
-        {filtered.map((fm) => (
-          <Link key={fm.id || fm.friendId} href={`/tin-nhan/${fm.friendId}`} passHref>
-            <ConversationItem
-              fm={fm}
-              onClick={() => {
-                onSelectUser?.(fm.friendId);
-                onClose?.();
-              }}
-            />
-          </Link>
-        ))}
       </div>
     </div>
   );
