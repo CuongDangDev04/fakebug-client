@@ -113,15 +113,16 @@ export const postService = {
             throw error;
         }
     },
-    async getPostMyUser() {
-        try {
-            const res = await api.get(`${BASE_URL}/mypost`);
-            return res.data;
-        } catch (error: any) {
-            console.error('❌ Lỗi khi lấy bài viết người dùng:', error);
-            throw error;
-        }
+   async getPostMyUser(offset = 0, limit = 5) {
+    try {
+        const res = await api.get(`${BASE_URL}/mypost?offset=${offset}&limit=${limit}`);
+        return res.data;
+    } catch (error: any) {
+        console.error('❌ Lỗi khi lấy bài viết người dùng:', error);
+        throw error;
     }
+}
+
 
 
 };
