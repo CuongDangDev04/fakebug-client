@@ -27,7 +27,8 @@ export interface PostResponse {
   media_url?: string;
   created_at: string;
   privacy: PrivacyType;
-  total_reactions: number,
+  original_post_id?: number | null;
+  total_reactions: number;
   user: {
     id: number;
     first_name: string;
@@ -38,35 +39,27 @@ export interface PostResponse {
   comments: any[];
   reactions: Reaction[];
   reacted_users: ReactedUser[];
-  originalPost?: {
-    id: number;
-    content: string;
-    media_url?: string;
-    user: {
-      id: number;
-      first_name: string;
-      last_name: string;
-      avatar_url?: string;
-    };
-  };
+  originalPost?: PostResponse | null;  // Sửa cho full kiểu PostResponse hoặc null
 }
+
 export type FeedType = 'feed' | 'public' | 'friends' | 'private';
 
 export interface PostItemProps {
   post: PostResponse;
   onDeleted?: (postId: number) => void;
-
 }
 
 export interface EditPostModalProps {
   post: PostResponse;
+  originalPost?: PostResponse | null;  // Thêm trường này, optional
   isOpen: boolean;
   onClose: () => void;
   onPostUpdated: (updatedPost: PostResponse) => void;
 }
+
 export interface PrivacySelectProps {
-  value: 'public' | 'friends' | 'private';
-  onChange: (value: 'public' | 'friends' | 'private') => void;
+  value: PrivacyType;
+  onChange: (value: PrivacyType) => void;
 }
 
 export interface UserReaction {
@@ -74,7 +67,7 @@ export interface UserReaction {
   first_name: string;
   last_name: string;
   avatar_url?: string;
-  type: string;
+  type: ReactionType | string;
 }
 
 export interface ReactionListModalProps {

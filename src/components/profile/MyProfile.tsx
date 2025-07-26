@@ -25,9 +25,7 @@ export default function MyProfile() {
     try {
       setIsLoading(true)
       setError(null)
-
       const data = await ProfileService.getProfile()
-    
       setProfileData(data || null)
     } catch {
       setError('Đã có lỗi xảy ra khi tải profile')
@@ -54,9 +52,7 @@ export default function MyProfile() {
   }
 
   useEffect(() => {
-
     fetchProfile()
-
   }, [])
 
   if (isLoading) return <SkeletonProfile />
@@ -64,6 +60,7 @@ export default function MyProfile() {
   if (!profileData) return null
 
   const { user, friends } = profileData
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'friends':
@@ -79,9 +76,9 @@ export default function MyProfile() {
         )
       default:
         return (
-          <div className="bg-white dark:bg-dark-card rounded-xl ">
-              <MyPostOnProfile/>
-              </div>
+          <div className="bg-white dark:bg-dark-card rounded-xl">
+            <MyPostOnProfile />
+          </div>
         )
     }
   }
@@ -103,7 +100,6 @@ export default function MyProfile() {
           </div>
         )}
 
-        {/* Upload Cover Button */}
         <input
           ref={coverInputRef}
           type="file"
@@ -118,19 +114,17 @@ export default function MyProfile() {
           onClick={() => coverInputRef.current?.click()}
           className="absolute flex flex-row justify-center items-center bottom-2 right-2 bg-white/80 dark:bg-gray-700 dark:text-white text-sm px-4 py-1 rounded-full hover:bg-white dark:hover:bg-dark-active"
         >
-          <Camera /> Thêm/Đổi ảnh bìa
+          <Camera className="w-4 h-4 mr-1" /> Thêm/Đổi ảnh bìa
         </button>
       </div>
 
       {/* Profile Header */}
       <div className="relative px-4 py-6 sm:px-6 max-w-5xl mx-auto">
         <div className="flex flex-col md:flex-row items-center md:items-end gap-4 md:gap-8">
-
-          {/* Avatar */}
           <div className="relative shrink-0 -mt-16 md:-mt-20">
             <div className="w-28 h-28 md:w-36 md:h-36 rounded-full ring-4 ring-white dark:ring-dark-bg overflow-hidden bg-gray-200">
               <img
-                src={user.avatar_url || "https://i.pravatar.cc/300"}
+                src={user.avatar_url || 'https://i.pravatar.cc/300'}
                 alt="Avatar"
                 className="object-cover w-full h-full"
               />
@@ -153,7 +147,6 @@ export default function MyProfile() {
             </button>
           </div>
 
-          {/* Info */}
           <div className="flex-1 text-center md:text-left">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
               {user.first_name} {user.last_name}
@@ -169,20 +162,20 @@ export default function MyProfile() {
       </div>
 
       {/* Tabs */}
-      <div className="bg-white dark:bg-dark-card shadow-sm overflow-x-auto">
-        <div className="max-w-5xl mx-auto flex">
+      <div className="bg-white dark:bg-dark-card shadow-sm overflow-x-auto scrollbar-hide">
+        <div className="max-w-5xl mx-auto justify-around flex w-max md:w-full">
           {['posts', 'friends', 'photos'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab as TabType)}
-              className={`flex-1 px-4 py-3 font-medium relative ${activeTab === tab
+              className={`px-4 py-3 font-medium whitespace-nowrap ${activeTab === tab
                 ? 'text-blue-600 dark:text-[#4497f5]'
                 : 'text-gray-600 dark:text-[#b0b3b8] hover:text-gray-900 dark:hover:text-[#e4e6eb]'
                 }`}
             >
               {tab === 'posts' ? 'Bài viết' : tab === 'friends' ? 'Bạn bè' : 'Ảnh'}
               {activeTab === tab && (
-                <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-blue-600 dark:bg-[#4497f5]" />
+                <div className="h-[3px] bg-blue-600 dark:bg-[#4497f5] mt-1 rounded-full" />
               )}
             </button>
           ))}
@@ -190,11 +183,11 @@ export default function MyProfile() {
       </div>
 
       {/* Content */}
-      <div className="w-full  mx-auto px-4 sm:px-6">
+      <div className="w-full mx-auto sm:px-24">
         {activeTab === 'posts' ? (
-          <div className="flex justify-center">
+          <div className="flex flex-col lg:flex-row gap-4">
             {/* Friends List */}
-            <div className="w-full max-w-md mx-2">
+            <div className="w-full lg:max-w-md">
               <div className="bg-white dark:bg-dark-card rounded-xl p-4">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="font-semibold dark:text-[#e4e6eb]">
@@ -216,12 +209,15 @@ export default function MyProfile() {
                     >
                       <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
                         <img
-                          src={friend.avatar_url || `https://i.pravatar.cc/300?img=${friend.id}`}
+                          src={
+                            friend.avatar_url ||
+                            `https://i.pravatar.cc/300?img=${friend.id}`
+                          }
                           alt={`${friend.first_name} ${friend.last_name}`}
                           className="object-cover w-full h-full group-hover:scale-105 transition duration-300"
                         />
                       </div>
-                      <p className="mt-1 text-xs text-gray-900 dark:text-white truncate">
+                      <p className="mt-1 text-xs text-gray-900 dark:text-white truncate text-center">
                         {friend.first_name} {friend.last_name}
                       </p>
                     </Link>
@@ -231,9 +227,8 @@ export default function MyProfile() {
             </div>
 
             {/* Posts */}
-            <div className="w-full mx-2 lg:w-[60%]">
+            <div className="w-full lg:flex-1">
               {renderTabContent()}
-
             </div>
           </div>
         ) : (

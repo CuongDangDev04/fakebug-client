@@ -23,7 +23,7 @@ export default function ChatDefaultPage() {
       </div>
 
       {/* Nội dung chính */}
-      <div className="flex-1 flex items-center justify-center h-[90vh] bg-gray-50 dark:bg-dark-card">
+      <div className="flex-1 flex items-center justify-center h-[90vh] bg-gray-50 dark:bg-dark-bg">
         <div className="text-center">
           <img
             src="/lg.png"

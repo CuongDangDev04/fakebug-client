@@ -210,7 +210,7 @@ export default function ChatBox({
       {/* Messages */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto p-4 space-y-2 bg-[#f0f2f5] dark:bg-[#242526]"
+        className="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-100 dark:bg-dark-bg"
         style={{ minHeight: 0, maxHeight: 'calc(100vh - 120px)' }}
       >
         {loading && <div className="text-[#65676b] dark:text-[#b0b3b8] text-center">Đang tải...</div>}

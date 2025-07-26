@@ -10,6 +10,7 @@ import PrivacySelect from './PrivacySelect';
 
 export default function EditPostModal({
     post,
+    originalPost,
     isOpen,
     onClose,
     onPostUpdated,
@@ -75,6 +76,8 @@ export default function EditPostModal({
 
     return (
         <Modal isOpen={isOpen} onClose={onClose}>
+
+
             <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
                     <img src={user?.avatar_url || '/default-avatar.png'} alt="Avatar" className="object-cover w-full h-full" />
@@ -93,10 +96,32 @@ export default function EditPostModal({
             />
 
             <PrivacySelect value={privacy} onChange={setPrivacy} />
-
+            {/* Hiển thị bài viết gốc nếu có */}
+            {originalPost && (
+                <div className="mb-4 p-3 border rounded-lg bg-gray-50 dark:bg-dark-bg text-sm text-gray-800 dark:text-gray-300">
+                    <div className="flex items-center gap-2 mb-2">
+                        <img
+                            src={originalPost.user.avatar_url || '/default-avatar.png'}
+                            alt="Avatar"
+                            className="w-6 h-6 rounded-full object-cover"
+                        />
+                        <p className="font-medium">
+                            {originalPost.user.first_name} {originalPost.user.last_name}
+                        </p>
+                    </div>
+                    <p className="whitespace-pre-line">{originalPost.content}</p>
+                    {originalPost.media_url && (
+                        <img
+                            src={originalPost.media_url}
+                            alt="Ảnh bài gốc"
+                            className="w-[70%] m-auto rounded-sm"
+                        />
+                    )}
+                </div>
+            )}
             {imagePreview && (
-                <div className="mb-4 relative">
-                    <img src={imagePreview} alt="Ảnh bài viết" className="w-full rounded-lg" />
+                <div className="mb-2 mt-2 relative">
+                    <img src={imagePreview} alt="Ảnh bài viết" className="w-[70%] m-auto rounded-sm" />
                     <button
                         onClick={handleRemoveImage}
                         className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white p-1 rounded-full"

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { friendshipService } from '@/services/friendshipService';
 import type { FriendType } from '@/types/friendship';
-import {  MessageCircleMore, UserMinus } from 'lucide-react';
+import { MessageCircleMore, UserMinus } from 'lucide-react';
 import FriendSkeletonCard from '../skeleton/FriendSkeletonCard';
 import { useFriendship } from '@/hooks/useFriendship';
 
@@ -22,14 +22,14 @@ export default function FriendsList() {
     try {
       setLoading(true);
       const response = await friendshipService.getFriends();
-      setFriends(response.data.friends);
+      setFriends(response?.data.friends);
 
       const friendsWithMutualData = await Promise.all(
-        response.data.friends.map(async (friend: FriendType) => {
+        response?.data.friends.map(async (friend: FriendType) => {
           const mutualResponse = await friendshipService.getMutualFriends(friend.id);
           return {
             ...friend,
-            mutualFriendsCount: mutualResponse.data.total
+            mutualFriendsCount: mutualResponse?.data.total
           };
         })
       );
@@ -76,7 +76,8 @@ export default function FriendsList() {
                 className="rounded-full object-cover w-[60px] h-[60px] sm:w-[80px] sm:h-[80px]"
               />
               <div className="ml-3 sm:ml-4 flex-1">
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0">
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:items-center">
+
                   <div>
                     <Link
                       href={`/trang-ca-nhan/${friend.id}`}
@@ -88,9 +89,11 @@ export default function FriendsList() {
                       {friend.mutualFriendsCount} bạn chung
                     </p>
                   </div>
-                  <div className="flex gap-2">
-                    <Link href={`/tin-nhan/${friend.id}`}>
-                      <button className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 bg-[#e4e6eb]  dark:bg-dark-button-primary hover:bg-[#dbe7f2] dark:hover:bg-dark-button-hover text-gray-600 dark:text-primary-400 px-3 py-1.5 rounded-full text-sm font-medium transition-colors">
+                  <div className="flex flex-row gap-2 w-full sm:w-auto">
+                    <Link href={`/tin-nhan/${friend.id}`} className="w-1/2 sm:w-auto">
+                      <button
+                        className="w-full flex items-center justify-center gap-1 bg-[#e4e6eb] dark:bg-dark-button-primary hover:bg-[#dbe7f2] dark:hover:bg-dark-button-hover text-gray-600 dark:text-primary-400 px-3 py-1 rounded-full text-sm font-medium transition-colors"
+                      >
                         <MessageCircleMore className="w-4 h-4" />
                         <span className="hidden sm:inline">Nhắn tin</span>
                       </button>
@@ -98,12 +101,14 @@ export default function FriendsList() {
 
                     <button
                       onClick={() => handleUnfriend(friend.id)}
-                      className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 bg-gray-100 dark:bg-dark-hover hover:bg-gray-200 dark:hover:bg-dark-active text-gray-700 dark:text-dark-text-primary px-3 py-1.5 rounded-full text-sm transition-colors"
+                      className="w-1/2 sm:w-auto flex items-center justify-center gap-1 bg-gray-100 dark:bg-dark-hover hover:bg-gray-200 dark:hover:bg-dark-active text-gray-700 dark:text-dark-text-primary px-3 py-1 rounded-full text-sm transition-colors"
                     >
                       <UserMinus className="w-4 h-4" />
                       <span className="hidden sm:inline">Huỷ kết bạn</span>
                     </button>
                   </div>
+
+
                 </div>
               </div>
             </div>

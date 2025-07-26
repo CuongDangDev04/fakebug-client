@@ -11,7 +11,7 @@ export default function CreatePostButton() {
     <>
       <div
         onClick={() => setOpen(true)}
-        className="cursor-pointer bg-white dark:bg-dark-card rounded-xl shadow-sm m-auto mb-2 p-3 w-3/4 text-gray-500 dark:text-gray-300"
+        className="cursor-pointer bg-white dark:bg-dark-card rounded-xl shadow-sm m-auto mb-2 p-3 w-full md:w-4/6  text-gray-500 dark:text-gray-300"
       >
         Cường ơi, bạn đang nghĩ gì thế?
       </div>

@@ -23,11 +23,12 @@ export default function MyPostOnProfile() {
   };
 
   return (
-    <div className="w-full md:w-full m-auto space-y-4">
+    <div className="w-full md:w-full bg-gray-100 dark:bg-dark-bg m-auto space-y-4">
+
       {posts.map((post, index) => {
         const isLast = index === posts.length - 1;
         return (
-          <div key={post.id} ref={isLast ? lastItemRef : null}>
+          <div  key={post.id} ref={isLast ? lastItemRef : null}>
             <PostItem post={post} onDeleted={handlePostDeleted} />
           </div>
         );

@@ -237,7 +237,7 @@ export default function PostItem({ post, onDeleted }: PostItemProps) {
             <div className="flex justify-around border-t border-gray-200 dark:border-gray-700 pt-2 relative">
                 <ReactionButton
                     postId={post.id}
-                    reactedUsers={currentPost.reacted_users}
+                    reactedUsers={currentPost.reacted_users ?? []}
                     onReacted={handleReaction}
                     postOwnerId={currentPost.user.id}
                 />
@@ -259,7 +259,7 @@ export default function PostItem({ post, onDeleted }: PostItemProps) {
                 )}
                 {showShareModal && (
                     <SharePostModal
-                        originalPost={currentPost.originalPost || currentPost as any } 
+                        originalPost={currentPost.originalPost || currentPost as any}
                         isOpen={showShareModal}
                         onClose={() => setShowShareModal(false)}
                     />
@@ -272,11 +272,18 @@ export default function PostItem({ post, onDeleted }: PostItemProps) {
             {showEditModal && (
                 <EditPostModal
                     post={currentPost}
+                    originalPost={currentPost.originalPost ?? null}
                     isOpen={showEditModal}
                     onClose={() => setShowEditModal(false)}
-                    onPostUpdated={(updatedPost) => setCurrentPost(updatedPost)}
+                    onPostUpdated={(updatedPost) =>
+                        setCurrentPost(prev => ({
+                            ...updatedPost,
+                            originalPost: prev.originalPost,  
+                        }))
+                    }
                 />
             )}
+
         </div>
     );
 }
