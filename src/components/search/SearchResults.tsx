@@ -3,11 +3,11 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { userService } from '@/services/userService';
 import { friendshipService } from '@/services/friendshipService';
 import { useFriendship } from '@/hooks/useFriendship';
-import { UserPlus, UserMinus, Clock, UserRound } from 'lucide-react';
+import { UserPlus, UserMinus, Clock, UserRound, ArrowLeft } from 'lucide-react';
 import { useUserStore } from '@/stores/userStore';
 import { FriendshipStatuss } from '@/types/friendship';
 
@@ -28,6 +28,7 @@ export default function SearchResults() {
     const [totalPages, setTotalPages] = useState(1);
     const [loading, setLoading] = useState(false);
     const currentUser = useUserStore(state => state.user);
+    const router = useRouter()
 
     const { sendFriendRequest, cancelFriendRequest, unfriend } = useFriendship();
 
@@ -149,6 +150,9 @@ export default function SearchResults() {
 
     return (
         <div className="p-4 max-w-4xl mx-auto">
+             <button onClick={() => router.back()}>
+                    <ArrowLeft className="text-gray-700 dark:text-white" />
+                </button>
             <h2 className="text-2xl font-semibold mb-6 dark:text-white">
                 Kết quả cho: <span className="text-blue-600 dark:text-blue-400">{q}</span>
             </h2>
