@@ -196,8 +196,8 @@ export default function UserProfile() {
     <div className="space-y-4 md:space-y-6">
       {/* Cover */}
       <div className="relative bg-gray-200 dark:bg-dark-card">
-        {user.detail?.cover_url ? (
-          <img src={user.detail.cover_url} alt="Cover" className="w-full h-40 md:h-72 object-cover" />
+        {user.cover_url ? (
+          <img src={user.cover_url} alt="Cover" className="w-full h-40 md:h-72 object-cover" />
         ) : (
           <div className="w-full h-40 md:h-60 bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm">
             Chưa có ảnh bìa
@@ -210,14 +210,18 @@ export default function UserProfile() {
         <div className="flex flex-col md:flex-row items-center md:items-end gap-4 md:gap-8">
           <div className="relative shrink-0 -mt-16 md:-mt-20">
             <div className="w-28 h-28 md:w-36 md:h-36 rounded-full ring-4 ring-white dark:ring-dark-bg overflow-hidden bg-gray-200">
-              <img src={user.avatar_url || 'https://i.pravatar.cc/300'} alt="Avatar" className="object-cover w-full h-full" />
+              <img src={user.avatar_url || '/default_avatar.png'} alt="Avatar" className="object-cover w-full h-full" />
             </div>
           </div>
 
           <div className="flex-1 text-center md:text-left">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{user.first_name} {user.last_name}</h1>
             <p className="text-sm text-gray-600 dark:text-gray-400">{friends.total} bạn bè</p>
-
+            {user.bio && (
+              <p className="mt-1 text-sm text-gray-800 dark:text-gray-300 whitespace-pre-line">
+                {user.bio}
+              </p>
+            )}
             <div className="mt-3 flex flex-wrap justify-center md:justify-start gap-2">
               {renderFriendshipButton()}
               <Link href={`/tin-nhan/${user.id}`}>

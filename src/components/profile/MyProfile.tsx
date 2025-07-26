@@ -8,6 +8,8 @@ import SkeletonProfile from '../skeleton/SkeletonProfile'
 import MyProfileFriends from './MyProfileFriends'
 import Link from 'next/link'
 import MyPostOnProfile from '../posts/MyPostOnProfile'
+import EditProfileForm from './EditProfileForm' // ✅ Thêm dòng này
+import EditProfileModal from './EditProfileModal'
 
 type TabType = 'posts' | 'friends' | 'photos'
 
@@ -88,9 +90,9 @@ export default function MyProfile() {
 
       {/* Cover Image */}
       <div className="relative bg-gray-200 dark:bg-dark-card">
-        {user.detail?.cover_url ? (
+        {user.cover_url ? (
           <img
-            src={user.detail.cover_url}
+            src={user.cover_url}
             alt="Cover"
             className="w-full h-40 md:h-72 object-cover"
           />
@@ -157,8 +159,27 @@ export default function MyProfile() {
             {uploading && (
               <p className="mt-1 text-sm text-yellow-400">Đang tải ảnh...</p>
             )}
+
+            {/* ✅ Edit Profile Form */}
+            {user.bio && (
+              <p className="mt-1 text-sm text-gray-800 dark:text-gray-300 whitespace-pre-line">
+                {user.bio}
+              </p>
+            )}
+          </div>
+          <div className="right-0">
+            <EditProfileModal
+              initialData={{
+                first_name: user.first_name,
+                last_name: user.last_name,
+                username: user.username || '',
+                bio: user.bio || '',
+              }}
+              onUpdated={fetchProfile}
+            />
           </div>
         </div>
+        
       </div>
 
       {/* Tabs */}

@@ -1,4 +1,5 @@
 import api from '@/services/api';
+import { UpdateUserProfilePayload, UpdateUserProfileResponse } from '@/types/user';
 
 const BASE_URL = `${process.env.NEXT_PUBLIC_BASE_URL}/user`;
 
@@ -27,4 +28,14 @@ export const userService = {
             return { data: [], pagination: { total: 0, page, limit, totalPages: 0 } };
         }
     },
+
+    async updateProfile(data: UpdateUserProfilePayload): Promise<UpdateUserProfileResponse> {
+        try {
+            const response = await api.put(`${BASE_URL}/me`, data);
+            return response.data;
+        } catch (error: any) {
+            console.error('Lỗi cập nhật profile: ', error);
+            throw error;
+        }
+    }
 };
