@@ -49,6 +49,16 @@ export default function ChatBox({
   const [forwardMessageId, setForwardMessageId] = useState<number | null>(null);
   const { isDark } = useThemeStore();
   const [targetUser, setTargetUser] = useState<any>(null);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [blockedBy, setBlockedBy] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!targetUserId) return;
+    messageService.checkBlock(targetUserId).then((res) => {
+      setIsBlocked(res.isBlocked);
+      setBlockedBy(res.blockedBy);
+    });
+  }, [targetUserId]);
 
   useEffect(() => {
     const hasUnread = messages.some(msg => msg.sender.id === targetUserId && !msg.is_read);
@@ -114,7 +124,7 @@ export default function ChatBox({
   const lastSentByMe = [...uniqueMessages].reverse().find((msg) => msg.sender.id === currentUserId);
 
   // const targetUser = messages[0]?.sender.id === currentUserId ? messages[0]?.receiver : messages[0]?.sender;
- 
+
   useEffect(() => {
     // Nếu đã có messages thì set từ đó
     if (messages.length > 0) {
@@ -167,6 +177,15 @@ export default function ChatBox({
     setShowForwardModal(true);
   };
 
+  const handleUnblock = async () => {
+    try {
+      await messageService.unblockUser(targetUserId);
+      setIsBlocked(false);
+      setBlockedBy(null);
+    } catch (error) {
+      console.error('Lỗi khi bỏ chặn:', error);
+    }
+  };
   return (
     <div className="flex flex-col h-[85vh] md:h-[90vh] bg-[#f0f2f5] dark:bg-[#242526] w-full">
       {/* Header */}
@@ -541,42 +560,60 @@ export default function ChatBox({
           }}
         />
       )}
+      {isBlocked ? (
+        <div className="text-center text-gray-500 dark:text-white p-4">
+          {blockedBy === currentUserId ? (
+            <>
+              <p>Bạn đã chặn người này. Không thể gửi tin nhắn.</p>
+              <button
+                onClick={handleUnblock}
+                className="mt-2 px-4 py-1 bg-gray-200 dark:bg-gray-600 rounded hover:bg-gray-300"
+              >
+                Bỏ chặn
+              </button>
+            </>
+          ) : (
+            <p>Bạn đã bị chặn. Không thể gửi tin nhắn.</p>
+          )}
+        </div>
+      ) : (
 
-      {/* Input */}
-      <div className="p-2 border-t border-gray-200 dark:border-[#4a4b4c] bg-white dark:bg-[#3a3b3c] flex items-center gap-2 relative">
-        <input
-          className="flex-1 border-0 rounded-full px-4 py-2 text-sm text-[#050505] dark:text-[#e4e6eb] bg-[#f0f2f5] dark:bg-[#4a4b4c] placeholder-[#65676b] dark:placeholder-[#b0b3b8] focus:outline-none"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleInputKeyDown}
-          placeholder="Nhập tin nhắn..."
-        />
-        <button
-          ref={buttonRef}
-          onClick={() => setShowEmojiPicker((prev) => !prev)}
-          className="text-[#65676b] dark:text-[#b0b3b8] hover:text-[#0084ff] p-2"
-        >
-          <Laugh size={20} />
-        </button>
-        {showEmojiPicker && (
-          <div ref={emojiPickerRef} className="absolute bottom-full right-2 mb-2 z-50">
-            <Picker
-              data={data}
-              onEmojiSelect={(emoji: any) => {
-                setInput((prev) => prev + emoji.native);
-              }}
-              theme={isDark ? 'dark' : 'light'}
-            />
-          </div>
-        )}
-        <button
-          className="text-[#0084ff] hover:bg-[#f0f2f5] dark:hover:bg-[#4a4b4c] p-2 rounded-full"
-          onClick={handleSend}
-          disabled={!input.trim()}
-        >
-          <SendHorizontal size={20} />
-        </button>
-      </div>
+        <div className="p-2 border-t border-gray-200 dark:border-[#4a4b4c] bg-white dark:bg-[#3a3b3c] flex items-center gap-2 relative">
+          <input
+            className="flex-1 border-0 rounded-full px-4 py-2 text-sm text-[#050505] dark:text-[#e4e6eb] bg-[#f0f2f5] dark:bg-[#4a4b4c] placeholder-[#65676b] dark:placeholder-[#b0b3b8] focus:outline-none"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleInputKeyDown}
+            placeholder="Nhập tin nhắn..."
+          />
+          <button
+            ref={buttonRef}
+            onClick={() => setShowEmojiPicker((prev) => !prev)}
+            className="text-[#65676b] dark:text-[#b0b3b8] hover:text-[#0084ff] p-2"
+          >
+            <Laugh size={20} />
+          </button>
+          {showEmojiPicker && (
+            <div ref={emojiPickerRef} className="absolute bottom-full right-2 mb-2 z-50">
+              <Picker
+                data={data}
+                onEmojiSelect={(emoji: any) => {
+                  setInput((prev) => prev + emoji.native);
+                }}
+                theme={isDark ? 'dark' : 'light'}
+              />
+            </div>
+          )}
+          <button
+            className="text-[#0084ff] hover:bg-[#f0f2f5] dark:hover:bg-[#4a4b4c] p-2 rounded-full"
+            onClick={handleSend}
+            disabled={!input.trim()}
+          >
+            <SendHorizontal size={20} />
+          </button>
+        </div>
+      )}
+
     </div>
   );
 }

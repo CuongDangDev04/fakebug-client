@@ -62,5 +62,34 @@ export const messageService = {
     } catch (error: any) {
       console.error('Lỗi khi xoá cuộc trò chuyện:', error);
     }
+  },
+  async blockUser(blockedUserId: number) {
+    try {
+      const res = await api.post(`${BASE_URL}/block/${blockedUserId}`);
+      return res.data;
+    } catch (error: any) {
+      console.error('Lỗi khi chặn người dùng:', error);
+    }
+  },
+
+  async unblockUser(blockedUserId: number) {
+    try {
+      const res = await api.delete(`${BASE_URL}/unblock/${blockedUserId}`);
+      return res.data;
+    } catch (error: any) {
+      console.error('Lỗi khi bỏ chặn người dùng:', error);
+    }
+  },
+
+  // Gọi ở service
+  async checkBlock(otherUserId: number) {
+    try {
+      const res = await api.get(`${BASE_URL}/check-block/${otherUserId}`);
+      return res.data;
+    } catch (error: any) {
+      console.error("Lỗi: ", error)
+      throw error
+    }
   }
+
 };

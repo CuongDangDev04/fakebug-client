@@ -62,6 +62,20 @@ export default function ConversationItem({ fm, onClick, onDeleteConversation }: 
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
+  const handleBlockUser = async (userId: number, userName: string) => {
+    try {
+      await messageService.blockUser(userId);
+      alert(`Đã chặn ${userName}`);
+      setMenuOpen(false);
+
+      // Tuỳ chọn: gọi lại danh sách bạn bè
+      const res = await messageService.getFriendMessages();
+      setFriends(res.friends);
+    } catch (error) {
+      alert('Không thể chặn người dùng.');
+      console.error(error);
+    }
+  };
 
   return (
     <div
@@ -92,20 +106,18 @@ export default function ConversationItem({ fm, onClick, onDeleteConversation }: 
       {/* Tên + nội dung */}
       <div className="flex-1 min-w-0">
         <div
-          className={`text-base truncate ${
-            isUnread
-              ? 'font-semibold text-black dark:text-white'
-              : 'font-medium text-gray-900 dark:text-dark-text-primary'
-          }`}
+          className={`text-base truncate ${isUnread
+            ? 'font-semibold text-black dark:text-white'
+            : 'font-medium text-gray-900 dark:text-dark-text-primary'
+            }`}
         >
           {fm.friendName}
         </div>
         <div
-          className={`text-xs truncate ${
-            isUnread
-              ? 'font-semibold text-black dark:text-white'
-              : 'text-gray-500 dark:text-dark-text-secondary'
-          }`}
+          className={`text-xs truncate ${isUnread
+            ? 'font-semibold text-black dark:text-white'
+            : 'text-gray-500 dark:text-dark-text-secondary'
+            }`}
         >
           {fm.content}
         </div>
@@ -140,16 +152,23 @@ export default function ConversationItem({ fm, onClick, onDeleteConversation }: 
         {menuOpen && (
           <div className="absolute right-0 top-6 z-50 w-56 bg-white dark:bg-neutral-900 shadow-xl rounded-lg overflow-hidden border border-gray-200 dark:border-neutral-700">
             <ul className="text-sm text-gray-700 dark:text-gray-200">
-            
-              
+
+
               <li className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-neutral-800 cursor-pointer flex items-center gap-2">
                 <User size={16} /> Xem trang cá nhân
               </li>
-             
-              <li className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-neutral-800 cursor-pointer flex items-center gap-2">
+
+              <li
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleBlockUser(fm.friendId, fm.friendName);
+                }}
+                className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-neutral-800 cursor-pointer flex items-center gap-2 text-red-600 dark:text-red-400"
+              >
                 <Ban size={16} /> Chặn
               </li>
-             
+
+
               <li
                 onClick={(e) => {
                   e.stopPropagation()
@@ -160,7 +179,7 @@ export default function ConversationItem({ fm, onClick, onDeleteConversation }: 
               >
                 <Trash2 size={16} /> Xoá đoạn chat
               </li>
-             
+
             </ul>
           </div>
         )}
