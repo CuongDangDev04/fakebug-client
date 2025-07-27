@@ -69,9 +69,8 @@ export default function HeaderPC() {
           <Link
             key={index}
             href={item.href}
-            className={`p-3 hover:bg-gray-100 mx-14 dark:hover:bg-dark-hover rounded-xl transition-all text-gray-700 dark:text-dark-text-primary ${
-              pathname === item.href ? 'bg-gray-100 dark:bg-dark-hover' : ''
-            } relative`}
+            className={`p-3 hover:bg-gray-100 mx-14 dark:hover:bg-dark-hover rounded-xl transition-all text-gray-700 dark:text-dark-text-primary ${pathname === item.href ? 'bg-gray-100 dark:bg-dark-hover' : ''
+              } relative`}
           >
             <span className="relative inline-block">
               {item.icon}
@@ -88,12 +87,7 @@ export default function HeaderPC() {
       {/* Right section: theme, notifications, avatar */}
       <div className="flex items-center gap-4">
         {/* Theme toggle */}
-        <button
-          onClick={toggleTheme}
-          className="p-2.5 text-gray-700 dark:text-dark-text-primary hover:bg-gray-100 dark:hover:bg-dark-hover rounded-lg"
-        >
-          {isDark ? <Sun size={22} /> : <Moon size={22} />}
-        </button>
+
 
         {/* Notifications */}
         <div className="relative">
@@ -163,23 +157,33 @@ export default function HeaderPC() {
                   {user?.first_name} {user?.last_name}
                 </p>
               </div>
-              <div className="p-2">
+              <div className="p-2 space-y-1">
                 <Link
                   href="/trang-ca-nhan"
                   onClick={() => setShowDropdown(false)}
-                  className="flex items-center px-4 py-2 text-gray-800 dark:text-dark-text-primary hover:bg-gray-100 dark:hover:bg-dark-hover rounded-lg"
+                  className="flex items-center gap-3 px-4 py-2 text-gray-800 dark:text-dark-text-primary hover:bg-gray-100 dark:hover:bg-dark-hover rounded-lg"
                 >
-                  <User size={20} className="mr-3" />
-                  Trang cá nhân
+                  <User size={20} />
+                  <span>Trang cá nhân</span>
                 </Link>
                 <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center px-4 py-2 text-red-600 hover:bg-gray-100 dark:hover:bg-dark-hover rounded-lg"
+                  onClick={toggleTheme}
+                  className="w-full flex items-center gap-3 px-4 py-2 text-gray-700 dark:text-dark-text-primary hover:bg-gray-100 dark:hover:bg-dark-hover rounded-lg"
                 >
-                  <LogOut size={20} className="mr-3" />
-                  Đăng xuất
+                  {isDark ? <Sun size={20} /> : <Moon size={20} />}
+                  <span>{isDark ? 'Chế độ sáng' : 'Chế độ tối'}</span>
                 </button>
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-2 text-red-600 hover:bg-gray-100 dark:hover:bg-dark-hover rounded-lg"
+                >
+                  <LogOut size={20} />
+                  <span>Đăng xuất</span>
+                </button>
+
+
               </div>
+
             </div>
           )}
         </div>

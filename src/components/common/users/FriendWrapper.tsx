@@ -18,7 +18,7 @@ export default function FriendWrapper({ children }: { children: React.ReactNode 
         <div className="flex   bg-gray-100 dark:bg-dark-bg">
             {/* Sidebar */}
             <div className="hidden md:block w-[360px] bg-white dark:bg-dark-card p-4 shadow-sm fixed top-[56px] bottom-0 overflow-y-auto">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-dark-text-primary mb-4">Bạn bè</h1>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-dark-text-primary  mb-4">Bạn bè</h1>
                 <div className="space-y-1">
                     {sidebarItems.map(({ path, label, icon: Icon }) => (
                         <Link
@@ -30,7 +30,7 @@ export default function FriendWrapper({ children }: { children: React.ReactNode 
                                 }`}
                         >
                             <Icon className="w-6 h-6 mr-2" />
-                            <span className="font-medium">{label}</span>
+                            <span className="font-medium ">{label}</span>
                         </Link>
                     ))}
                 </div>
@@ -45,7 +45,7 @@ export default function FriendWrapper({ children }: { children: React.ReactNode 
                             <Link
                                 key={path}
                                 href={`/ban-be/${path}`}
-                                className={`flex-shrink-0 px-4 py-2 mr-2 rounded-full ${pathname === `/ban-be/${path}` ? 'bg-blue-50 text-blue-600' : 'bg-gray-100'
+                                className={`flex-shrink-0 px-4  py-2 mr-2 rounded-full ${pathname === `/ban-be/${path}` ? 'bg-blue-100 text-blue-700 dark:bg-blue-400 dark:text-blue-900' : 'bg-gray-100 dark:bg-dark-bg text-black dark:text-white'
                                     }`}
                             >
                                 {label}

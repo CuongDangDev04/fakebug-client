@@ -17,7 +17,7 @@ export default function EditProfileModal({ initialData, onUpdated }: Props) {
         <>
             <button
                 onClick={() => setIsOpen(true)}
-                className="mt-2 inline-flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-dark-hover hover:bg-gray-200 dark:hover:bg-dark-border rounded-md transition"
+                className="mt-2 inline-flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-dark-bg hover:bg-gray-200 dark:hover:bg-dark-border rounded-md transition"
             >
                 <UserRoundPen className="w-4 h-4" />
                 <span>Chỉnh sửa thông tin cá nhân</span>

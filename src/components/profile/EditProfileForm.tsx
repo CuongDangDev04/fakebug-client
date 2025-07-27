@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { userService } from '@/services/userService'
 import type { UpdateUserProfilePayload } from '@/types/user'
 import { toast } from 'sonner'
+import { Save } from 'lucide-react'
 
 interface Props {
     initialData: UpdateUserProfilePayload
@@ -32,12 +33,12 @@ export default function EditProfileForm({ initialData, onUpdated }: Props) {
     }
 
     return (
-        <div className="bg-white dark:bg-dark-card rounded-xl p-4 space-y-4 shadow-sm">
+        <div className="bg-white dark:bg-dark-card rounded-xl  space-y-4 shadow-sm">
             <h2 className="text-lg font-semibold dark:text-white">Chỉnh sửa thông tin</h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Họ</label>
+                    <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Tên</label>
                     <input
                         type="text"
                         value={formData.first_name || ''}
@@ -46,7 +47,7 @@ export default function EditProfileForm({ initialData, onUpdated }: Props) {
                     />
                 </div>
                 <div>
-                    <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Tên</label>
+                    <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Họ</label>
                     <input
                         type="text"
                         value={formData.last_name || ''}
@@ -74,7 +75,7 @@ export default function EditProfileForm({ initialData, onUpdated }: Props) {
                 </div>
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex flex-row justify-end">
                 <button
                     onClick={handleSubmit}
                     disabled={loading}

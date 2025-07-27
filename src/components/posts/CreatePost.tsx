@@ -71,7 +71,7 @@ export default function CreatePost({ onPostSuccess }: { onPostSuccess?: () => vo
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 rows={4}
-                placeholder="Cường ơi, bạn đang nghĩ gì thế?"
+                placeholder="Bạn đang nghĩ gì thế?"
                 className="w-full resize-none bg-gray-100 dark:bg-dark-hover dark:text-gray-200 rounded-lg p-3 text-sm focus:outline-none placeholder:text-gray-500 dark:placeholder:text-gray-400"
             />
 
