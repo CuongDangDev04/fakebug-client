@@ -20,14 +20,15 @@ export default function ChatSidebar({
   const [totalUnread, setTotalUnread] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
+  const fetchFriendsMessages = async () => {
+    setIsLoading(true);
+    const res = await messageService.getFriendMessages();
+    setFriends(res?.friends || []);
+    setTotalUnread(res?.totalUnreadCount ?? 0);
+    setIsLoading(false);
+  };
+
   useEffect(() => {
-    const fetchFriendsMessages = async () => {
-      setIsLoading(true);
-      const res = await messageService.getFriendMessages();
-      setFriends(res?.friends || []);
-      setTotalUnread(res?.totalUnreadCount ?? 0);
-      setIsLoading(false);
-    };
     fetchFriendsMessages();
   }, []);
 
@@ -36,9 +37,7 @@ export default function ChatSidebar({
     if (!socket) return;
 
     const updateSidebar = async () => {
-      const res = await messageService.getFriendMessages();
-      setFriends(res?.friends || []);
-      setTotalUnread(res?.totalUnreadCount ?? 0);
+      await fetchFriendsMessages();
     };
 
     socket.on('newMessage', updateSidebar);
@@ -51,6 +50,18 @@ export default function ChatSidebar({
       socket.off('reactionUpdated', updateSidebar);
     };
   }, []);
+
+  const handleDeleteConversation = async (friendId: number) => {
+    const confirmDelete = confirm("Bạn có chắc chắn muốn xoá cuộc trò chuyện này?");
+    if (!confirmDelete) return;
+
+    try {
+      await messageService.deleteConversation(friendId);
+      await fetchFriendsMessages();
+    } catch (error) {
+      console.error("Lỗi khi xoá cuộc trò chuyện:", error);
+    }
+  };
 
   const filtered = friends.filter((f) =>
     f.friendName?.toLowerCase().includes(search.toLowerCase())
@@ -112,13 +123,13 @@ export default function ChatSidebar({
                       onSelectUser?.(fm.friendId);
                       onClose?.();
                     }}
+                    onDeleteConversation={() => handleDeleteConversation(fm.friendId)}
                   />
                 </Link>
               ))
             )}
           </>
         )}
-
       </div>
     </div>
   );

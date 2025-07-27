@@ -47,12 +47,20 @@ export const messageService = {
     }
   },
   async deleteMessageForMe(messageId: number) {
-    try{
+    try {
       const res = await api.put(`${BASE_URL}/delete-for-me/${messageId}`);
       return res.data;
     }
-    catch(error:any){
+    catch (error: any) {
       console.error('Lỗi: ', error)
+    }
+  },
+  async deleteConversation(otherUserId: number) {
+    try {
+      const res = await api.put(`${BASE_URL}/delete-conversation/${otherUserId}`);
+      return res.data;
+    } catch (error: any) {
+      console.error('Lỗi khi xoá cuộc trò chuyện:', error);
     }
   }
 };

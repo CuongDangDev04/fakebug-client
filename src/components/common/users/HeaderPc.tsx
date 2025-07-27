@@ -1,7 +1,7 @@
 'use client'
 
 import {
-  Home, Users, UsersRound, MessageCircleMore,
+  Home, Users, MessageCircleMore,
   Bell, User, Sun, Moon, LogOut
 } from 'lucide-react'
 import { useThemeStore } from '@/stores/themeStore'
@@ -18,7 +18,6 @@ import { authService } from '@/services/authService'
 const navItems = [
   { icon: <Home size={32} />, href: '/' },
   { icon: <Users size={32} />, href: '/ban-be/tat-ca' },
-  { icon: <UsersRound size={32} />, href: '/groups' },
   { icon: <MessageCircleMore size={32} />, href: '/tin-nhan' },
 ]
 
@@ -180,8 +179,6 @@ export default function HeaderPC() {
                   <LogOut size={20} />
                   <span>Đăng xuất</span>
                 </button>
-
-
               </div>
 
             </div>

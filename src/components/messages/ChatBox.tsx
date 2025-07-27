@@ -15,6 +15,7 @@ import { useChatStore } from '@/stores/chatStore';
 import ForwardFriendsModal from '@/components/messages/ForwardFriendsModal';
 import { useThemeStore } from '@/stores/themeStore';
 import { useChatInfiniteScroll } from '@/hooks/useChatInfiniteScroll';
+import { userService } from '@/services/userService';
 
 export default function ChatBox({
   currentUserId,
@@ -47,6 +48,7 @@ export default function ChatBox({
   const [showForwardModal, setShowForwardModal] = useState(false);
   const [forwardMessageId, setForwardMessageId] = useState<number | null>(null);
   const { isDark } = useThemeStore();
+  const [targetUser, setTargetUser] = useState<any>(null);
 
   useEffect(() => {
     const hasUnread = messages.some(msg => msg.sender.id === targetUserId && !msg.is_read);
@@ -111,7 +113,21 @@ export default function ChatBox({
 
   const lastSentByMe = [...uniqueMessages].reverse().find((msg) => msg.sender.id === currentUserId);
 
-  const targetUser = messages[0]?.sender.id === currentUserId ? messages[0]?.receiver : messages[0]?.sender;
+  // const targetUser = messages[0]?.sender.id === currentUserId ? messages[0]?.receiver : messages[0]?.sender;
+ 
+  useEffect(() => {
+    // Nếu đã có messages thì set từ đó
+    if (messages.length > 0) {
+      const msg = messages[0];
+      const user = msg.sender.id === currentUserId ? msg.receiver : msg.sender;
+      setTargetUser(user);
+    } else if (!targetUser) {
+      // Chỉ gọi API nếu targetUser chưa được set
+      userService.getPublicUserInfo(targetUserId).then((res) => {
+        if (res) setTargetUser(res);
+      });
+    }
+  }, [messages, currentUserId, targetUserId, targetUser]);
 
   const handleReactToMessage = (messageId: number, emoji: string | null) => {
     const socket = (window as any).chatSocket;
