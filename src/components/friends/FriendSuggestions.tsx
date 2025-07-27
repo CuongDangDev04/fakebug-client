@@ -20,7 +20,7 @@ export default function FriendSuggestions() {
     try {
       setLoading(true);
       const response = await friendshipService.getFriendSuggestions();
-      setSuggestions(response.data.suggestions);
+      setSuggestions(response?.data.suggestions);
     } catch (error) {
       console.error('Lỗi khi tải gợi ý kết bạn:', error);
     } finally {

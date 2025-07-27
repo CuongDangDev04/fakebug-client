@@ -14,14 +14,14 @@ export default function ReceivedRequests() {
     loadRequests();
     receivedRequests.forEach(async (request: any) => {
       const mutualResponse = await friendshipService.getMutualFriends(request.from.id);
-      request.mutualFriends = mutualResponse.data.total;
+      request.mutualFriends = mutualResponse?.data.total;
     });
   }, []);
 
   const loadRequests = async () => {
     try {
       const received = await friendshipService.getReceivedRequests();
-      setReceivedRequests(received.data.requests);
+      setReceivedRequests(received?.data.requests);
     } catch (error) {
       console.error('Lỗi khi tải lời mời kết bạn:', error);
     }

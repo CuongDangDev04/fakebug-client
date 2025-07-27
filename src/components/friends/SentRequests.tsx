@@ -17,7 +17,7 @@ export default function SentRequests() {
   const loadRequests = async () => {
     try {
       const sent = await friendshipService.getSentRequests();
-      setSentRequests(sent.data.requests);
+      setSentRequests(sent?.data.requests);
     } catch (error) {
       console.error('Lỗi khi tải lời mời kết bạn:', error);
     }

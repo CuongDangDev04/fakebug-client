@@ -8,6 +8,6 @@ export default function HeaderUser(props: { onMenuClick?: () => void }) {
   const isMobile = useMediaQuery('(max-width: 768px)')
 
   return isMobile
-    ? <HeaderUserMobile {...props} />
+    ? <HeaderUserMobile  />
     : <HeaderPC   />
 }

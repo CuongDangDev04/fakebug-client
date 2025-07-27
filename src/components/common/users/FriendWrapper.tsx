@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Search, UserPlus, Users, UserCheck, X, UserRoundX } from 'lucide-react';
+import {  UserPlus, Users, UserCheck,   UserRoundX } from 'lucide-react';
 import React from 'react';
 
 export default function FriendWrapper({ children }: { children: React.ReactNode }) {

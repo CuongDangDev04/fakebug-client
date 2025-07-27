@@ -1,8 +1,6 @@
 'use client';
 import HeaderUser from "@/components/common/users/HeaderUser";
-import { useState } from "react";
 import AppInit from "./AppInit";
-import { usePathname } from "next/navigation";
 import MobileBottomNav from "@/components/common/users/MobileBottomNav"; // ✅ Import
 
 export default function MainWrapper({
@@ -10,8 +8,6 @@ export default function MainWrapper({
 }: {
     children: React.ReactNode;
 }) {
-    const pathname = usePathname();
-    const isHome = pathname === "/";
 
     return (
         <div className="min-h-screen bg-gray-100 dark:bg-[#18191A]">
@@ -29,7 +25,6 @@ export default function MainWrapper({
                 </main>
             </div>
 
-            {/* ✅ Mobile Bottom Navigation */}
             <div className="md:hidden">
                 <MobileBottomNav />
             </div>
