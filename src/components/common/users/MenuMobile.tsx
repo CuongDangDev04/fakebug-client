@@ -29,7 +29,7 @@ export default function MenuMobile() {
     return (
         <div className="min-h-  bg-gray-100 dark:bg-dark-bg p-4 space-y-4 md:hidden">
             {/* Header */}
-            <div className="flex items-center  rounded-lg bg-white  dark:border-dark-border p-4">
+            <div className="flex items-center  rounded-lg bg-white dark:bg-dark-card dark:border-dark-border p-4">
                 <Image
                     src={user?.avatar_url || '/default-avatar.png'}
                     width={48}
@@ -46,7 +46,7 @@ export default function MenuMobile() {
             <div className="space-y-2">
                 <Link
                     href="/trang-ca-nhan"
-                    className="flex items-center gap-3 w-full px-4 py-3 rounded-lg bg-white dark:bg-dark-hover text-gray-800 dark:text-dark-text-primary"
+                    className="flex items-center gap-3 w-full px-4 py-3 rounded-lg bg-white dark:bg-dark-card text-gray-800 dark:text-dark-text-primary"
                 >
                     <User size={20} />
                     <span>Trang cá nhân</span>
@@ -54,7 +54,7 @@ export default function MenuMobile() {
 
                 <button
                     onClick={toggleTheme}
-                    className="flex items-center gap-3 w-full px-4 py-3 rounded-lg bg-white dark:bg-dark-hover text-gray-700 dark:text-dark-text-primary"
+                    className="flex items-center gap-3 w-full px-4 py-3 rounded-lg bg-white dark:bg-dark-card text-gray-700 dark:text-dark-text-primary"
                 >
                     {isDark ? <Sun size={20} /> : <Moon size={20} />}
                     <span>{isDark ? 'Chế độ sáng' : 'Chế độ tối'}</span>
@@ -62,7 +62,7 @@ export default function MenuMobile() {
 
                 <button
                     onClick={handleLogout}
-                    className="flex items-center gap-3 w-full px-4 py-3 rounded-lg bg-white dark:bg-dark-hover text-red-600"
+                    className="flex items-center gap-3 w-full px-4 py-3 rounded-lg bg-white dark:bg-dark-card text-red-600"
                 >
                     <LogOut size={20} />
                     <span>Đăng xuất</span>
