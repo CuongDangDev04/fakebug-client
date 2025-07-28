@@ -1,3 +1,4 @@
+'use client'
 import { useState } from 'react';
 import { authService } from '@/services/authService';
 import type { ForgotPasswordDto } from '@/types/auth';
