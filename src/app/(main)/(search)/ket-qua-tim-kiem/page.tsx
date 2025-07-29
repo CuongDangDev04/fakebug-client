@@ -1,5 +1,8 @@
-import SearchResults from '@/components/search/SearchResults';
+import SupendSearchResults from '@/components/search/SupendSearchResults';
 
 export default function SearchPage() {
-  return <SearchResults />;
+  return
+  <>
+    <SupendSearchResults />
+  </>;
 }
