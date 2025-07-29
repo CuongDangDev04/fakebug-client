@@ -39,7 +39,7 @@ export const commentService = {
     }
   },
 
-  async reactToComment(commentId: number, userId: number, type: string) {
+  async reactToComment(commentId: number, userId: number, type: string | null) {
     try {
       const res = await api.post(`${BASE_URL}/${commentId}/react`, { userId, type });
       return res.data;
