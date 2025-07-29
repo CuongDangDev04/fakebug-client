@@ -15,7 +15,7 @@ export default function BlockedUserList() {
     setLoading(true);
     try {
       const res = await friendshipService.getBlockedUsers();
-      setBlocked(res.data.blocked || []);
+      setBlocked(res?.data.blocked || []);
     } catch (e) {
       setBlocked([]);
     } finally {
