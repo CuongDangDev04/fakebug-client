@@ -5,7 +5,7 @@ interface PostPageProps {
     };
 }
 export default async function PostPage({ params }: PostPageProps) {
-    const postId = Number((await params).id);
+    const postId = Number( params.id);
 
     return (
         <div className="w-full md:w-2/3 mx-auto py-6">
