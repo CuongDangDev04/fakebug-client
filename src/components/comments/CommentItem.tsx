@@ -119,9 +119,11 @@ export default function CommentItem({
                         {comment.user.first_name} {comment.user.last_name}
                     </div>
 
-                    <div className="text-sm text-gray-800 dark:text-gray-200">
+                    <div className="text-sm text-gray-800 dark:text-gray-200 break-all whitespace-pre-wrap max-w-[85%] overflow-hidden">
                         {comment.content}
                     </div>
+
+
 
                     {totalReactions > 0 && (
                         <div
