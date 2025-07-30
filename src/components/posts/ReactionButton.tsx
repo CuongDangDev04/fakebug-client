@@ -143,7 +143,7 @@ export default function ReactionButton({
       onTouchStart={isMobile ? handleTouchStart : undefined}
       onTouchEnd={isMobile ? handleTouchEnd : undefined}
       onTouchCancel={isMobile ? handleTouchEnd : undefined}
-      className="relative"
+      className="relative select-none"
     >
       <button
         onClick={!isMobile ? handleButtonClick : undefined}
