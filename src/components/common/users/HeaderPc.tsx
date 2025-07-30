@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { useThemeStore } from '@/stores/themeStore'
 import { useUserStore } from '@/stores/userStore'
+import { useNotificationStore } from '@/stores/notificationStore'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
@@ -31,11 +32,12 @@ export default function HeaderPC() {
   const dropdownRef = useRef<HTMLDivElement>(null)
   const { user, clearUser } = useUserStore()
 
-  const {
-    totalUnreadMessages,
-    unreadNotificationCount,
-    markAllAsRead,
-  } = useHeaderNotifications()
+  // ✅ Lấy số thông báo chưa đọc từ store bằng selector — RẤT QUAN TRỌNG!
+  const unreadNotificationCount = useNotificationStore(
+    (state) => state.notifications.filter((n) => !n.isRead).length
+  )
+
+  const { totalUnreadMessages, markAllAsRead } = useHeaderNotifications()
 
   useEffect(() => {
     init()
@@ -85,9 +87,6 @@ export default function HeaderPC() {
 
       {/* Right section: theme, notifications, avatar */}
       <div className="flex items-center gap-4">
-        {/* Theme toggle */}
-
-
         {/* Notifications */}
         <div className="relative">
           <div
@@ -180,7 +179,6 @@ export default function HeaderPC() {
                   <span>Đăng xuất</span>
                 </button>
               </div>
-
             </div>
           )}
         </div>

@@ -10,8 +10,8 @@ export function useHeaderNotifications() {
 
   // Lấy các hàm từ notificationStore
   const {
-    clearNotifications,          // Xóa toàn bộ thông báo trong store
-    getUnreadCount,              // Lấy số lượng thông báo chưa đọc
+    markAllAsRead: markAllAsReadFromStore,
+    getUnreadCount,      
     setUnreadNotifications,      // Cập nhật danh sách thông báo chưa đọc
   } = useNotificationStore()
 
@@ -84,7 +84,7 @@ export function useHeaderNotifications() {
   const markAllAsRead = async () => {
     try {
       await notificationService.markAllAsRead()
-      clearNotifications() // Xóa toàn bộ thông báo trong store
+      markAllAsReadFromStore()  // Xóa toàn bộ thông báo trong store
     } catch (error) {
       console.error('Lỗi đánh dấu đã đọc tất cả:', error)
     }

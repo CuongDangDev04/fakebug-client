@@ -12,7 +12,7 @@ export default function NotificationList() {
     lastItemRef,
     handleMarkAsRead,
     handleDelete,
-  } = useNotifications(10); // ✅ Gọi hook với limit 10
+  } = useNotifications(10);
 
   return (
     <ul className="divide-y divide-gray-200 dark:divide-dark-border">

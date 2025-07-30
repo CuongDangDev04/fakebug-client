@@ -4,8 +4,23 @@ import { useEffect, useRef, useState } from 'react';
 import { useCallStore } from '@/stores/useCallStore';
 
 const ICE_SERVERS: RTCConfiguration = {
-  iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+  iceServers: [
+    {
+      urls: process.env.NEXT_PUBLIC_STUN_URL!,
+    },
+    {
+      urls: process.env.NEXT_PUBLIC_TURN_URL_1!,
+      username: process.env.NEXT_PUBLIC_TURN_USERNAME_1!,
+      credential: process.env.NEXT_PUBLIC_TURN_CREDENTIAL_1!,
+    },
+    {
+      urls: process.env.NEXT_PUBLIC_TURN_URL_2!,
+      username: process.env.NEXT_PUBLIC_TURN_USERNAME_2!,
+      credential: process.env.NEXT_PUBLIC_TURN_CREDENTIAL_2!,
+    },
+  ],
 };
+
 
 type OfferPayload = {
   offer: RTCSessionDescriptionInit;
@@ -63,32 +78,32 @@ export const useWebRTC = (
     };
   };
 
-const getLocalStream = async () => {
-  if (localStream.current) return;
+  const getLocalStream = async () => {
+    if (localStream.current) return;
 
-  const isVideoCall = currentCallType === 'video';   // Dùng props truyền vào, không dùng store
+    const isVideoCall = currentCallType === 'video';   // Dùng props truyền vào, không dùng store
 
-  const stream = await navigator.mediaDevices.getUserMedia({
-    video: true,
-    audio: true,
-  });
-
-  localStream.current = stream;
-
-  if (localVideoRef.current) {
-    localVideoRef.current.srcObject = stream;
-  }
-
-  if (!isVideoCall) {
-    stream.getVideoTracks().forEach(track => {
-      track.enabled = false;
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true,
     });
-  }
 
-  setIsCamEnabled(isVideoCall);
+    localStream.current = stream;
 
-  console.log(`[WebRTC] Local stream attached - Video enabled: ${isVideoCall}`);
-};
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = stream;
+    }
+
+    if (!isVideoCall) {
+      stream.getVideoTracks().forEach(track => {
+        track.enabled = false;
+      });
+    }
+
+    setIsCamEnabled(isVideoCall);
+
+    console.log(`[WebRTC] Local stream attached - Video enabled: ${isVideoCall}`);
+  };
 
 
   const attachTracks = () => {
