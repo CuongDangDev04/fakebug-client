@@ -147,8 +147,9 @@ export default function ReactionButton({
     >
       <button
         onClick={!isMobile ? handleButtonClick : undefined}
+        onContextMenu={e => isMobile && e.preventDefault()} 
         className={`
-          flex items-center justify-center gap-1 px-4 h-9 rounded-lg 
+          flex items-center justify-center gap-1 px-4 h-9 rounded-lg  select-none
           dark:text-gray-300 
           hover:bg-gray-100 dark:hover:bg-dark-hover 
           ${selectedReaction ? reactionColors[selectedReaction] : ''}
@@ -163,7 +164,7 @@ export default function ReactionButton({
         ) : (
           <ThumbsUp size={18} />
         )}
-        <span className="text-sm font-medium">
+        <span className="text-sm font-medium select-none">
           {selectedReaction
             ? reactions.find(r => r.type === selectedReaction)?.name
             : 'Thích'}
