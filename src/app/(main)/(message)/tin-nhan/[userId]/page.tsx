@@ -1,10 +1,10 @@
 "use client";
+
 import ChatBox from "@/components/messages/ChatBox";
-import ChatSidebar from "@/components/messages/ChatSidebar";
 import { useUserStore } from "@/stores/userStore";
-import { use } from "react";
-import { useState } from "react";
 import { useCallStore } from "@/stores/useCallStore";
+import { use } from "react";
+import { useState, useEffect } from "react";
 
 interface ChatPageProps {
   params: Promise<{
@@ -20,60 +20,43 @@ export default function ChatPage(props: ChatPageProps) {
 
   const [chattingUserId, setChattingUserId] = useState<number | null>(null);
 
+  useEffect(() => {
+    setChattingUserId(targetUserId);
+  }, [targetUserId]);
+
   if (!currentUserId) {
-    return null
+    return null;
   }
 
   return (
-    <div className="flex h-full md:h-[90vh] relative">
-
-      {/* Sidebar desktop */}
-      <div className="hidden md:block w-80 border-r h-full">
-        <ChatSidebar
-          onSelectUser={(userId) => setChattingUserId(userId)}
+    <div className="w-full h-full md:h-screen">
+      {chattingUserId && (
+        <ChatBox
+          currentUserId={currentUserId}
+          targetUserId={chattingUserId}
+          onStartCall={(type) => {
+            const socket = (window as any).callSocket;
+            const callId = Date.now();
+            socket?.emit("start-call", {
+              callerId: currentUserId,
+              receiverId: chattingUserId,
+              callType: type,
+              callId,
+            });
+            useCallStore
+              .getState()
+              .startCalling(callId, type, chattingUserId);
+            console.log(
+              "[FE] 📞 Người gọi phát lệnh. Bắt đầu cuộc gọi với role=caller, callId=",
+              callId
+            );
+          }}
+          onBack={() => {
+            // Quay lại Sidebar trên mobile
+            setChattingUserId(null);
+          }}
         />
-      </div>
-
-      {/* Sidebar mobile */}
-      {chattingUserId === null && (
-        <div className={`md:hidden fixed inset-0  `}>
-          <div
-            className="absolute inset-0 bg-black bg-opacity-40"
-          />
-          <ChatSidebar
-            mobileOpen={true}
-            onSelectUser={(userId) => {
-              setChattingUserId(userId);
-            }}
-          />
-        </div>
       )}
-
-      {/* ChatBox */}
-      {(chattingUserId !== null || targetUserId) && (
-        <div className={`flex-1 h-full md:h-[90vh] min-w-0 ${chattingUserId === null && 'hidden md:block'}`}>
-          <ChatBox
-            currentUserId={currentUserId}
-            targetUserId={chattingUserId || targetUserId}
-            onStartCall={(type) => {
-              const socket = (window as any).callSocket;
-              const callId = Date.now();
-              socket?.emit('start-call', {
-                callerId: currentUserId,
-                receiverId: chattingUserId || targetUserId,
-                callType: type,
-                callId,
-              });
-              useCallStore.getState().startCalling(callId, type, chattingUserId || targetUserId);
-              console.log('[FE] 📞 Người gọi phát lệnh. Bắt đầu cuộc gọi với role=caller, callId=', callId);
-            }}
-            onBack={() => {
-              setChattingUserId(null); // Quay lại Sidebar trên mobile
-            }}
-          />
-        </div>
-      )}
-
     </div>
   );
 }
