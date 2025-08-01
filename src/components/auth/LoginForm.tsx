@@ -66,7 +66,7 @@ export default function LoginForm() {
         />
 
         <div className="flex items-center justify-end text-xs">
-          <Link href="/forgot-password" className="text-[#40c9db] hover:text-[#2bb5c9] font-medium">
+          <Link href="/quen-mat-khau" className="text-[#40c9db] hover:text-[#2bb5c9] font-medium">
             Quên mật khẩu?
           </Link>
         </div>

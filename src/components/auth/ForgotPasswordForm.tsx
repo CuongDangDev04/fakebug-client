@@ -22,7 +22,7 @@ export default function ForgotPasswordForm() {
       const response = await authService.forgotPassword(forgotPasswordData);
       setSuccess(response.message);
       // Redirect to reset password page with email
-      router.push(`/reset-password?email=${encodeURIComponent(email)}`);
+      router.push(`/doi-mat-khau?email=${encodeURIComponent(email)}`);
     } catch (err) {
       setError('Có lỗi xảy ra. Vui lòng thử lại.');
     } finally {

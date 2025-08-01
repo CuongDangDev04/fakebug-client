@@ -53,31 +53,43 @@ export default function ReactionButton({
     }, [currentUser, reactedUsers])
 
     const handleReact = async (reaction: ReactionType) => {
-        if (!currentUser) return
+        if (!currentUser) return;
 
-        await postReactionsService.react(postId, currentUser.id, reaction)
+        //  Update ngay
+        setSelectedReaction(reaction);
+        setShowReactions(false);
+        onReacted?.(reaction);
 
+        //  Gửi request sau
+        postReactionsService.react(postId, currentUser.id, reaction).catch((err) => {
+            console.error('Failed to react:', err);
+            // Optional: rollback UI nếu cần
+        });
+
+        //  Gửi noti 
         if (currentUser.id !== postOwnerId) {
-            await notificationService.sendNotification(
+            notificationService.sendNotification(
                 postOwnerId,
                 `${currentUser.first_name} ${currentUser.last_name} đã ${reactionName(reaction)} bài viết của bạn.`,
                 `/bai-viet/${postId}`,
                 currentUser.avatar_url || ''
-            )
+            ).catch((err) => console.error('Failed to send notification:', err));
         }
+    };
 
-        setSelectedReaction(reaction)
-        setShowReactions(false)
-        onReacted?.(reaction)
-    }
 
     const handleRemoveReaction = async () => {
-        if (!currentUser) return
+        if (!currentUser) return;
 
-        await postReactionsService.removeReaction(postId, currentUser.id)
-        setSelectedReaction(null)
-        onReacted?.(null)
-    }
+        // Cập nhật trước
+        setSelectedReaction(null);
+        onReacted?.(null);
+
+        //  Gửi API sau
+        postReactionsService.removeReaction(postId, currentUser.id).catch((err) => {
+            console.error('Failed to remove reaction:', err);
+        });
+    };
 
     const handleButtonClick = async () => {
         if (selectedReaction) {

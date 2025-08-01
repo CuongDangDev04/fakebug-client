@@ -45,7 +45,7 @@ export default function LoginCard() {
             <GoogleLoginButton />
             <div className="text-center text-sm lg:text-base text-gray-600 -mt-2">
               Chưa có tài khoản? {' '}
-              <Link href="/register" className="text-[#40c9db] hover:text-[#2bb5c9] font-medium">
+              <Link href="/dang-ky" className="text-[#40c9db] hover:text-[#2bb5c9] font-medium">
                 Đăng ký ngay
               </Link>
             </div>

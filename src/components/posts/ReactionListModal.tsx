@@ -38,7 +38,6 @@ export default function ReactionListModal({ users, onClose }: ReactionListModalP
         fetchMutualFriends();
     }, [users]);
 
-    //  Thêm sự kiện handleKeyDown
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
@@ -53,6 +52,11 @@ export default function ReactionListModal({ users, onClose }: ReactionListModalP
     const filteredUsers = activeTab === 'all'
         ? users
         : users.filter(user => user.type === activeTab);
+
+    // Lọc bỏ user bị trùng ID
+    const uniqueUsers = filteredUsers.filter(
+        (user, index, self) => index === self.findIndex((u) => u.id === user.id)
+    );
 
     const visibleReactions = reactions.filter(reaction => {
         if (reaction.type === 'all') return true;
@@ -109,11 +113,11 @@ export default function ReactionListModal({ users, onClose }: ReactionListModalP
                 </div>
 
                 <div className="flex-1 overflow-y-auto px-4 py-2 space-y-3">
-                    {filteredUsers.length === 0 && (
+                    {uniqueUsers.length === 0 && (
                         <p className="text-center text-sm text-gray-500 dark:text-[#b0b3b8]">Không có ai.</p>
                     )}
 
-                    {filteredUsers.map(user => {
+                    {uniqueUsers.map(user => {
                         const reaction = reactions.find(r => r.type === user.type);
                         const isCurrentUser = user.id === currentUser?.id;
 

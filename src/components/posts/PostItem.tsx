@@ -18,12 +18,13 @@ export default function PostItem({ post, onDeleted }: PostItemProps) {
     const [currentPost, setCurrentPost] = useState(post);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showReactionList, setShowReactionList] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
 
     const currentUser = useUserStore((state) => state.user);
     const router = useRouter();
 
     const totalReactions = currentPost.total_reactions || currentPost.reactions?.length || 0;
-    const [showShareModal, setShowShareModal] = useState(false);
 
     const topReactions = useMemo(() => {
         const counts: Record<string, number> = {};
@@ -71,6 +72,7 @@ export default function PostItem({ post, onDeleted }: PostItemProps) {
             total_reactions: updatedReactedUsers.length,
         });
     };
+
     const handleDeletePost = () => {
         ConfirmDelete({
             title: 'Bạn có chắc chắn muốn xoá bài viết này?',
@@ -127,7 +129,6 @@ export default function PostItem({ post, onDeleted }: PostItemProps) {
     const totalComments = currentPost.comments?.length || 0;
 
     return (
-
         <div className="bg-white dark:bg-dark-card rounded-xl shadow-sm p-4 space-y-3 relative">
             <div className="flex items-center justify-between">
                 <Link href={`/trang-ca-nhan/${currentPost.user.id}`} className="flex items-center gap-3">
@@ -169,9 +170,21 @@ export default function PostItem({ post, onDeleted }: PostItemProps) {
                 )}
             </div>
 
-            <div className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-line">
-                {currentPost.content}
+            {/* 👇 Nội dung bài viết rút gọn */}
+            <div className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-line relative">
+                <p className={isExpanded ? '' : 'line-clamp-2'}>
+                    {currentPost.content}
+                </p>
+                {currentPost.content.length > 120 && (
+                    <button
+                        onClick={() => setIsExpanded(prev => !prev)}
+                        className="text-blue-500 text-sm mt-1 hover:underline"
+                    >
+                        {isExpanded ? 'Thu gọn' : 'Xem thêm...'}
+                    </button>
+                )}
             </div>
+
             {currentPost.originalPost && (
                 <div className="mt-3 p-3 border rounded-lg bg-gray-50 dark:bg-dark-bg text-sm text-gray-800 dark:text-gray-300">
                     <Link href={`/trang-ca-nhan/${currentPost.originalPost.user.id}`} className="flex items-center gap-2 mb-2">
@@ -264,9 +277,6 @@ export default function PostItem({ post, onDeleted }: PostItemProps) {
                         onClose={() => setShowShareModal(false)}
                     />
                 )}
-
-
-
             </div>
 
             {showEditModal && (
@@ -278,12 +288,11 @@ export default function PostItem({ post, onDeleted }: PostItemProps) {
                     onPostUpdated={(updatedPost) =>
                         setCurrentPost(prev => ({
                             ...updatedPost,
-                            originalPost: prev.originalPost,  
+                            originalPost: prev.originalPost,
                         }))
                     }
                 />
             )}
-
         </div>
     );
 }
