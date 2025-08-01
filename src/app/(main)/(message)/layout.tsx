@@ -61,6 +61,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
       {(chattingUserId !== null || targetUserId !== null) && (
         <div className={`flex-1 h-full md:h-[90vh] min-w-0 ${chattingUserId === null && 'hidden md:block'}`}>
           <ChatBox
+            key={chattingUserId || targetUserId}
             currentUserId={currentUserId}
             targetUserId={chattingUserId || targetUserId!}
             onStartCall={(type) => {
