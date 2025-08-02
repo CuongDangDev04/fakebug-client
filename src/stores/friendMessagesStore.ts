@@ -14,78 +14,81 @@ export const useFriendMessagesStore = create<FriendMessagesState>((set, get) => 
   friends: [],
   setFriends: (f) => set({ friends: f }),
 
-  updateMessage: (msg) =>
+  updateMessage: (msg) => {
+    console.log("[updateMessage]", msg.id, msg.content);
+
+    const currentUserId = useUserStore.getState().user?.id;
+    const senderId = msg.sender?.id ?? msg.senderId ?? msg.friendId;
+    const receiverId = msg.receiver?.id ?? msg.receiverId;
+    const friendId = senderId === currentUserId ? receiverId : senderId;
+
     set((state) => {
-      const currentUserId = useUserStore.getState().user?.id;
-      const senderId = msg.sender?.id ?? msg.senderId ?? msg.friendId;
-      const receiverId = msg.receiver?.id ?? msg.receiverId;
-      let friendId: number;
-      if (senderId === currentUserId) {
-        friendId = receiverId;
-      } else {
-        friendId = senderId;
-      }
+      const prevFriends = state.friends;
+      const index = prevFriends.findIndex((f) => f.friendId === friendId);
 
-      // Nếu là message revoke, tìm đúng bạn bè có message cuối cùng là message này
+      const sentAt = msg.sent_at ?? msg.createdAt ?? new Date().toISOString();
+
+      // Nếu là revoke
       if (msg.is_revoked) {
-        const updated = state.friends.map((f) => {
-          if (f.id === msg.id) {
-            return {
-              ...f,
-              content: msg.content,
-              is_revoked: true,
-              // Nếu có các trường khác từ msg thì cập nhật luôn
-              sent_at: msg.sent_at || f.sent_at,
-              senderId: msg.senderId || f.senderId,
-              receiverId: msg.receiverId || f.receiverId,
-            };
-          }
-          return f;
-        });
-        return { friends: updated };
-      }
+        if (index === -1) return {};
 
-      // Nếu người gửi là mình → bỏ qua (trừ trường hợp revoke)
-      if (senderId === currentUserId) return {};
-
-      const exists = state.friends.find((f) => f.friendId === friendId);
-
-      if (exists) {
-        const updated = state.friends
-          .map((f) =>
-            f.friendId === friendId
-              ? {
-                  ...f,
-                  content: msg.content,
-                  sent_at: msg.createdAt,
-                  is_read: false,
-                  unreadCount: (f.unreadCount ?? 0) + 1,
-                  id: msg.id,
-                  is_revoked: !!msg.is_revoked,
-                }
-              : f
-          )
-          .sort((a, b) => new Date(b.sent_at).getTime() - new Date(a.sent_at).getTime());
-
-        return { friends: updated };
-      } else {
-        const newFriend: FriendsMessage = {
-          id: msg.id,
-          friendId: friendId,
-          friendName: msg.sender?.name || msg.sender?.first_name + ' ' + msg.sender?.last_name || 'Unknown',
-          avatar_url: msg.sender?.avatar_url || '',
+        const updated = [...prevFriends];
+        updated[index] = {
+          ...updated[index],
           content: msg.content,
-          sent_at: msg.createdAt,
-          is_read: false,
-          senderId,
-          receiverId,
-          unreadCount: 1,
-          is_revoked: !!msg.is_revoked
+          is_revoked: true,
+          sent_at: sentAt,
+          id: msg.id,
         };
-
-        return { friends: [newFriend, ...state.friends] };
+        return { friends: updated };
       }
-    }),
+
+      // Trường hợp đã có tin nhắn với cùng ID, không update nữa
+      if (index !== -1 && prevFriends[index].id === msg.id) {
+        return {};
+      }
+
+      const updatedItem = {
+        ...(index !== -1 ? prevFriends[index] : {}),
+        id: msg.id,
+        friendId,
+        friendName:
+          senderId === currentUserId
+            ? (
+              msg.receiver?.name ||
+              `${msg.receiver?.first_name || ''} ${msg.receiver?.last_name || ''}`.trim()
+            )
+            : (
+              msg.sender?.name ||
+              `${msg.sender?.first_name || ''} ${msg.sender?.last_name || ''}`.trim()
+            ) || 'Unknown',
+        avatar_url:
+          senderId === currentUserId
+            ? msg.receiver?.avatar_url || ''
+            : msg.sender?.avatar_url || '',
+
+        content: msg.content,
+        sent_at: sentAt,
+        is_read: senderId === currentUserId,
+        senderId,
+        receiverId,
+        unreadCount:
+          senderId === currentUserId
+            ? 0 // Nếu mình là người gửi thì không tính unread
+            : (index !== -1 ? (prevFriends[index].unreadCount ?? 0) + 1 : 1),
+        is_revoked: !!msg.is_revoked,
+      };
+
+      const newFriends = [
+        updatedItem,
+        ...prevFriends.filter((_, i) => i !== index),
+      ];
+
+      return { friends: newFriends };
+    });
+  },
+
+
 
   markAsRead: (friendId) =>
     set((state) => ({

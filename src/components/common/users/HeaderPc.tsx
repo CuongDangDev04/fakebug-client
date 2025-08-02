@@ -66,23 +66,33 @@ export default function HeaderPC() {
 
       {/* Navigation */}
       <nav className="flex items-center ">
-        {navItems.map((item, index) => (
-          <Link
-            key={index}
-            href={item.href}
-            className={`p-3 hover:bg-gray-100 mx-14 dark:hover:bg-dark-hover rounded-xl transition-all text-gray-700 dark:text-dark-text-primary ${pathname === item.href ? 'bg-gray-100 dark:bg-dark-hover' : ''
-              } relative`}
-          >
-            <span className="relative inline-block">
-              {item.icon}
-              {item.href === '/tin-nhan' && totalUnreadMessages > 0 && (
-                <span className="absolute -bottom-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center leading-none z-10 border-2 border-white dark:border-dark-card">
-                  {totalUnreadMessages}
-                </span>
-              )}
-            </span>
-          </Link>
-        ))}
+        {navItems.map((item, index) => {
+          const isActive = pathname === item.href;
+
+          return (
+            <Link
+              key={index}
+              href={item.href}
+              className="p-3 hover:bg-gray-100 mx-14 dark:hover:bg-dark-hover transition-all text-gray-700 dark:text-dark-text-primary"
+            >
+              <span
+                className={`
+          relative inline-block
+          ${isActive ? 'text-blue-800 dark:text-blue-400 ' : ''}
+        `}
+              >
+                {item.icon}
+
+                {item.href === '/tin-nhan' && totalUnreadMessages > 0 && (
+                  <span className="absolute -bottom-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center leading-none z-10 border-2 border-white dark:border-dark-card">
+                    {totalUnreadMessages}
+                  </span>
+                )}
+              </span>
+            </Link>
+          );
+        })}
+
       </nav>
 
       {/* Right section: theme, notifications, avatar */}

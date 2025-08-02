@@ -4,7 +4,7 @@ import { useUserOnlineStatus } from '@/hooks/useUserOnlineStatus'
 import { FriendsMessage } from '@/types/message'
 import { messageService } from '@/services/messageService'
 import { useFriendMessagesStore } from '@/stores/friendMessagesStore'
-import { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { formatRelativeTime } from '@/utils/formatRelativeTime'
 
 import {
@@ -26,7 +26,7 @@ interface ConversationItemProps {
   onDeleteConversation?: () => void
 }
 
-export default function ConversationItem({ fm, onClick, onDeleteConversation }: ConversationItemProps) {
+ function ConversationItem({ fm, onClick, onDeleteConversation }: ConversationItemProps) {
   const { isOnline } = useUserOnlineStatus(fm.friendId)
   const unreadCount = typeof fm.unreadCount === 'number' ? fm.unreadCount : 0
   const isUnread = unreadCount > 0
@@ -187,3 +187,16 @@ export default function ConversationItem({ fm, onClick, onDeleteConversation }: 
     </div>
   )
 }
+function areEqual(prev: ConversationItemProps, next: ConversationItemProps) {
+  return (
+    prev.fm.id === next.fm.id &&
+    prev.fm.unreadCount === next.fm.unreadCount &&
+    prev.fm.content === next.fm.content &&
+    prev.fm.sent_at === next.fm.sent_at &&
+    prev.fm.is_revoked === next.fm.is_revoked &&
+    prev.fm.friendName === next.fm.friendName &&
+    prev.fm.avatar_url === next.fm.avatar_url
+  );
+}
+
+export default React.memo(ConversationItem, areEqual);

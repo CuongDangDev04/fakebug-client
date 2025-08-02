@@ -15,16 +15,14 @@ export default function ChatSidebar({
   onClose?: () => void;
   onSelectUser?: (userId: number) => void;
 }) {
-  const { friends, setFriends } = useFriendMessagesStore();
+  const { friends, setFriends, updateMessage, markAsRead } = useFriendMessagesStore();
   const [search, setSearch] = useState('');
-  const [totalUnread, setTotalUnread] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchFriendsMessages = async () => {
     setIsLoading(true);
     const res = await messageService.getFriendMessages();
     setFriends(res?.friends || []);
-    setTotalUnread(res?.totalUnreadCount ?? 0);
     setIsLoading(false);
   };
 
@@ -36,20 +34,22 @@ export default function ChatSidebar({
     const socket = (window as any).chatSocket;
     if (!socket) return;
 
-    const updateSidebar = async () => {
-      await fetchFriendsMessages();
+    const handleNewMessage = (msg: any) => {
+      updateMessage(msg);
     };
 
-    socket.on('newMessage', updateSidebar);
-    socket.on('message-read', updateSidebar);
-    socket.on('reactionUpdated', updateSidebar);
+    const handleMessageRead = (data: { friendId: number }) => {
+      markAsRead(data.friendId);
+    };
+
+    socket.on("newMessage", handleNewMessage);
+    socket.on("message-read", handleMessageRead);
 
     return () => {
-      socket.off('newMessage', updateSidebar);
-      socket.off('message-read', updateSidebar);
-      socket.off('reactionUpdated', updateSidebar);
+      socket.off("newMessage", handleNewMessage);
+      socket.off("message-read", handleMessageRead);
     };
-  }, []);
+  }, [updateMessage, markAsRead]);
 
   const handleDeleteConversation = async (friendId: number) => {
     const confirmDelete = confirm("Bạn có chắc chắn muốn xoá cuộc trò chuyện này?");
@@ -66,6 +66,8 @@ export default function ChatSidebar({
   const filtered = friends.filter((f) =>
     f.friendName?.toLowerCase().includes(search.toLowerCase())
   );
+
+  const totalUnread = friends.reduce((sum, f) => sum + (f.unreadCount ?? 0), 0);
 
   return (
     <div
