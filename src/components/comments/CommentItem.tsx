@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { notificationService } from '@/services/notificationService';
 import { useUserStore } from '@/stores/userStore';
 import { ConfirmDelete } from '../common/ui/ConfirmDelete';
-
+import TextareaAutosize from 'react-textarea-autosize';
 function formatRelativeTime(dateString: string) {
     const date = new Date(dateString);
     const now = new Date();
@@ -57,9 +57,11 @@ export default function CommentItem({
     const isLevelTwo = comment.parent !== null;
     const currentUser = useUserStore(state => state.user);
     if (!currentUser) return null;
-
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') handleReply();
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault(); // chặn xuống dòng khi chỉ nhấn Enter
+            handleReply();
+        }
     };
 
     const handleReply = () => {
@@ -189,13 +191,16 @@ export default function CommentItem({
 
             {!isLevelTwo && showReplies && (
                 <div className="flex items-center gap-2 mt-2 ml-12">
-                    <input
+                    <TextareaAutosize
                         value={replyContent}
                         onChange={(e) => setReplyContent(e.target.value)}
                         onKeyDown={handleKeyDown}
                         placeholder="Viết phản hồi..."
-                        className="flex-1 bg-gray-200 dark:bg-[#333] rounded-full px-4 py-1 text-sm dark:text-white"
+                        minRows={1}
+                        maxRows={3}
+                        className="flex-1 bg-gray-200 dark:bg-[#333] rounded-xl px-4 py-1 text-sm dark:text-white resize-none overflow-y-auto"
                     />
+
                     <button
                         onClick={handleReply}
                         className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-full text-xs"

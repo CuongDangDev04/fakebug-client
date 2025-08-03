@@ -6,7 +6,7 @@ import CommentItem from './CommentItem';
 import { useUserStore } from '@/stores/userStore';
 import Link from 'next/link';
 import { notificationService } from '@/services/notificationService';
-
+import TextareaAutosize from 'react-textarea-autosize';
 export default function CommentBox({ postId, postOwnerId, fullNamePostOwner }: { postId: number, postOwnerId: number, fullNamePostOwner: string }) {
     const currentUser = useUserStore(state => state.user);
     const [comments, setComments] = useState<any[]>([]);
@@ -63,9 +63,13 @@ export default function CommentBox({ postId, postOwnerId, fullNamePostOwner }: {
         fetchComments();
     };
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') handleNewComment();
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault(); // ngăn xuống dòng
+            handleNewComment();
+        }
     };
+
 
     const topLevelComments = comments.filter(c => c.parent === null);
 
@@ -79,13 +83,16 @@ export default function CommentBox({ postId, postOwnerId, fullNamePostOwner }: {
                         className="w-9 h-9 rounded-full object-cover"
                     />
                 </Link>
-                <input
+                <TextareaAutosize
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Viết bình luận công khai..."
-                    className="flex-1 bg-gray-200 dark:bg-[#333] rounded-full px-4 py-2 text-sm dark:text-white focus:outline-none"
+                    minRows={1}
+                    maxRows={3}
+                    className="flex-1 bg-gray-200 dark:bg-[#333] rounded-xl px-4 py-2 text-sm dark:text-white focus:outline-none resize-none overflow-y-auto"
                 />
+
                 <button
                     onClick={handleNewComment}
                     className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full text-sm"

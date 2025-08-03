@@ -16,7 +16,7 @@ import ForwardFriendsModal from '@/components/messages/ForwardFriendsModal';
 import { useThemeStore } from '@/stores/themeStore';
 import { useChatInfiniteScroll } from '@/hooks/useChatInfiniteScroll';
 import { userService } from '@/services/userService';
-
+import TextareaAutosize from 'react-textarea-autosize';
 export default function ChatBox({
   currentUserId,
   targetUserId,
@@ -51,6 +51,30 @@ export default function ChatBox({
   const [targetUser, setTargetUser] = useState<any>(null);
   const [isBlocked, setIsBlocked] = useState(false);
   const [blockedBy, setBlockedBy] = useState<number | null>(null);
+  const prevMessagesRef = useRef<typeof messages>([]);
+
+  useEffect(() => {
+    const prev = prevMessagesRef.current;
+    const curr = messages;
+
+    const prevLast = prev[prev.length - 1];
+    const currLast = curr[curr.length - 1];
+
+    // Chỉ scroll nếu có tin nhắn mới ở cuối
+    if (!prevLast || !currLast || currLast.id !== prevLast.id) {
+      const isNewMessageFromOther =
+        currLast?.sender?.id === targetUserId && curr.length > prev.length;
+
+      const isNewMessageFromMe =
+        currLast?.sender?.id === currentUserId && curr.length > prev.length;
+
+      if (isNewMessageFromMe || isNewMessageFromOther) {
+        scrollToBottom();
+      }
+    }
+
+    prevMessagesRef.current = messages;
+  }, [messages, currentUserId, targetUserId, scrollToBottom]);
 
   useEffect(() => {
     if (!targetUserId) return;
@@ -108,9 +132,13 @@ export default function ChatBox({
     setShowEmojiPicker(false);
   };
 
-  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') handleSend();
-  };
+const handleInputKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault(); // chặn xuống dòng
+    handleSend();
+  }
+};
+
 
   const uniqueMessages = useMemo(() => {
     const seen = new Set();
@@ -579,8 +607,10 @@ export default function ChatBox({
       ) : (
 
         <div className="p-2 border-t border-gray-200 dark:border-[#4a4b4c] bg-white dark:bg-[#3a3b3c] flex items-center gap-2 relative">
-          <input
-            className="flex-1 border-0 rounded-full px-4 py-2 text-sm text-[#050505] dark:text-[#e4e6eb] bg-[#f0f2f5] dark:bg-[#4a4b4c] placeholder-[#65676b] dark:placeholder-[#b0b3b8] focus:outline-none"
+          <TextareaAutosize
+            rows={1}
+            className="flex-1 border-0 rounded-xl px-4 py-2 text-sm text-[#050505] dark:text-[#e4e6eb] bg-[#f0f2f5] dark:bg-[#4a4b4c] placeholder-[#65676b] dark:placeholder-[#b0b3b8] focus:outline-none resize-none max-h-[6.5rem] overflow-y-auto"
+            style={{ lineHeight: '1.5rem' }} // 1.5rem * 3 = 4.5rem + padding ≈ 6.5rem
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleInputKeyDown}
@@ -612,6 +642,7 @@ export default function ChatBox({
             <SendHorizontal size={20} />
           </button>
         </div>
+
       )}
 
     </div>
