@@ -4,26 +4,40 @@ import { useState } from 'react'
 import { userService } from '@/services/userService'
 import type { UpdateUserProfilePayload } from '@/types/user'
 import { toast } from 'sonner'
-import { Save } from 'lucide-react'
+import { useUserStore } from '@/stores/userStore'
 
 interface Props {
     initialData: UpdateUserProfilePayload
-    onUpdated?: () => void // callback để reload lại profile
+    onUpdated?: () => void
 }
 
 export default function EditProfileForm({ initialData, onUpdated }: Props) {
     const [formData, setFormData] = useState<UpdateUserProfilePayload>(initialData)
     const [loading, setLoading] = useState(false)
 
-    const handleChange = (field: keyof UpdateUserProfilePayload) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const user = useUserStore(state => state.user)
+    const setUser = useUserStore(state => state.setUser)
+
+    const handleChange = (
+        field: keyof UpdateUserProfilePayload
+    ) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFormData(prev => ({ ...prev, [field]: e.target.value }))
     }
 
     const handleSubmit = async () => {
         try {
             setLoading(true)
-            await userService.updateProfile(formData)
+            const updated = await userService.updateProfile(formData)
             toast.success('Cập nhật thành công')
+
+            // Cập nhật store
+            if (user) {
+                setUser({
+                    ...user,
+                    ...formData,
+                })
+            }
+
             onUpdated?.()
         } catch (err: any) {
             toast.error(err?.response?.data?.message || 'Cập nhật thất bại')
@@ -33,7 +47,7 @@ export default function EditProfileForm({ initialData, onUpdated }: Props) {
     }
 
     return (
-        <div className="bg-white dark:bg-dark-card rounded-xl  space-y-4 shadow-sm">
+        <div className="bg-white dark:bg-dark-card rounded-xl space-y-4 shadow-sm">
             <h2 className="text-lg font-semibold dark:text-white">Chỉnh sửa thông tin</h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -75,7 +89,7 @@ export default function EditProfileForm({ initialData, onUpdated }: Props) {
                 </div>
             </div>
 
-            <div className="flex flex-row justify-end">
+            <div className="flex justify-end">
                 <button
                     onClick={handleSubmit}
                     disabled={loading}
