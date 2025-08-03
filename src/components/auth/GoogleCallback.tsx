@@ -29,7 +29,11 @@ export default function GoogleCallback() {
       try {
         const user = JSON.parse(decodeURIComponent(userString));
         useUserStore.getState().setUser(user);
-        router.push('/');
+        if (user.role === 'admin') {
+          router.push('/admin');
+        } else {
+          router.push('/');
+        }
       } catch (err) {
         console.error('Lỗi khi phân tích user', err);
         router.push('/dang-nhap');

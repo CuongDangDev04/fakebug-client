@@ -32,7 +32,11 @@ export default function LoginForm() {
         const user = await authService.getInfoUser();
         if (user) {
           useUserStore.getState().setUser(user);
-          router.push('/');
+          if (user.role === 'admin') {
+            router.push('/admin');  
+          } else {
+            router.push('/');
+          }
         } else {
           setError('Đăng nhập thất bại');
         }
