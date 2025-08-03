@@ -2,7 +2,8 @@
 
 import {
   Home, Users, MessageCircleMore,
-  Bell, User, Sun, Moon, LogOut
+  Bell, User, Sun, Moon, LogOut,
+  Plus
 } from 'lucide-react'
 import { useThemeStore } from '@/stores/themeStore'
 import { useUserStore } from '@/stores/userStore'
@@ -15,6 +16,8 @@ import NotificationList from '@/components/notifications/NotificationList'
 import UserSearchBox from '@/components/search/UserSearchBox'
 import { useHeaderNotifications } from '@/hooks/useHeaderNotifications'
 import { authService } from '@/services/authService'
+import Modal from '@/components/posts/ModalCreat'
+import CreatePost from '@/components/posts/CreatePost'
 
 const navItems = [
   { icon: <Home size={32} />, href: '/' },
@@ -31,6 +34,7 @@ export default function HeaderPC() {
   const bellRef = useRef<HTMLDivElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const { user, clearUser } = useUserStore()
+  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false)
 
   // ✅ Lấy số thông báo chưa đọc từ store bằng selector — RẤT QUAN TRỌNG!
   const unreadNotificationCount = useNotificationStore(
@@ -98,6 +102,12 @@ export default function HeaderPC() {
       {/* Right section: theme, notifications, avatar */}
       <div className="flex items-center gap-4">
         {/* Notifications */}
+        <div
+          onClick={() => setIsCreatePostOpen(true)}
+          className="p-2.5 text-gray-700 dark:text-dark-text-primary hover:bg-gray-100 dark:hover:bg-dark-hover rounded-lg cursor-pointer"
+        >
+          <Plus size={22} />
+        </div>
         <div className="relative">
           <div
             ref={bellRef}
@@ -193,6 +203,12 @@ export default function HeaderPC() {
           )}
         </div>
       </div>
+      
+      {isCreatePostOpen && (
+        <Modal isOpen={isCreatePostOpen} onClose={() => setIsCreatePostOpen(false)}>
+          <CreatePost onPostSuccess={() => setIsCreatePostOpen(false)} />
+        </Modal>
+      )}
     </header>
   )
 }

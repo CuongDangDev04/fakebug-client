@@ -39,13 +39,11 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
 
       {/* Sidebar mobile */}
       {chattingUserId === null && (
-        <div className="md:hidden fixed inset-0 z-50">
+        <div className="md:hidden fixed top-[64px] left-0 right-0 bottom-0 z-40">
           <div className="absolute inset-0 bg-black bg-opacity-40" />
           <ChatSidebar
             mobileOpen={true}
-            onSelectUser={(userId) => {
-              setChattingUserId(userId)
-            }}
+            onSelectUser={(userId) => setChattingUserId(userId)}
           />
         </div>
       )}

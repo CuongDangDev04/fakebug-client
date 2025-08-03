@@ -72,16 +72,16 @@ export default function ChatSidebar({
   return (
     <div
       className={`
-        h-[90vh] flex flex-col bg-white dark:bg-dark-card 
-        w-full md:w-80 md:max-w-xs
-        fixed md:static top-0 left-0 z-40
+        h-[calc(100vh-64px)] flex flex-col bg-white dark:bg-dark-card 
+    w-full md:w-80 md:max-w-xs
+    fixed md:static top-[64px] left-0 z-40
         transition-transform duration-300
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
         md:translate-x-0
         shadow-lg md:shadow-none
       `}
     >
-      <div className="flex items-center justify-between p-4 ">
+      <div className="flex items-center justify-between p-4  ">
         <span className="font-bold text-xl text-gray-900 dark:text-dark-text-primary flex items-center gap-2">
           Đoạn chat
           {totalUnread > 0 && (

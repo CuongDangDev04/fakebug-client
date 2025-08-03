@@ -1,33 +1,51 @@
 'use client'
 
-import { Search } from 'lucide-react'
+import { Plus, Search } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-
-
+import { useState } from 'react'
+import Modal from '@/components/posts/ModalCreat'
+import CreatePost from '@/components/posts/CreatePost'
 
 export default function HeaderUserMobile() {
   const router = useRouter()
+  const [openCreatePost, setOpenCreatePost] = useState(false)
 
   return (
-    <header className="fixed top-0 left-0 w-full h-[56px] flex items-center justify-between px-4 bg-white dark:bg-dark-card border-b border-gray-200 dark:border-dark-border z-50">
+    <>
+      <header className="fixed top-0 left-0 w-full h-[56px] flex items-center justify-between px-4 bg-white dark:bg-dark-card border-b border-gray-200 dark:border-dark-border z-50">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-1">
+          <Image src="/lg.png" alt="Logo" width={32} height={32} />
+        </Link>
 
+        {/* Actions */}
+        <div className="flex dark:text-gray-100 items-center gap-3">
+          {/* Nút Tạo bài viết */}
+          <button
+            onClick={() => setOpenCreatePost(true)}
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dark-hover"
+          >
+            <Plus size={26} strokeWidth={2} />
+          </button>
 
-      <Link href="/" className="flex items-center gap-1">
-        <Image src="/lg.png" alt="Logo" width={32} height={32} />
-      </Link>
+          {/* Nút Tìm kiếm */}
+          <button
+            onClick={() => router.push('/tim-kiem-mobile')}
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dark-hover"
+          >
+            <Search size={26} strokeWidth={2} />
+          </button>
+        </div>
+      </header>
 
-      <div className="flex dark:text-gray-100 items-center gap-3">
-        <button
-          onClick={() => router.push('/tim-kiem-mobile')}
-          className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dark-hover"
-        >
-          <Search size={26} strokeWidth={2} />
-        </button>
-
-
-      </div>
-    </header>
+      {/* Modal Tạo Bài Viết */}
+      {openCreatePost && (
+        <Modal isOpen={openCreatePost} onClose={() => setOpenCreatePost(false)}>
+          <CreatePost onPostSuccess={() => setOpenCreatePost(false)} />
+        </Modal>
+      )}
+    </>
   )
 }
