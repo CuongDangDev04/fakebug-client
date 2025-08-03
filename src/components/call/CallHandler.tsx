@@ -75,11 +75,19 @@ export const CallHandler = ({ currentUserId }: Props) => {
         } else if (isReceiver) {
           setRejectedMessage('❌ Bạn đã từ chối cuộc gọi.');
         }
+
       } else if (data.status === 'cancelled') {
         if (isReceiver) {
           setRejectedMessage('📵 Người gọi đã huỷ cuộc gọi.');
         } else if (isCaller) {
           setRejectedMessage('❌ Bạn đã huỷ cuộc gọi'); // Người gọi tự huỷ không hiển thị gì
+        }
+      }
+      else if (data.status === 'busy') {
+        if (isCaller) {
+          setRejectedMessage('📵 Người nhận đang bận.');
+        } else if (isReceiver) {
+          setRejectedMessage('❌ Bạn đã từ chối vì đang bận.');
         }
       }
 
