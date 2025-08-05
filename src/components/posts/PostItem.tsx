@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Lock, Globe, Users, MessageCircle, Pencil, Share, Trash2 } from 'lucide-react';
+import { Lock, Globe, Users, MessageCircle, Pencil, Share, Trash2, Flag } from 'lucide-react';
 import type { PostItemProps, ReactionType } from '@/types/post';
 import { formatRelativeTime } from '@/utils/formatRelativeTime';
 import EditPostModal from './EditPostModal';
@@ -13,6 +13,8 @@ import { useRouter } from 'next/navigation';
 import { postService } from '@/services/postService';
 import { ConfirmDelete } from '../common/ui/ConfirmDelete';
 import SharePostModal from './SharePostModal';
+import { toast } from 'sonner';
+import ReportModal from './ReportModal';
 
 export default function PostItem({ post, onDeleted }: PostItemProps) {
     const [currentPost, setCurrentPost] = useState(post);
@@ -20,7 +22,7 @@ export default function PostItem({ post, onDeleted }: PostItemProps) {
     const [showReactionList, setShowReactionList] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);
-
+    const [showReportModal, setShowReportModal] = useState(false);
     const currentUser = useUserStore((state) => state.user);
     const router = useRouter();
 
@@ -124,6 +126,14 @@ export default function PostItem({ post, onDeleted }: PostItemProps) {
                 return null;
         }
     };
+    const handleReport = async (postId: number, reason: string) => {
+        try {
+            const res = await postService.reportPost({ postId, reason })
+            toast.success('Báo cáo bài viết thành công')
+        } catch (err: any) {
+            console.error("Lỗi rồi địt moẹ bạn eiiii")
+        }
+    }
 
     const isOwnPost = currentUser?.id === currentPost.user.id;
     const totalComments = currentPost.comments?.length || 0;
@@ -150,7 +160,7 @@ export default function PostItem({ post, onDeleted }: PostItemProps) {
                     </div>
                 </Link>
 
-                {isOwnPost && (
+                {isOwnPost ? (
                     <div className="flex gap-2">
                         <button
                             onClick={() => setShowEditModal(true)}
@@ -167,7 +177,26 @@ export default function PostItem({ post, onDeleted }: PostItemProps) {
                             <Trash2 className="w-4 h-4 text-red-600 dark:text-red-300" />
                         </button>
                     </div>
+                ) : (
+                    <>
+                        <button
+                            onClick={() => setShowReportModal(true)}
+                            className="p-1 rounded hover:bg-yellow-200 dark:hover:bg-yellow-800"
+                            title="Báo cáo bài viết"
+                        >
+                            <Flag className="w-4 h-4 text-yellow-600 dark:text-yellow-300" />
+                        </button>
+
+                        <ReportModal
+                            isOpen={showReportModal}
+                            onClose={() => setShowReportModal(false)}
+                            onSubmit={(reason) => handleReport(post.id, reason)}
+                        />
+                    </>
+
                 )}
+
+
             </div>
 
             {/* 👇 Nội dung bài viết rút gọn */}

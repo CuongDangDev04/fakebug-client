@@ -135,5 +135,26 @@ export const postService = {
             console.error('❌ Lỗi khi lấy bài viết người dùng khác:', error);
             throw error;
         }
+    },
+    async reportPost(data: { postId: number; reason: string }) {
+        try {
+            const response = await api.post(`${BASE_URL}/report`, data);
+            return response.data;
+        } catch (error) {
+            console.error(' Lỗi khi báo cáo bài viết:', error);
+            throw error;
+        }
+    },
+    async getAllReportedPosts(offset = 0, limit = 10) {
+        try {
+            const res = await api.get(`${BASE_URL}/all-report?offset=${offset}&limit=${limit}`);
+            return res.data;
+        } catch (error) {
+            console.error('Lỗi khi lấy danh sách bài viết bị báo cáo:', error);
+            throw error;
+        }
     }
+
+
+
 };

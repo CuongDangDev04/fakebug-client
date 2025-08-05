@@ -1,12 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { Home, Users, Settings, X } from 'lucide-react'
+import { Home, Users, Settings, X, Flag } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 
 const navItems = [
   { label: 'Dashboard', icon: Home, href: '/admin' },
   { label: 'Quản lí người dùng', icon: Users, href: '/admin/quan-ly-nguoi-dung' },
+  { label: "Quản lí báo cáo bài viết", icon: Flag, href: '/admin/quan-ly-bao-cao-bai-viet' },
   { label: 'Settings', icon: Settings, href: '/admin/settings' }
 ]
 
@@ -22,16 +23,14 @@ export default function AdminSidebar({
   return (
     <>
       <div
-        className={`fixed inset-0 z-40 bg-black bg-opacity-30 md:hidden transition-opacity ${
-          isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
+        className={`fixed inset-0 z-40 bg-black bg-opacity-30 md:hidden transition-opacity ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          }`}
         onClick={onClose}
       />
 
       <aside
-        className={`fixed md:static z-50 md:flex flex-col w-64 h-full bg-gradient-to-b from-white to-gray-50 dark:from-dark-card dark:to-dark-bg border-r border-gray-200 dark:border-dark-border shadow-sm transition-transform transform ${
-          isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-        }`}
+        className={`fixed md:static z-50 md:flex flex-col w-64 h-full bg-gradient-to-b from-white to-gray-50 dark:from-dark-card dark:to-dark-bg border-r border-gray-200 dark:border-dark-border shadow-sm transition-transform transform ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+          }`}
       >
         <div className="flex items-center justify-between p-6 md:justify-center">
           <div className="text-xl font-bold text-primary-600 dark:text-dark-text-primary">
@@ -52,18 +51,16 @@ export default function AdminSidebar({
               <Link
                 key={href}
                 href={href}
-                className={`flex items-center gap-3 px-4 py-2 rounded-xl transition-all group ${
-                  isActive
+                className={`flex items-center gap-3 px-4 py-2 rounded-xl transition-all group ${isActive
                     ? 'bg-primary-500 text-white shadow-md'
                     : 'hover:bg-gray-100 dark:hover:bg-dark-hover text-gray-700 dark:text-dark-text-primary'
-                }`}
+                  }`}
               >
                 <div
-                  className={`p-2 rounded-full transition-transform group-hover:scale-110 ${
-                    isActive
+                  className={`p-2 rounded-full transition-transform group-hover:scale-110 ${isActive
                       ? 'bg-white/20 text-white'
                       : 'bg-primary-100 dark:bg-dark-border text-primary-500 dark:text-primary-300'
-                  }`}
+                    }`}
                 >
                   <Icon size={18} />
                 </div>
