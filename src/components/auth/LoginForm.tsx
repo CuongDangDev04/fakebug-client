@@ -1,4 +1,5 @@
-'use client'
+'use client';
+
 import { useState } from 'react';
 import { authService } from '@/services/authService';
 import { cookieService } from '@/services/cookieService';
@@ -6,18 +7,17 @@ import type { LoginUserDto } from '@/types/auth';
 import { useUserStore } from '@/stores/userStore';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 export default function LoginForm() {
   const router = useRouter();
   const [emailOrUsername, setEmailOrUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
 
     try {
       const loginData: LoginUserDto = {
@@ -26,23 +26,41 @@ export default function LoginForm() {
       };
 
       const response = await authService.loginLocal(loginData);
+
+      // 👉 Kiểm tra nếu bị lỗi như "401 - Unauthorized"
+      if (response.statusCode && response.statusCode !== 200) {
+        toast.error(response.message || 'Đăng nhập thất bại.');
+        return;
+      }
+
       if (response.access_token) {
         cookieService.setAccessToken(response.access_token);
         cookieService.setRefreshToken(response.refresh_token);
+
         const user = await authService.getInfoUser();
-        if (user) {
-          useUserStore.getState().setUser(user);
-          if (user.role === 'admin') {
-            router.push('/admin');  
-          } else {
-            router.push('/');
-          }
-        } else {
-          setError('Đăng nhập thất bại');
+
+        if (!user) {
+          toast.error('Không thể lấy thông tin người dùng.');
+          return;
         }
+
+        if (user.is_disabled) {
+          toast.error('Tài khoản của bạn đã bị vô hiệu hóa.');
+          return;
+        }
+
+        useUserStore.getState().setUser(user);
+
+        if (user.role === 'admin') {
+          router.push('/admin');
+        } else {
+          router.push('/');
+        }
+      } else {
+        toast.error('Đăng nhập thất bại. Vui lòng thử lại.');
       }
     } catch (err) {
-      setError('Đăng nhập thất bại. Vui lòng thử lại.');
+      toast.error('Đã có lỗi xảy ra. Vui lòng thử lại sau.');
     } finally {
       setLoading(false);
     }
@@ -75,8 +93,6 @@ export default function LoginForm() {
           </Link>
         </div>
       </div>
-
-      {error && <div className="text-red-500 text-sm">{error}</div>}
 
       <button
         type="submit"

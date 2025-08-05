@@ -17,6 +17,7 @@ export interface User {
     role: string;
     provider: string;
     cover_url: string | null;
+    is_disabled: boolean;
 }
 
 export interface ProfileResponse {

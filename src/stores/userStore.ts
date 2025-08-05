@@ -11,6 +11,7 @@ type User = {
     bio: string | null;
     role: string;
     provider: string;
+    is_disabled:boolean
 };
 
 type UserState = {

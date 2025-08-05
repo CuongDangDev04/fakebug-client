@@ -37,5 +37,30 @@ export const userService = {
             console.error('Lỗi cập nhật profile: ', error);
             throw error;
         }
-    }
+    },
+
+    async getUsersByRole(role: 'user' | 'admin', page = 1, limit = 10) {
+        try {
+            const res = await api.get(`${BASE_URL}/role/${role}`, {
+                params: { page, limit },
+            });
+            return res.data; // { users, total, page, totalPages, limit }
+        } catch (error: any) {
+            console.error('Lỗi lấy danh sách users: ', error);
+            return { users: [], total: 0, page: 1, totalPages: 1 };
+        }
+    },
+
+
+    async toggleUserStatus(userId: number, disable: boolean) {
+        try {
+            const res = await api.put(`${BASE_URL}/${userId}/status`, undefined, {
+                params: { disable: String(disable) },
+            });
+            return res.data;
+        } catch (error: any) {
+            console.error('Lỗi thay đổi trạng thái user: ', error);
+            throw error;
+        }
+    },
 };

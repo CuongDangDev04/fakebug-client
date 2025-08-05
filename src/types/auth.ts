@@ -19,6 +19,7 @@ export interface AuthResponse {
   message: string;
   access_token: string;
   refresh_token: string;
+  statusCode:number
 }
 
 export interface ForgotPasswordDto {
