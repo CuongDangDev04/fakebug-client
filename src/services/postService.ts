@@ -145,15 +145,16 @@ export const postService = {
             throw error;
         }
     },
-    async getAllReportedPosts(offset = 0, limit = 10) {
+    async getAllReportedPosts(page = 1, limit = 10) {
         try {
-            const res = await api.get(`${BASE_URL}/all-report?offset=${offset}&limit=${limit}`);
+            const res = await api.get(`${BASE_URL}/all-report?page=${page}&limit=${limit}`);
             return res.data;
         } catch (error) {
             console.error('Lỗi khi lấy danh sách bài viết bị báo cáo:', error);
             throw error;
         }
     },
+
     async approvePostReport(reportId: number) {
         try {
             const res = await api.patch(`${BASE_URL}/reports/${reportId}/resolve`, {

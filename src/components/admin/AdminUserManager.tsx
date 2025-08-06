@@ -60,7 +60,7 @@ export default function AdminUserManager() {
         <>
           <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 shadow-md">
             <table className="min-w-full bg-white dark:bg-gray-900 text-sm">
-              <thead className="bg-gray-100 dark:bg-gray-800">
+              <thead className="bg-gray-300 dark:bg-gray-800">
                 <tr className="text-left text-gray-700 dark:text-gray-300 font-semibold">
                   <th className="px-4 py-3">#</th>
                   <th className="px-4 py-3">Avatar</th>

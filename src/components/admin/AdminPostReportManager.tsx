@@ -20,8 +20,8 @@ export default function AdminPostReportManager() {
   const fetchReports = async () => {
     setLoading(true);
     try {
-      const res = await postService.getAllReportedPosts((page - 1) * itemsPerPage, itemsPerPage);
-      setReports(res.data); // API trả về { data, total }
+      const res = await postService.getAllReportedPosts(page, itemsPerPage); // ← truyền page
+      setReports(res.data);
       setTotalReports(res.total);
     } catch (err) {
       toast.error('Không thể tải danh sách báo cáo');
@@ -49,7 +49,7 @@ export default function AdminPostReportManager() {
 
       if (action === 'remove') {
         await postService.approvePostReport(reportId);
-        toast.success('✅ Bài viết đã bị gỡ');
+        toast.success(' Bài viết đã bị gỡ');
 
         // Gửi thông báo
         await notificationService.sendNotification(
@@ -67,7 +67,7 @@ export default function AdminPostReportManager() {
         );
       } else {
         await postService.rejectPostReport(reportId);
-        toast.info('🚫 Báo cáo đã được bỏ qua');
+        toast.info(' Báo cáo đã được bỏ qua');
 
         // Gửi thông báo
         await notificationService.sendNotification(
@@ -87,7 +87,7 @@ export default function AdminPostReportManager() {
 
       fetchReports(); // refresh lại danh sách
     } catch (err) {
-      toast.error('❌ Xử lý báo cáo thất bại');
+      toast.error(' Xử lý báo cáo thất bại');
     }
   };
 
@@ -107,10 +107,10 @@ export default function AdminPostReportManager() {
         </div>
       ) : (
         <>
-          <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 shadow-md">
-            <table className="min-w-full bg-white dark:bg-gray-900 text-sm">
-              <thead className="bg-gray-100 dark:bg-gray-800">
-                <tr className="text-left text-gray-700 dark:text-gray-300 font-semibold">
+          <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-dark-border shadow-md">
+            <table className="min-w-full bg-white dark:bg-dark-card text-sm">
+              <thead className="bg-gray-300 dark:bg-gray-800">
+                <tr className="text-left text-gray-900 dark:text-dark-text-primary font-semibold">
                   <th className="px-4 py-3">#</th>
                   <th className="px-4 py-3">Người báo cáo</th>
                   <th className="px-4 py-3">Người bị báo cáo</th>
@@ -121,39 +121,44 @@ export default function AdminPostReportManager() {
                   <th className="px-4 py-3">Hành động</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+              <tbody className="divide-y divide-gray-200 dark:divide-dark-border">
                 {reports.map((r, i) => (
                   <tr
                     key={r.id}
                     className={`transition ${r.status === 'pending'
-                      ? 'bg-yellow-50 dark:bg-yellow-900/30 ring-1 ring-yellow-200 dark:ring-yellow-700'
-                      : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                      ? 'bg-gray-100 dark:bg-gray-800'
+                      : 'hover:bg-gray-50 dark:hover:bg-dark-hover'
                       }`}
                   >
-
-                    <td className="px-4 py-3">{(page - 1) * itemsPerPage + i + 1}</td>
+                    <td className="px-4 py-3 text-gray-800 dark:text-dark-text-primary">
+                      {(page - 1) * itemsPerPage + i + 1}
+                    </td>
 
                     {/* Người báo cáo */}
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 text-gray-800 dark:text-dark-text-primary">
                       <div className="flex items-center gap-2">
                         <img
                           src={r.reporter.avatar_url}
                           alt=""
                           className="w-8 h-8 rounded-full object-cover"
                         />
-                        <span>{r.reporter.first_name} {r.reporter.last_name}</span>
+                        <span>
+                          {r.reporter.first_name} {r.reporter.last_name}
+                        </span>
                       </div>
                     </td>
 
                     {/* Người bị báo cáo */}
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 text-gray-800 dark:text-dark-text-primary">
                       <div className="flex items-center gap-2">
                         <img
                           src={r.reportedUser.avatar_url}
                           alt=""
                           className="w-8 h-8 rounded-full object-cover"
                         />
-                        <span>{r.reportedUser.first_name} {r.reportedUser.last_name}</span>
+                        <span>
+                          {r.reportedUser.first_name} {r.reportedUser.last_name}
+                        </span>
                       </div>
                     </td>
 
@@ -172,6 +177,8 @@ export default function AdminPostReportManager() {
                     <td className="px-4 py-3 text-red-700 dark:text-red-400 font-medium">
                       <AlertTriangle size={14} className="inline mr-1" /> {r.reason}
                     </td>
+
+                    {/* Trạng thái */}
                     <td className="px-4 py-3">
                       <span
                         className={`inline-block px-2 py-1 text-xs rounded font-medium ${r.status === 'pending'
@@ -190,12 +197,12 @@ export default function AdminPostReportManager() {
                     </td>
 
                     {/* Thời gian */}
-                    <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
+                    <td className="px-4 py-3 text-sm text-gray-500 dark:text-dark-text-secondary">
                       {new Date(r.created_at).toLocaleString('vi-VN')}
                     </td>
 
                     {/* Hành động */}
-                    <td className="px-4 py-3 ">
+                    <td className="px-4 py-3">
                       {r.status === 'pending' ? (
                         <>
                           <button
@@ -215,7 +222,6 @@ export default function AdminPostReportManager() {
                         <span className="text-gray-400 italic text-xs">Đã xử lý</span>
                       )}
                     </td>
-
                   </tr>
                 ))}
               </tbody>

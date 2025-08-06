@@ -14,7 +14,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <AppInit />
       <div className="flex flex-col flex-1 w-full">
         <AdminHeader onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-        <main className="flex-1 overflow-y-auto p-6 bg-background-middle dark:bg-dark-bg">
+        <main className="flex-1 overflow-y-auto p-6 bg-gray-100 dark:bg-dark-bg">
           {children}
         </main>
       </div>
