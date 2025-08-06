@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://fakebug.vercel.app
+
+# Sitemaps
+Sitemap: https://fakebug.vercel.app/sitemap.xml
