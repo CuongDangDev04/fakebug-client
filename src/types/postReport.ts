@@ -27,5 +27,6 @@ export interface PostReport {
     created_at: string;
     reporter: Reporter;
     reportedUser: ReportedUser;
-    post: ReportedPost;
+    post: ReportedPost | null;
+    status: 'pending' | 'ignored' | 'removed'; 
 }

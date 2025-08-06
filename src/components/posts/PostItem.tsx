@@ -131,7 +131,7 @@ export default function PostItem({ post, onDeleted }: PostItemProps) {
             const res = await postService.reportPost({ postId, reason })
             toast.success('Báo cáo bài viết thành công')
         } catch (err: any) {
-            console.error("Lỗi rồi địt moẹ bạn eiiii")
+            console.error("Lỗi khi báo cáo bài viết: ",err)
         }
     }
 

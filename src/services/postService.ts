@@ -153,8 +153,30 @@ export const postService = {
             console.error('Lỗi khi lấy danh sách bài viết bị báo cáo:', error);
             throw error;
         }
-    }
+    },
+    async approvePostReport(reportId: number) {
+        try {
+            const res = await api.patch(`${BASE_URL}/reports/${reportId}/resolve`, {
+                action: 'remove',
+            });
+            return res.data;
+        } catch (error) {
+            console.error(' Lỗi khi duyệt (gỡ) bài viết bị báo cáo:', error);
+            throw error;
+        }
+    },
 
+    async rejectPostReport(reportId: number) {
+        try {
+            const res = await api.patch(`${BASE_URL}/reports/${reportId}/resolve`, {
+                action: 'ignore',
+            });
+            return res.data;
+        } catch (error) {
+            console.error(' Lỗi khi từ chối xử lý báo cáo:', error);
+            throw error;
+        }
+    },
 
 
 };
