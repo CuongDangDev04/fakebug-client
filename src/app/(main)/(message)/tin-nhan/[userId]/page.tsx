@@ -19,7 +19,7 @@ export default function ChatPage(props: ChatPageProps) {
   const targetUserId = parseInt(userId);
 
   const [chattingUserId, setChattingUserId] = useState<number | null>(null);
-
+  
   useEffect(() => {
     setChattingUserId(targetUserId);
   }, [targetUserId]);

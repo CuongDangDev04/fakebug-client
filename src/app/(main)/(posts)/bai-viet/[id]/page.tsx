@@ -1,5 +1,7 @@
 import PostDetail from "@/components/posts/PostDetail";
-
+export const metadata = {
+    title: 'Bài viết',
+};
 export default async function PostPage({
   params,
 }: {

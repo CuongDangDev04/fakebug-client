@@ -56,14 +56,14 @@ export default function AdminPostReportManager() {
           reporter.id,
           `Báo cáo của bạn về bài viết đã được duyệt. Bài viết đã bị gỡ.`,
           postLink,
-          reportedUser.avatar_url
+          '/lg.png'
         );
 
         await notificationService.sendNotification(
           reportedUser.id,
           `Bài viết của bạn đã bị gỡ do vi phạm chính sách.`,
           postLink,
-          reporter.avatar_url
+          '/lg.png'
         );
       } else {
         await postService.rejectPostReport(reportId);
@@ -74,14 +74,14 @@ export default function AdminPostReportManager() {
           reporter.id,
           `Báo cáo của bạn về bài viết đã bị từ chối.`,
           postLink,
-          adminInfo?.avatar_url ||  '/default-avatar.png'
+          '/lg.png'
         );
 
         await notificationService.sendNotification(
           reportedUser.id,
           `Bài viết của bạn đã được giữ lại sau khi xem xét báo cáo.`,
           postLink,
-          adminInfo?.avatar_url ||  '/default-avatar.png'
+          '/lg.png'
         );
       }
 
@@ -91,7 +91,7 @@ export default function AdminPostReportManager() {
     }
   };
 
-    if (!adminInfo) return null;
+  if (!adminInfo) return null;
 
   return (
     <div className="p-4 md:p-6 space-y-6">

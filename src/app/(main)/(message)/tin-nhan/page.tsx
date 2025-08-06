@@ -1,6 +1,11 @@
 'use client'
 
+import { useEffect } from "react"
+
 export default function ChatDefaultPage() {
+  useEffect(() => {
+    document.title = "Tin nhắn"
+  }, [])
   return (
     <div className="flex-1 flex items-center justify-center h-full bg-gray-50 dark:bg-dark-bg">
       <div className="text-center">

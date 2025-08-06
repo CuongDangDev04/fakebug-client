@@ -1,6 +1,8 @@
 import SearchMobile from "@/components/search/SearchMobile";
 import { Suspense } from "react";
-
+export const metadata = {
+    title: 'Tìm kiếm',
+};
 export default function SearchPageMobile() {
     return (
         <>
