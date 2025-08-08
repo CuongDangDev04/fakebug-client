@@ -9,6 +9,7 @@ import { notificationService } from '@/services/notificationService';
 import { useUserStore } from '@/stores/userStore';
 import { ConfirmDelete } from '../common/ui/ConfirmDelete';
 import TextareaAutosize from 'react-textarea-autosize';
+import { toast } from 'sonner';
 function formatRelativeTime(dateString: string) {
     const date = new Date(dateString);
     const now = new Date();
@@ -171,6 +172,7 @@ export default function CommentItem({
                                         description: 'Bình luận này sẽ bị xoá vĩnh viễn.',
                                         onConfirm: async () => {
                                             await onDelete(comment.id);
+                                            toast.success("Xoá bình luận thành công")
                                         },
                                         confirmText: 'Xoá',
                                         cancelText: 'Huỷ',

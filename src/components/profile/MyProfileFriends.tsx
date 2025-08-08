@@ -4,6 +4,8 @@ import { useFriendship } from '@/hooks/useFriendship';
 import { useUserStore } from '@/stores/userStore';
 import type { Friend, FriendsResponse } from '@/types/friendship';
 import Link from 'next/link';
+import { ConfirmDelete } from '../common/ui/ConfirmDelete';
+import { toast } from 'sonner';
 
 export default function MyProfileFriends() {
     const [friendsData, setFriendsData] = useState<FriendsResponse | null>(null);
@@ -36,7 +38,19 @@ export default function MyProfileFriends() {
                 ...friendsData,
                 friends: friendsData.friends.filter(friend => friend.id !== friendId)
             });
+            toast.success("Huỷ kết bạn thành công")
         }
+    };
+
+    // Mở modal xác nhận qua ConfirmDelete
+    const confirmUnfriend = (friendId: number) => {
+        ConfirmDelete({
+            title: 'Xác nhận huỷ kết bạn',
+            description: 'Bạn có chắc chắn muốn huỷ kết bạn với người này?',
+            confirmText: 'Huỷ kết bạn',
+            cancelText: 'Hủy',
+            onConfirm: () => handleUnfriend(friendId)
+        });
     };
 
     if (loading) {
@@ -70,7 +84,7 @@ export default function MyProfileFriends() {
                         </div>
                     </Link>
                     <button
-                        onClick={() => handleUnfriend(friend.id)}
+                        onClick={() => confirmUnfriend(friend.id)} // gọi confirm
                         className="flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-dark-hover dark:hover:bg-dark-active text-gray-700 dark:text-dark-text-primary px-3 py-1.5 rounded-full text-sm transition-colors"
                     >
                         <UserMinus className="w-4 h-4" />

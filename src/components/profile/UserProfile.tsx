@@ -17,6 +17,7 @@ import type { ProfileResponse } from '@/types/profile';
 import type { FriendshipStatus } from '@/types/friendship';
 import { toast } from 'sonner';
 import { notificationService } from '@/services/notificationService';
+import { ConfirmDelete } from '../common/ui/ConfirmDelete';
 
 type TabType = 'posts' | 'friends' | 'photos';
 
@@ -140,7 +141,26 @@ export default function UserProfile() {
       setIsBlocking(false);
     }
   };
-
+  const handleUnfriendWithConfirm = () => {
+    ConfirmDelete({
+      title: 'Xác nhận huỷ kết bạn?',
+      description: 'Bạn có chắc chắn muốn huỷ kết bạn với người này?',
+      confirmText: 'Huỷ kết bạn',
+      cancelText: 'Đóng',
+      onConfirm: async () => {
+        if (!userId) return;
+        try {
+          await friendshipService.unfriend(Number(userId));
+          setFriendshipStatus({ status: 'not_friend', message: 'Chưa là bạn bè' });
+          toast.success('Đã huỷ kết bạn thành công');
+        } catch (err) {
+          toast.error('Lỗi khi huỷ kết bạn');
+          console.error(err);
+          throw err; // Để toast error của ConfirmDelete hiện lên
+        }
+      }
+    });
+  };
   // Report user
   const handleReportUser = async () => {
     try {
@@ -190,7 +210,7 @@ export default function UserProfile() {
         );
       case 'friend':
         return (
-          <button onClick={handleFriendAction} className={danger}>
+          <button onClick={handleUnfriendWithConfirm} className={danger}>
             <UserMinus className="w-4 h-4" />
             <span>Hủy kết bạn</span>
           </button>
@@ -325,7 +345,7 @@ export default function UserProfile() {
       {/* Tabs */}
       <div className="bg-white dark:bg-dark-card shadow-sm overflow-x-auto scrollbar-hide">
         <div className="max-w-5xl mx-auto flex w-max md:w-full justify-around">
-          {['posts', 'friends', 'photos'].map((tab) => (
+          {['posts', 'friends'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab as TabType)}
@@ -334,7 +354,7 @@ export default function UserProfile() {
                 : 'text-gray-600 dark:text-[#b0b3b8] hover:text-gray-900 dark:hover:text-[#e4e6eb]'
                 }`}
             >
-              {tab === 'posts' ? 'Bài viết' : tab === 'friends' ? 'Bạn bè' : 'Ảnh'}
+              {tab === 'posts' ? 'Bài viết' : tab === 'friends' ? 'Bạn bè' : ''}
               {activeTab === tab && (
                 <div className="h-[3px] bg-blue-600 dark:bg-[#4497f5] mt-1 rounded-full" />
               )}

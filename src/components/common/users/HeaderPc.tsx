@@ -64,10 +64,10 @@ export default function HeaderPC() {
   return (
     <header className="w-full h-[65px] px-6 flex items-center justify-between bg-white dark:bg-dark-card border-b border-gray-200 dark:border-dark-border fixed top-0 z-50">
       {/* Logo + Search */}
-      <div className="flex items-center gap-6">
+      <Link href={'/'} className="flex items-center gap-6">
         <Image src="/lg.png" alt="Fakebug Logo" width={36} height={36} className="object-contain" />
         <UserSearchBox />
-      </div>
+      </Link>
 
       {/* Navigation */}
       <nav className="flex items-center ">

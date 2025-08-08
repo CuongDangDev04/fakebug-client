@@ -185,7 +185,7 @@ export default function MyProfile() {
       {/* Tabs */}
       <div className="bg-white dark:bg-dark-card shadow-sm overflow-x-auto scrollbar-hide">
         <div className="max-w-5xl mx-auto justify-around flex w-max md:w-full">
-          {['posts', 'friends', 'photos'].map((tab) => (
+          {['posts', 'friends'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab as TabType)}
@@ -194,7 +194,7 @@ export default function MyProfile() {
                 : 'text-gray-600 dark:text-[#b0b3b8] hover:text-gray-900 dark:hover:text-[#e4e6eb]'
                 }`}
             >
-              {tab === 'posts' ? 'Bài viết' : tab === 'friends' ? 'Bạn bè' : 'Ảnh'}
+              {tab === 'posts' ? 'Bài viết' : tab === 'friends' ? 'Bạn bè' : ''}
               {activeTab === tab && (
                 <div className="h-[3px] bg-blue-600 dark:bg-[#4497f5] mt-1 rounded-full" />
               )}

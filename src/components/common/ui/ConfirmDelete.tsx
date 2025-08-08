@@ -39,7 +39,6 @@ export function ConfirmDelete({
                         toast.dismiss(t);
                         try {
                             await onConfirm();
-                            toast.success('Đã xoá thành công.');
                         } catch (error) {
                             toast.error('Lỗi khi xoá.');
                             console.error(error);

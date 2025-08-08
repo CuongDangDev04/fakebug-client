@@ -83,6 +83,8 @@ export default function PostItem({ post, onDeleted }: PostItemProps) {
                 await postService.deletePost(currentPost.id);
                 if (typeof onDeleted === 'function') {
                     onDeleted(currentPost.id);
+                    toast.success('Xoá bài viết thành công')
+
                 } else {
                     router.refresh();
                 }
@@ -131,7 +133,7 @@ export default function PostItem({ post, onDeleted }: PostItemProps) {
             const res = await postService.reportPost({ postId, reason })
             toast.success('Báo cáo bài viết thành công')
         } catch (err: any) {
-            console.error("Lỗi khi báo cáo bài viết: ",err)
+            console.error("Lỗi khi báo cáo bài viết: ", err)
         }
     }
 
@@ -215,31 +217,52 @@ export default function PostItem({ post, onDeleted }: PostItemProps) {
             </div>
 
             {currentPost.originalPost && (
-                <div className="mt-3 p-3 border rounded-lg bg-gray-50 dark:bg-dark-bg text-sm text-gray-800 dark:text-gray-300">
-                    <Link href={`/trang-ca-nhan/${currentPost.originalPost.user.id}`} className="flex items-center gap-2 mb-2">
-                        <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-600">
-                            <img
-                                src={currentPost.originalPost.user.avatar_url || '/default-avatar.png'}
-                                alt="Avatar"
-                                className="object-cover w-full h-full"
-                            />
-                        </div>
-                        <p className="text-sm font-medium text-gray-700 dark:text-white">
-                            {currentPost.originalPost.user.first_name} {currentPost.originalPost.user.last_name}
-                        </p>
-                    </Link>
-                    <p className="whitespace-pre-line">{currentPost.originalPost.content}</p>
+                <div className="mt-4 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-[#242526]">
+                    {/* Header */}
+                    <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-300 dark:border-gray-700">
+                        <Link
+                            href={`/trang-ca-nhan/${currentPost.originalPost.user.id}`}
+                            className="flex items-center gap-2 group"
+                        >
+                            <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
+                                <img
+                                    src={currentPost.originalPost.user.avatar_url || '/default-avatar.png'}
+                                    alt={`${currentPost.originalPost.user.first_name} ${currentPost.originalPost.user.last_name}`}
+                                    className="object-cover w-full h-full"
+                                    loading="lazy"
+                                />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="font-semibold text-gray-900 dark:text-white text-sm group-hover:underline">
+                                    {currentPost.originalPost.user.first_name} {currentPost.originalPost.user.last_name}
+                                </span>
+                                <time className="text-xs text-gray-500 dark:text-gray-400">
+                                    {/* Bạn cần cung cấp dữ liệu thời gian gốc ở đây hoặc format lại */}
+                                    {formatRelativeTime(currentPost.originalPost.created_at)}
+                                </time>
+                            </div>
+                        </Link>
+                    </div>
+
+                    {/* Content */}
+                    <div className="px-4 py-3 text-gray-900 dark:text-gray-100 text-sm whitespace-pre-wrap leading-relaxed">
+                        {currentPost.originalPost.content}
+                    </div>
+
+                    {/* Image */}
                     {currentPost.originalPost.media_url && (
-                        <Link href={`/bai-viet/${currentPost.originalPost.id}`} className="mt-2 overflow-hidden rounded-md">
+                        <Link href={`/bai-viet/${currentPost.originalPost.id}`} className="block">
                             <img
                                 src={currentPost.originalPost.media_url}
-                                alt="Ảnh gốc"
-                                className="object-cover w-full max-h-[400px]"
+                                alt="Ảnh bài viết gốc"
+                                className="object-cover w-full max-h-[450px] rounded-b-lg"
+                                loading="lazy"
                             />
                         </Link>
                     )}
                 </div>
             )}
+
 
             {currentPost.media_url && (
                 <div className="overflow-hidden rounded-lg">

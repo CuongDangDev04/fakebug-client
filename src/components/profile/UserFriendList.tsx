@@ -1,11 +1,14 @@
+'use client';
+
 import { friendshipService } from '@/services/friendshipService';
 import { useState, useEffect } from 'react';
-import { UserRound, UserPlus, UserMinus, Clock } from 'lucide-react'; // Remove UserCheck
+import { UserRound, UserPlus, UserMinus, Clock } from 'lucide-react';
 import { useFriendship } from '@/hooks/useFriendship';
 import { useUserStore } from '@/stores/userStore';
 import type { Friend, FriendsResponse, StatusMap, StatusResponse } from '@/types/friendship';
 import Link from 'next/link';
-
+import { ConfirmDelete } from '../common/ui/ConfirmDelete';
+import { toast } from 'sonner';
 
 export default function UserFriendList({ userId }: { userId: number }) {
     const [friendsData, setFriendsData] = useState<FriendsResponse | null>(null);
@@ -22,34 +25,26 @@ export default function UserFriendList({ userId }: { userId: number }) {
                 if (response.data.friends.length > 0) {
                     const friendIds = response.data.friends.map((friend: Friend) => friend.id);
                     const statusResponse = await friendshipService.getFriendshipStatusBatch(friendIds);
-                    console.log('Status response detail:', statusResponse);
 
-                    // Convert array to object map
                     const statusMap: StatusMap = {};
                     statusResponse?.data.forEach((statusObj: StatusResponse) => {
-                        console.log('Full status object:', statusObj);
-                        // Check all possible status properties
                         const status = statusObj.status || statusObj.friendshipStatus || statusObj.friendship_status;
-                        console.log(`Extracted status for ${statusObj.id}:`, status);
                         if (statusObj.id && status) {
                             statusMap[statusObj.id] = status;
                         }
                     });
 
-                    console.log('Final status map:', statusMap);
-
                     const friendsWithStatus = {
                         ...response.data,
-                        friends: response.data.friends.map((friend: Friend) => { // Add Friend type here
+                        friends: response.data.friends.map((friend: Friend) => {
                             const status = statusMap[friend.id];
-                            console.log(`Setting status for friend ${friend.id}:`, status);
                             return {
                                 ...friend,
                                 friendshipStatus: status || friend.friendshipStatus || 'NOT_FRIEND'
                             };
                         })
                     };
-                    
+
                     setFriendsData(friendsWithStatus);
                 } else {
                     setFriendsData(response.data);
@@ -72,44 +67,80 @@ export default function UserFriendList({ userId }: { userId: number }) {
         return <div>Không có bạn bè nào</div>;
     }
 
-    const handleFriendAction = async (friend: Friend) => {
-        switch (friend.friendshipStatus) {
-            case 'NOT_FRIEND':
-                const success = await sendFriendRequest(friend.id);
-                if (success) {
-                    updateFriendStatus(friend.id, 'PENDING_SENT');
-                }
-                break;
-            case 'FRIEND':
-                const unfriended = await unfriend(friend.id);
-                if (unfriended) {
-                    updateFriendStatus(friend.id, 'NOT_FRIEND');
-                }
-                break;
-            case 'PENDING_SENT':
-                const cancelled = await cancelFriendRequest(friend.id);
-                if (cancelled) {
-                    updateFriendStatus(friend.id, 'NOT_FRIEND');
-                }
-                break;
-        }
-    };
-
     const updateFriendStatus = (friendId: number, newStatus: Friend['friendshipStatus']) => {
         if (!friendsData) return;
-        
+
         setFriendsData({
             ...friendsData,
-            friends: friendsData.friends.map(friend => 
-                friend.id === friendId 
+            friends: friendsData.friends.map(friend =>
+                friend.id === friendId
                     ? { ...friend, friendshipStatus: newStatus }
                     : friend
             )
         });
     };
 
+    // Hàm gọi modal xác nhận
+    const confirmFriendAction = (friend: Friend, action: () => Promise<void>) => {
+        let title = '';
+        let description = '';
+        let successMessage = '';
+
+        switch (friend.friendshipStatus) {
+            case 'NOT_FRIEND':
+                title = 'Xác nhận gửi lời mời kết bạn?';
+                description = `Bạn có chắc chắn muốn gửi lời mời kết bạn tới ${friend.firstName} ${friend.lastName}?`;
+                successMessage = 'Đã gửi lời mời kết bạn thành công!';
+                break;
+            case 'FRIEND':
+                title = 'Xác nhận huỷ kết bạn?';
+                description = `Bạn có chắc chắn muốn huỷ kết bạn với ${friend.firstName} ${friend.lastName}?`;
+                successMessage = 'Đã huỷ kết bạn thành công!';
+                break;
+            case 'PENDING_SENT':
+                title = 'Xác nhận huỷ lời mời kết bạn?';
+                description = `Bạn có chắc chắn muốn huỷ lời mời kết bạn với ${friend.firstName} ${friend.lastName}?`;
+                successMessage = 'Đã huỷ lời mời kết bạn thành công!';
+                break;
+            default:
+                break;
+        }
+
+        ConfirmDelete({
+            title,
+            description,
+            confirmText: 'Xác nhận',
+            cancelText: 'Hủy',
+            onConfirm: async () => {
+                await action();
+                toast.success(successMessage);
+            },
+        });
+    };
+
+    // Sửa lại hàm xử lý hành động bạn bè
+    const handleFriendAction = async (friend: Friend) => {
+        const action = async () => {
+            switch (friend.friendshipStatus) {
+                case 'NOT_FRIEND':
+                    const success = await sendFriendRequest(friend.id);
+                    if (success) updateFriendStatus(friend.id, 'PENDING_SENT');
+                    break;
+                case 'FRIEND':
+                    const unfriended = await unfriend(friend.id);
+                    if (unfriended) updateFriendStatus(friend.id, 'NOT_FRIEND');
+                    break;
+                case 'PENDING_SENT':
+                    const cancelled = await cancelFriendRequest(friend.id);
+                    if (cancelled) updateFriendStatus(friend.id, 'NOT_FRIEND');
+                    break;
+            }
+        };
+
+        confirmFriendAction(friend, action);
+    };
+
     const getFriendActionButton = (friend: Friend) => {
-        // Không hiển thị nút nếu friend.id trùng với ID của current user
         if (currentUser && friend.id === currentUser.id) {
             return null;
         }
@@ -152,6 +183,8 @@ export default function UserFriendList({ userId }: { userId: number }) {
                         <span>Đã nhận lời mời</span>
                     </div>
                 );
+            default:
+                return null;
         }
     };
 
@@ -183,4 +216,3 @@ export default function UserFriendList({ userId }: { userId: number }) {
         </div>
     );
 }
-

@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { X } from 'lucide-react';
 import { useFriendship } from '@/hooks/useFriendship';
 import SentRequestSkeleton from '../skeleton/SentRequestSkeleton';
+import { ConfirmDelete } from '../common/ui/ConfirmDelete'; // import modal confirm
+import { toast } from 'sonner';
 
 export default function SentRequests() {
   const { cancelFriendRequest } = useFriendship();
@@ -29,10 +31,21 @@ export default function SentRequests() {
     }
   };
 
-  const handleCancelRequest = async (targetId: number) => {
-    if (await cancelFriendRequest(targetId)) {
-      loadRequests();
-    }
+  const confirmCancelRequest = (request: any) => {
+    ConfirmDelete({
+      title: 'Xác nhận hủy lời mời kết bạn',
+      description: `Bạn có chắc chắn muốn hủy lời mời kết bạn với ${request.to.firstName} ${request.to.lastName}?`,
+      confirmText: 'Hủy yêu cầu',
+      cancelText: 'Huỷ',
+      onConfirm: async () => {
+        const success = await cancelFriendRequest(request.to.id);
+        if (success) {
+          await loadRequests();
+          toast.success(`Huỷ lời mời kết bạn thành công`)
+
+        }
+      }
+    });
   };
 
   if (loading) {
@@ -85,7 +98,7 @@ export default function SentRequests() {
                 </p>
 
                 <button
-                  onClick={() => handleCancelRequest(request.to.id)}
+                  onClick={() => confirmCancelRequest(request)}
                   className="w-full sm:w-auto flex items-center justify-center gap-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-dark-hover dark:hover:bg-dark-active text-gray-700 dark:text-dark-text-primary px-3 py-1.5 rounded-full text-sm transition-colors"
                 >
                   <X className="w-4 h-4" />

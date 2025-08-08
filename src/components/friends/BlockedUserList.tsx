@@ -4,8 +4,8 @@ import { friendshipService } from '@/services/friendshipService';
 import { X } from 'lucide-react';
 import { BlockedUser } from '@/types/blockedUser';
 import BlockedUserSkeleton from '../skeleton/BlockedUserSkeleton';
-
-
+import { ConfirmDelete } from '../common/ui/ConfirmDelete'; // import modal
+import { toast } from 'sonner';
 
 export default function BlockedUserList() {
   const [blocked, setBlocked] = useState<BlockedUser[]>([]);
@@ -38,6 +38,20 @@ export default function BlockedUserList() {
     }
   };
 
+  // Hàm gọi modal xác nhận
+  const confirmUnblockUser = (userId: number, firstName: string, lastName: string) => {
+    ConfirmDelete({
+      title: 'Xác nhận bỏ chặn',
+      description: `Bạn có chắc chắn muốn bỏ chặn ${firstName} ${lastName}?`,
+      confirmText: 'Bỏ chặn',
+      cancelText: 'Huỷ',
+      onConfirm: async () => {
+        await handleUnblock(userId);
+        toast.success(`Đã huỷ chặn ${firstName} ${lastName}`)
+      }
+    });
+  };
+
   if (loading) return (
     <div className="w-3/6 ">
       <h2 className="text-base md:text-lg font-semibold mb-2 text-gray-900 dark:text-[#e4e6eb]">
@@ -48,6 +62,7 @@ export default function BlockedUserList() {
       ))}
     </div>
   );
+
   if (!blocked.length) return (
     <div className="flex items-center justify-center min-h-[120px] text-gray-500 dark:text-[#b0b3b8]">
       Không có người dùng nào bị chặn.
@@ -81,7 +96,7 @@ export default function BlockedUserList() {
               </div>
             </div>
             <button
-              onClick={() => handleUnblock(user.id)}
+              onClick={() => confirmUnblockUser(user.id, user.firstName, user.lastName)}
               className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-full text-sm font-medium transition-colors"
               disabled={unblockingId === user.id}
             >

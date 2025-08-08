@@ -4,7 +4,6 @@ import { friendshipService } from '@/services/friendshipService';
 import Link from 'next/link';
 import Image from 'next/image';
 import { UserPlus } from 'lucide-react';
-import Loader from '../common/users/Loader';
 import { useFriendship } from '@/hooks/useFriendship';
 import FriendSuggestionSkeleton from '../skeleton/FriendSuggestionSkeleton';
 

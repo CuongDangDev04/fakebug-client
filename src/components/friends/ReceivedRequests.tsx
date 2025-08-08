@@ -6,7 +6,9 @@ import Image from 'next/image';
 import { Check, X } from 'lucide-react';
 import { useFriendship } from '@/hooks/useFriendship';
 import ReceivedRequestSkeleton from '../skeleton/ReceivedRequestSkeleton';
+import { ConfirmDelete } from '../common/ui/ConfirmDelete';  // import modal
 import { FriendRequest } from '@/types/friendship';
+import { toast } from 'sonner';
 
 export default function ReceivedRequests() {
   const [receivedRequests, setReceivedRequests] = useState<FriendRequest[]>([]);
@@ -53,6 +55,21 @@ export default function ReceivedRequests() {
     if (await respondToFriendRequest(requestId, accept, request.from)) {
       loadRequests();
     }
+  };
+
+  // Hàm gọi modal xác nhận khi nhấn Xóa (từ chối lời mời)
+  const confirmRejectRequest = (request: any) => {
+    ConfirmDelete({
+      title: 'Xác nhận từ chối lời mời kết bạn',
+      description: `Bạn có chắc chắn muốn từ chối lời mời kết bạn từ ${request.from.firstName} ${request.from.lastName}?`,
+      confirmText: 'Từ chối',
+      cancelText: 'Huỷ',
+      onConfirm: async () => {
+        await handleRespond(request.id, false);
+        toast.success(`Từ chối lời mời kết bạn của ${request.from.firstName} ${request.from.lastName} thành công`)
+
+      }
+    });
   };
 
   if (loading) {
@@ -113,7 +130,7 @@ export default function ReceivedRequests() {
                     <span className="truncate">Xác nhận</span>
                   </button>
                   <button
-                    onClick={() => handleRespond(request.id, false)}
+                    onClick={() => confirmRejectRequest(request)}
                     className="flex items-center justify-center gap-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-dark-hover dark:hover:bg-dark-active text-gray-700 dark:text-dark-text-primary px-3 py-1.5 rounded-full text-sm transition-colors"
                   >
                     <X className="w-4 h-4" />
