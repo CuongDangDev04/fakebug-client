@@ -1,4 +1,3 @@
-// app/menu/page.tsx
 'use client'
 
 import { useRouter } from 'next/navigation'
@@ -6,7 +5,7 @@ import { useUserStore } from '@/stores/userStore'
 import { useThemeStore } from '@/stores/themeStore'
 import Image from 'next/image'
 import Link from 'next/link'
-import { User, Sun, Moon, LogOut } from 'lucide-react'
+import { User, Sun, Moon, LogOut, Settings, ShieldUser } from 'lucide-react'  // import thêm Settings icon
 import { authService } from '@/services/authService'
 
 export default function MenuMobile() {
@@ -27,9 +26,9 @@ export default function MenuMobile() {
     }
 
     return (
-        <div className="min-h-  bg-gray-100 dark:bg-dark-bg p-4 space-y-4 md:hidden">
+        <div className="min-h- bg-gray-100 dark:bg-dark-bg p-4 space-y-4 md:hidden">
             {/* Header */}
-            <div className="flex items-center  rounded-lg bg-white dark:bg-dark-card dark:border-dark-border p-4">
+            <div className="flex items-center rounded-lg bg-white dark:bg-dark-card dark:border-dark-border p-4">
                 <Image
                     src={user?.avatar_url || '/default-avatar.png'}
                     width={48}
@@ -37,13 +36,24 @@ export default function MenuMobile() {
                     className="rounded-full object-cover"
                     alt="Avatar"
                 />
-                <div className="font-semibold text-gray-900 dark:text-dark-text-primary">
+                <div className="font-semibold text-gray-900 dark:text-dark-text-primary ml-3">
                     {user?.first_name} {user?.last_name}
                 </div>
             </div>
 
             {/* Menu Items */}
             <div className="space-y-2">
+                {/* Link đến trang quản trị chỉ hiển thị nếu là admin */}
+                {user?.role === 'admin' && (
+                    <Link
+                        href="/admin"
+                        className="flex items-center gap-3 w-full px-4 py-3 rounded-lg bg-white dark:bg-dark-card text-gray-800 dark:text-dark-text-primary"
+                    >
+                        <ShieldUser size={20} />
+                        <span>Đi đến trang quản trị</span>
+                    </Link>
+                )}
+
                 <Link
                     href="/trang-ca-nhan"
                     className="flex items-center gap-3 w-full px-4 py-3 rounded-lg bg-white dark:bg-dark-card text-gray-800 dark:text-dark-text-primary"
@@ -51,6 +61,7 @@ export default function MenuMobile() {
                     <User size={20} />
                     <span>Trang cá nhân</span>
                 </Link>
+
 
                 <button
                     onClick={toggleTheme}

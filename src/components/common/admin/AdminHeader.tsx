@@ -1,30 +1,33 @@
 'use client'
 
-import { Moon, Sun, Bell, Menu } from 'lucide-react'
+import { Moon, Sun, Bell, Menu, LogOut, ArrowLeft } from 'lucide-react'
 import { useEffect, useState, useRef } from 'react'
 import { useUserStore } from '@/stores/userStore'
 import { authService } from '@/services/authService'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import { useThemeStore } from '@/stores/themeStore' // import đúng path của bạn
 
 export default function AdminHeader({ onToggleSidebar }: { onToggleSidebar: () => void }) {
-  const [darkMode, setDarkMode] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const { user, clearUser } = useUserStore()
   const router = useRouter()
 
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', darkMode)
-  }, [darkMode])
+  // Lấy trạng thái dark mode và hàm toggle từ store
+  const { isDark, toggleTheme, init } = useThemeStore()
 
   useEffect(() => {
+    init() // khởi tạo dark mode class khi mount
+  }, [init])
+
+  useEffect(() => {
+    // Đóng dropdown khi click ngoài
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setDropdownOpen(false)
       }
     }
-
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
@@ -33,10 +36,20 @@ export default function AdminHeader({ onToggleSidebar }: { onToggleSidebar: () =
     try {
       await authService.logout()
       clearUser()
-      router.push('/login') // hoặc đường dẫn login của bạn
+      router.push('/login')
     } catch (err) {
       console.error('Logout failed', err)
     }
+  }
+
+  const handleGoHome = () => {
+    router.push('/')
+    setDropdownOpen(false)
+  }
+
+  const toggleDarkMode = () => {
+    toggleTheme()
+    setDropdownOpen(false)
   }
 
   return (
@@ -48,32 +61,13 @@ export default function AdminHeader({ onToggleSidebar }: { onToggleSidebar: () =
         <Menu size={20} />
       </button>
 
-      <h1 className="text-lg font-semibold text-primary-600 dark:text-dark-text-primary hidden md:block">
-        Welcome, {user?.first_name || 'Admin'} 👋
-      </h1>
-
       <div className="flex items-center gap-4 ml-auto relative" ref={dropdownRef}>
-        <button className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dark-hover transition">
-          <Bell className="w-5 h-5 text-gray-600 dark:text-dark-text-primary" />
-          <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full" />
-        </button>
-
-        <button
-          onClick={() => setDarkMode(!darkMode)}
-          className="p-2 rounded-full bg-gray-100 dark:bg-dark-hover hover:bg-gray-200 dark:hover:bg-dark-active transition"
-        >
-          {darkMode ? (
-            <Sun className="h-5 w-5 text-yellow-400" />
-          ) : (
-            <Moon className="h-5 w-5 text-gray-700 dark:text-gray-300" />
-          )}
-        </button>
-
         {/* Avatar */}
         <div className="relative">
           <button
             onClick={() => setDropdownOpen((prev) => !prev)}
             className="h-8 w-8 rounded-full bg-primary-500 text-white flex items-center justify-center font-bold text-sm overflow-hidden"
+            aria-label="User menu"
           >
             {user?.avatar_url ? (
               <Image
@@ -89,18 +83,41 @@ export default function AdminHeader({ onToggleSidebar }: { onToggleSidebar: () =
           </button>
 
           {dropdownOpen && (
-            <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-md shadow-lg z-50">
+            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-md shadow-lg z-50 overflow-hidden">
+              {/* Dark mode toggle */}
               <button
-                onClick={() => alert('View Profile')}
-                className="w-full px-4 py-2 text-sm text-left hover:bg-gray-100 dark:hover:bg-dark-hover"
+                onClick={toggleDarkMode}
+                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-dark-text-primary hover:bg-gray-100 dark:hover:bg-dark-hover transition"
               >
-                View Profile
+                {isDark ? (
+                  <>
+                    <Sun size={16} />
+                    <span>Chế độ sáng</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon size={16} />
+                    <span>Chế độ tối</span>
+                  </>
+                )}
               </button>
+
+              {/* Quay lại trang chủ */}
+              <button
+                onClick={handleGoHome}
+                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-dark-text-primary hover:bg-gray-100 dark:hover:bg-dark-hover transition"
+              >
+                <ArrowLeft size={16} />
+                Quay lại trang chủ
+              </button>
+
+              {/* Logout */}
               <button
                 onClick={handleLogout}
-                className="w-full px-4 py-2 text-sm text-left hover:bg-gray-100 dark:hover:bg-dark-hover"
+                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900 transition"
               >
-                Logout
+                <LogOut size={16} />
+                Đăng xuất
               </button>
             </div>
           )}

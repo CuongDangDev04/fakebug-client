@@ -66,4 +66,14 @@ export const userService = {
             throw error;
         }
     },
+    async countUsers() {
+        try {
+            const res = await api.get(`${BASE_URL}/count`);
+            return res.data.count; // giả sử API trả về { count: number }
+        } catch (error: any) {
+            console.error('Lỗi lấy tổng số lượng user:', error);
+            return 0;
+        }
+    }
+
 };

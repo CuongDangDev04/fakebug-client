@@ -38,4 +38,14 @@ export const userReportService = {
             throw error;
         }
     },
+    // Đếm báo cáo chưa xử lý
+    async countPendingReports() {
+        try {
+            const response = await api.get(`${BASE_URL}/count-pending`);
+            return response.data.count; // trả về số lượng
+        } catch (error: any) {
+            console.error('Lỗi khi đếm báo cáo chưa xử lý:', error);
+            throw error;
+        }
+    },
 };

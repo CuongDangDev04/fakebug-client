@@ -178,5 +178,33 @@ export const postService = {
         }
     },
 
+    async getCountPendingReports() {
+        try {
+            const res = await api.get(`${BASE_URL}/count-pending-reports`);
+            return res.data; // { count: number }
+        } catch (error) {
+            console.error('Lỗi khi lấy số lượng báo cáo đang chờ xử lý:', error);
+            throw error;
+        }
+    }
+    , async getReportStatusCount() {
+        try {
+            const res = await api.get(`${BASE_URL}/report-status-count`);
+            return res.data;
+        } catch (error) {
+            console.error('Lỗi khi lấy số liệu báo cáo theo trạng thái:', error);
+            throw error;
+        }
+    },
+
+    async getPostsPrivacyCount() {
+        try {
+            const res = await api.get(`${BASE_URL}/privacy-count`);
+            return res.data;
+        } catch (error) {
+            console.error('Lỗi khi lấy số liệu bài viết theo privacy:', error);
+            throw error;
+        }
+    },
 
 };

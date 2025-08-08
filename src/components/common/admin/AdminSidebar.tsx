@@ -9,7 +9,6 @@ const navItems = [
   { label: 'Quản lí người dùng', icon: Users, href: '/admin/quan-ly-nguoi-dung' },
   { label: 'Quản lí báo cáo người dùng', icon: AlertTriangle, href: '/admin/quan-ly-bao-cao-nguoi-dung' },
   { label: "Quản lí báo cáo bài viết", icon: Flag, href: '/admin/quan-ly-bao-cao-bai-viet' },
-  { label: 'Settings', icon: Settings, href: '/admin/settings' }
 ]
 
 export default function AdminSidebar({
@@ -33,9 +32,10 @@ export default function AdminSidebar({
         className={`fixed md:static z-50 md:flex flex-col w-64 h-full bg-gradient-to-b from-white to-gray-50 dark:from-dark-card dark:to-dark-bg border-r border-gray-200 dark:border-dark-border shadow-sm transition-transform transform ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
           }`}
       >
-        <div className="flex items-center justify-between p-6 md:justify-center">
-          <div className="text-xl font-bold text-primary-600 dark:text-dark-text-primary">
-            Admin Panel
+        <div className="flex items-center justify-between py-2 md:justify-center">
+          <div className="flex items-center gap-2">
+            <img src="/lg.png" alt="Logo" className="h-10 " />
+           
           </div>
           <button
             onClick={onClose}

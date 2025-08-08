@@ -25,7 +25,7 @@ export function useNotifications(limit = 10, filter?: 'all' | 'unread') {
   });
 
   const notifications = useMemo(() => {
-    const combined = [...storeNotifications, ...fetchedNotifications];
+    const combined = [...fetchedNotifications,...storeNotifications ];
     const map = new Map<number, Notification>();
     combined.forEach(n => map.set(n.id, n));
     let result = Array.from(map.values());

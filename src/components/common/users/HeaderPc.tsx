@@ -3,7 +3,8 @@
 import {
   Home, Users, MessageCircleMore,
   Bell, User, Sun, Moon, LogOut,
-  Plus
+  Plus,
+  ShieldUser
 } from 'lucide-react'
 import { useThemeStore } from '@/stores/themeStore'
 import { useUserStore } from '@/stores/userStore'
@@ -176,6 +177,17 @@ export default function HeaderPC() {
                 </p>
               </div>
               <div className="p-2 space-y-1">
+                {/* Hiển thị link quản trị nếu là admin */}
+                {user?.role === 'admin' && (
+                  <Link
+                    href="/admin"
+                    onClick={() => setShowDropdown(false)}
+                    className="flex items-center gap-3 px-4 py-2 text-gray-800 dark:text-dark-text-primary hover:bg-gray-100 dark:hover:bg-dark-hover rounded-lg"
+                  >
+                    <ShieldUser size={20} />
+                    <span>Đi đến trang quản trị</span>
+                  </Link>
+                )}
                 <Link
                   href="/trang-ca-nhan"
                   onClick={() => setShowDropdown(false)}
@@ -184,6 +196,9 @@ export default function HeaderPC() {
                   <User size={20} />
                   <span>Trang cá nhân</span>
                 </Link>
+
+
+
                 <button
                   onClick={toggleTheme}
                   className="w-full flex items-center gap-3 px-4 py-2 text-gray-700 dark:text-dark-text-primary hover:bg-gray-100 dark:hover:bg-dark-hover rounded-lg"
@@ -201,9 +216,10 @@ export default function HeaderPC() {
               </div>
             </div>
           )}
+
         </div>
       </div>
-      
+
       {isCreatePostOpen && (
         <Modal isOpen={isCreatePostOpen} onClose={() => setIsCreatePostOpen(false)}>
           <CreatePost onPostSuccess={() => setIsCreatePostOpen(false)} />
