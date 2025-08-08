@@ -1,12 +1,13 @@
 'use client';
 
 import {
-  UserPlus, Mail, UserMinus, Clock, Check, X
+  UserPlus, Mail, UserMinus, Clock, Check, X, MoreHorizontal, Flag
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { ProfileService } from '@/services/profileService';
 import { friendshipService } from '@/services/friendshipService';
+import { userReportService } from '@/services/userReportService';
 import { useUserStore } from '@/stores/userStore';
 import SkeletonProfile from '../skeleton/SkeletonProfile';
 import UserFriendList from './UserFriendList';
@@ -14,6 +15,8 @@ import OtherUserPosts from '../posts/OtherUserPosts';
 import Link from 'next/link';
 import type { ProfileResponse } from '@/types/profile';
 import type { FriendshipStatus } from '@/types/friendship';
+import { toast } from 'sonner';
+import { notificationService } from '@/services/notificationService';
 
 type TabType = 'posts' | 'friends' | 'photos';
 
@@ -28,8 +31,22 @@ export default function UserProfile() {
   const [activeTab, setActiveTab] = useState<TabType>('posts');
   const [isBlocking, setIsBlocking] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
+  // Click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Fetch profile
   useEffect(() => {
     if (String(tokenUserId) === userId) {
       router.push('/trang-ca-nhan');
@@ -50,6 +67,7 @@ export default function UserProfile() {
     fetchProfile();
   }, [userId, tokenUserId, router]);
 
+  // Fetch friendship status
   useEffect(() => {
     const fetchFriendshipStatus = async () => {
       try {
@@ -62,13 +80,14 @@ export default function UserProfile() {
     if (userId) fetchFriendshipStatus();
   }, [userId]);
 
+  // Friend actions
   const handleFriendAction = async () => {
     if (!userId) return;
     try {
       switch (friendshipStatus?.status) {
         case 'not_friend':
-          const res = await friendshipService.sendFriendRequest(Number(userId));
-          if (res?.data) setFriendshipStatus({ status: 'pending', message: 'Đã gửi lời mời kết bạn' });
+          await friendshipService.sendFriendRequest(Number(userId));
+          setFriendshipStatus({ status: 'pending', message: 'Đã gửi lời mời kết bạn' });
           break;
         case 'friend':
           await friendshipService.unfriend(Number(userId));
@@ -88,11 +107,16 @@ export default function UserProfile() {
     }
   };
 
+  // Block user
   const handleBlockUser = async () => {
     setIsBlocking(true);
+    toast.info("Đang chặn người dùng...");
     try {
       await friendshipService.blockUser(Number(userId));
       setIsBlocked(true);
+      toast.success("Đã chặn người dùng!");
+    } catch (error) {
+      toast.error("Có lỗi xảy ra khi chặn người dùng!");
     } finally {
       setIsBlocking(false);
     }
@@ -100,13 +124,40 @@ export default function UserProfile() {
 
   const handleUnblockUser = async () => {
     setIsBlocking(true);
+    toast.info("Đang bỏ chặn người dùng...");
     try {
       await friendshipService.unblockUser(Number(userId));
       setIsBlocked(false);
+      toast.success("Đã bỏ chặn người dùng!");
+    } catch (error) {
+      toast.error("Có lỗi xảy ra khi bỏ chặn!");
     } finally {
       setIsBlocking(false);
     }
   };
+
+  // Report user
+  const handleReportUser = async () => {
+    try {
+      await userReportService.reportUser(
+        Number(userId),
+        tokenUserId!,
+        "Người này vi phạm nội quy"
+      );
+      await notificationService.sendNotification(
+        Number(tokenUserId),
+        `Đã gửi thành công báo cáo người dùng ${user.first_name} ${user.last_name}`,
+        ``,
+        '/lg.png'
+      );
+    } catch (error) {
+      toast.error("Có lỗi xảy ra khi báo cáo!");
+    }
+    setShowDropdown(false);
+  };
+
+
+  // Friend button render
   const renderFriendshipButton = () => {
     if (!friendshipStatus) return null;
 
@@ -164,8 +215,6 @@ export default function UserProfile() {
     }
   };
 
-
-
   const renderTabContent = () => {
     switch (activeTab) {
       case 'friends':
@@ -174,7 +223,9 @@ export default function UserProfile() {
         return (
           <div className="bg-white dark:bg-dark-card rounded-xl p-4">
             <h2 className="font-semibold mb-4 dark:text-[#e4e6eb]">Ảnh</h2>
-            <div className="h-32 flex items-center justify-center text-gray-500 dark:text-[#b0b3b8]">Chưa có ảnh nào</div>
+            <div className="h-32 flex items-center justify-center text-gray-500 dark:text-[#b0b3b8]">
+              Chưa có ảnh nào
+            </div>
           </div>
         );
       default:
@@ -206,7 +257,7 @@ export default function UserProfile() {
       </div>
 
       {/* Header */}
-      <div className="relative px-4   sm:px-6 max-w-5xl mx-auto">
+      <div className="relative px-4 sm:px-6 max-w-5xl mx-auto">
         <div className="flex flex-col md:flex-row items-center md:items-end gap-4 md:gap-8">
           <div className="relative shrink-0 -mt-16 md:-mt-20">
             <div className="w-28 h-28 md:w-36 md:h-36 rounded-full ring-4 ring-white dark:ring-dark-bg overflow-hidden bg-gray-200">
@@ -215,14 +266,16 @@ export default function UserProfile() {
           </div>
 
           <div className="flex-1 text-center md:text-left">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{user.first_name} {user.last_name}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+              {user.first_name} {user.last_name}
+            </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400">{friends.total} bạn bè</p>
             {user.bio && (
               <p className="mt-1 text-sm text-gray-800 dark:text-gray-300 whitespace-pre-line">
                 {user.bio}
               </p>
             )}
-            <div className="mt-3 flex flex-wrap justify-center md:justify-start gap-2">
+            <div className="mt-3 flex flex-wrap justify-center md:justify-start gap-2 items-center relative">
               {renderFriendshipButton()}
               <Link href={`/tin-nhan/${user.id}`}>
                 <button className="flex items-center gap-2 px-3 md:px-6 py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white">
@@ -230,16 +283,35 @@ export default function UserProfile() {
                   <span className="text-sm">Nhắn tin</span>
                 </button>
               </Link>
-              {!isBlocked && (
+
+              {/* More Options */}
+              <div className="relative" ref={dropdownRef}>
                 <button
-                  onClick={handleBlockUser}
-                  className="flex items-center gap-2 px-3 md:px-6 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white"
-                  disabled={isBlocking}
+                  onClick={() => setShowDropdown((prev) => !prev)}
+                  className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"
                 >
-                  <X className="w-4 h-4" />
-                  <span className="text-sm">{isBlocking ? 'Đang chặn...' : 'Chặn'}</span>
+                  <MoreHorizontal className="w-5 h-5 text-gray-700 dark:text-gray-300" />
                 </button>
-              )}
+                {showDropdown && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-dark-card rounded-lg shadow-lg z-10 py-1">
+                    <button
+                      onClick={handleReportUser}
+                      className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200"
+                    >
+                      <Flag className="w-4 h-4 text-red-500" />
+                      Báo cáo người dùng
+                    </button>
+                    <button
+                      onClick={handleBlockUser}
+                      className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200"
+                      disabled={isBlocking}
+                    >
+                      <X className="w-4 h-4 text-red-500" />
+                      {isBlocking ? 'Đang chặn...' : 'Chặn người dùng'}
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -258,7 +330,9 @@ export default function UserProfile() {
                 }`}
             >
               {tab === 'posts' ? 'Bài viết' : tab === 'friends' ? 'Bạn bè' : 'Ảnh'}
-              {activeTab === tab && <div className="h-[3px] bg-blue-600 dark:bg-[#4497f5] mt-1 rounded-full" />}
+              {activeTab === tab && (
+                <div className="h-[3px] bg-blue-600 dark:bg-[#4497f5] mt-1 rounded-full" />
+              )}
             </button>
           ))}
         </div>
@@ -273,13 +347,20 @@ export default function UserProfile() {
               <div className="bg-white dark:bg-dark-card rounded-xl p-4">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="font-semibold dark:text-[#e4e6eb]">Bạn bè · {friends.total}</h2>
-                  <button onClick={() => setActiveTab('friends')} className="text-sm text-blue-600 dark:text-[#4497f5]">
+                  <button
+                    onClick={() => setActiveTab('friends')}
+                    className="text-sm text-blue-600 dark:text-[#4497f5]"
+                  >
                     Xem tất cả
                   </button>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   {friends.list.slice(0, 9).map((friend) => (
-                    <Link href={`/trang-ca-nhan/${friend.id}`} key={friend.id} className="group">
+                    <Link
+                      href={`/trang-ca-nhan/${friend.id}`}
+                      key={friend.id}
+                      className="group"
+                    >
                       <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
                         <img
                           src={friend.avatar_url || `https://i.pravatar.cc/300?img=${friend.id}`}
@@ -297,9 +378,7 @@ export default function UserProfile() {
             </div>
 
             {/* Posts */}
-            <div className="w-full lg:flex-1">
-              {renderTabContent()}
-            </div>
+            <div className="w-full lg:flex-1">{renderTabContent()}</div>
           </div>
         ) : (
           renderTabContent()

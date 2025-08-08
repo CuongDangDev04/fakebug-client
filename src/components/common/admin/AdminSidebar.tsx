@@ -1,12 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { Home, Users, Settings, X, Flag } from 'lucide-react'
+import { Home, Users, Settings, X, Flag, AlertTriangle } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 
 const navItems = [
   { label: 'Dashboard', icon: Home, href: '/admin' },
   { label: 'Quản lí người dùng', icon: Users, href: '/admin/quan-ly-nguoi-dung' },
+  { label: 'Quản lí báo cáo người dùng', icon: AlertTriangle, href: '/admin/quan-ly-bao-cao-nguoi-dung' },
   { label: "Quản lí báo cáo bài viết", icon: Flag, href: '/admin/quan-ly-bao-cao-bai-viet' },
   { label: 'Settings', icon: Settings, href: '/admin/settings' }
 ]

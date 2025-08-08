@@ -38,7 +38,7 @@ export const authService = {
 
         delete api.defaults.headers.common['Authorization'];
 
-        return response.data; 
+        return response.data;
     },
 
     async forgotPassword(data: ForgotPasswordDto): Promise<ForgotPasswordResponse> {
@@ -68,9 +68,24 @@ export const authService = {
     },
 
     async handleGoogleRedirect(): Promise<AuthResponse> {
-        const res = await fetch(`${BASE_URL}/auth/google/redirect`);
-        return await res.json();
+        try {
+            const res = await fetch(`${BASE_URL}/auth/google/redirect`);
+
+            if (!res.ok) {
+                // Lấy nội dung lỗi từ backend
+                const errorData = await res.json();
+                throw new Error(errorData.message || 'Có lỗi xảy ra');
+            }
+
+            return await res.json();
+
+        } catch (err: any) {
+            // Tùy UI mà xử lý
+            alert(err.message); // hoặc toast, modal...
+            throw err; // nếu muốn phía gọi service biết lỗi
+        }
     },
+
 
     async getInfoUser(): Promise<User | undefined> {
         try {
