@@ -9,7 +9,10 @@ export const userService = {
             const response = await api.get(`${BASE_URL}/public/${userId}`);
             return response.data;
         } catch (error: any) {
-            console.error('Lỗi: ', error);
+            if (error.response?.status === 404) {
+                return null;
+            }
+            throw error;
         }
     },
 

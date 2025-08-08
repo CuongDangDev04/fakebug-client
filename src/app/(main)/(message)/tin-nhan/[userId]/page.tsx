@@ -1,10 +1,12 @@
-"use client";
+'use client';
 
-import ChatBox from "@/components/messages/ChatBox";
-import { useUserStore } from "@/stores/userStore";
-import { useCallStore } from "@/stores/useCallStore";
-import { use } from "react";
-import { useState, useEffect } from "react";
+import { useRouter } from 'next/navigation';
+import ChatBox from '@/components/messages/ChatBox';
+import { useUserStore } from '@/stores/userStore';
+import { useCallStore } from '@/stores/useCallStore';
+import { use } from 'react';
+import { useState, useEffect } from 'react';
+import { userService } from '@/services/userService';
 
 interface ChatPageProps {
   params: Promise<{
@@ -14,22 +16,42 @@ interface ChatPageProps {
 
 export default function ChatPage(props: ChatPageProps) {
   const { userId } = use(props.params);
+  const router = useRouter();
+
   const currentuserId = useUserStore((state) => state.user?.id);
   const currentUserId = Number(currentuserId);
   const targetUserId = parseInt(userId);
 
   const [chattingUserId, setChattingUserId] = useState<number | null>(null);
-  
-  useEffect(() => {
-    setChattingUserId(targetUserId);
-  }, [targetUserId]);
+  const [checkingUser, setCheckingUser] = useState(true);
 
-  if (!currentUserId) {
-    return null;
-  }
+  useEffect(() => {
+    async function checkUserExists() {
+      try {
+        const data = await userService.getPublicUserInfo(targetUserId);
+        if (data === null) {
+          // User không tồn tại, chuyển hướng 404
+          router.push('/not-found');
+          return;
+        }
+        setChattingUserId(targetUserId);
+      } catch (error) {
+        console.error(error);
+        router.push('/not-found');
+      } finally {
+        setCheckingUser(false);
+      }
+    }
+    checkUserExists();
+  }, [targetUserId, router]);
+
+
+  if (!currentUserId) return null;
+  if (checkingUser) return <div>Đang tải...</div>;
 
   return (
     <div className="w-full h-full md:h-screen">
+      
       {chattingUserId && (
         <ChatBox
           currentUserId={currentUserId}
@@ -37,26 +59,24 @@ export default function ChatPage(props: ChatPageProps) {
           onStartCall={(type) => {
             const socket = (window as any).callSocket;
             const callId = Date.now();
-            socket?.emit("start-call", {
+            socket?.emit('start-call', {
               callerId: currentUserId,
               receiverId: chattingUserId,
               callType: type,
               callId,
             });
-            useCallStore
-              .getState()
-              .startCalling(callId, type, chattingUserId);
+            useCallStore.getState().startCalling(callId, type, chattingUserId);
             console.log(
-              "[FE] 📞 Người gọi phát lệnh. Bắt đầu cuộc gọi với role=caller, callId=",
+              '[FE] 📞 Người gọi phát lệnh. Bắt đầu cuộc gọi với role=caller, callId=',
               callId
             );
           }}
           onBack={() => {
-            // Quay lại Sidebar trên mobile
             setChattingUserId(null);
           }}
         />
       )}
+      
     </div>
   );
 }

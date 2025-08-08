@@ -48,6 +48,7 @@ export default function UserProfile() {
 
   // Fetch profile
   useEffect(() => {
+
     if (String(tokenUserId) === userId) {
       router.push('/trang-ca-nhan');
       return;
@@ -56,6 +57,10 @@ export default function UserProfile() {
       try {
         setIsLoading(true);
         const data = await ProfileService.getOtherUserProfile(userId);
+        if (!data) {
+          router.push('/not-found');
+          return;
+        }
         if (data) setProfileData(data);
         else setError('Không thể tải thông tin profile');
       } catch (err) {

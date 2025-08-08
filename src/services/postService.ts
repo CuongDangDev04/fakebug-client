@@ -103,7 +103,6 @@ export const postService = {
             return res;
         } catch (error) {
             console.error('Lỗi khi lấy chi tiết bài viết:', error);
-            throw error;
         }
     },
 
