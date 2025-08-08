@@ -5,25 +5,41 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Check, X } from 'lucide-react';
 import { useFriendship } from '@/hooks/useFriendship';
+import ReceivedRequestSkeleton from '../skeleton/ReceivedRequestSkeleton';
+import { FriendRequest } from '@/types/friendship';
 
 export default function ReceivedRequests() {
-  const [receivedRequests, setReceivedRequests] = useState([]);
+  const [receivedRequests, setReceivedRequests] = useState<FriendRequest[]>([]);
+  const [loading, setLoading] = useState(true);
   const { respondToFriendRequest } = useFriendship();
 
   useEffect(() => {
     loadRequests();
-    receivedRequests.forEach(async (request: any) => {
-      const mutualResponse = await friendshipService.getMutualFriends(request.from.id);
-      request.mutualFriends = mutualResponse?.data.total;
-    });
   }, []);
 
   const loadRequests = async () => {
     try {
+      setLoading(true);
       const received = await friendshipService.getReceivedRequests();
-      setReceivedRequests(received?.data.requests);
+      const requests = received?.data.requests || [];
+
+      const requestsWithMutuals = await Promise.all(
+        requests.map(async (req: any) => {
+          try {
+            const mutualResponse = await friendshipService.getMutualFriends(req.from.id);
+            return { ...req, mutualFriends: mutualResponse?.data.total || 0 };
+          } catch {
+            return { ...req, mutualFriends: 0 };
+          }
+        })
+      );
+
+      setReceivedRequests(requestsWithMutuals);
     } catch (error) {
       console.error('Lỗi khi tải lời mời kết bạn:', error);
+      setReceivedRequests([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -38,6 +54,21 @@ export default function ReceivedRequests() {
       loadRequests();
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen sm:min-h-[calc(100vh-220px)] p-4 sm:p-0">
+        <h2 className="text-lg sm:text-xl font-bold mb-4 text-gray-900 dark:text-dark-text-primary">
+          Lời mời đã nhận
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-4">
+          {[...Array(6)].map((_, i) => (
+            <ReceivedRequestSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen sm:min-h-[calc(100vh-220px)] p-4 sm:p-0">
@@ -70,7 +101,7 @@ export default function ReceivedRequests() {
                 </Link>
 
                 <p className="text-xs sm:text-sm text-gray-500 dark:text-dark-text-secondary mb-2">
-                  {request.mutualFriends || '0'} bạn chung
+                  {request.mutualFriends} bạn chung
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-2">

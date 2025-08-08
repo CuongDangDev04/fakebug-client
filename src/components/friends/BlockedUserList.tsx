@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { friendshipService } from '@/services/friendshipService';
 import { X } from 'lucide-react';
 import { BlockedUser } from '@/types/blockedUser';
+import BlockedUserSkeleton from '../skeleton/BlockedUserSkeleton';
 
 
 
@@ -38,8 +39,13 @@ export default function BlockedUserList() {
   };
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-[120px] text-gray-500 dark:text-[#b0b3b8]">
-      Đang tải danh sách chặn...
+    <div className="w-3/6 ">
+      <h2 className="text-base md:text-lg font-semibold mb-2 text-gray-900 dark:text-[#e4e6eb]">
+        Danh sách đã chặn
+      </h2>
+      {[...Array(3)].map((_, i) => (
+        <BlockedUserSkeleton key={i} />
+      ))}
     </div>
   );
   if (!blocked.length) return (

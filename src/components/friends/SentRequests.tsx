@@ -5,10 +5,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { X } from 'lucide-react';
 import { useFriendship } from '@/hooks/useFriendship';
+import SentRequestSkeleton from '../skeleton/SentRequestSkeleton';
 
 export default function SentRequests() {
   const { cancelFriendRequest } = useFriendship();
   const [sentRequests, setSentRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadRequests();
@@ -16,10 +18,14 @@ export default function SentRequests() {
 
   const loadRequests = async () => {
     try {
+      setLoading(true);
       const sent = await friendshipService.getSentRequests();
-      setSentRequests(sent?.data.requests);
+      setSentRequests(sent?.data.requests || []);
     } catch (error) {
       console.error('Lỗi khi tải lời mời kết bạn:', error);
+      setSentRequests([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -28,6 +34,21 @@ export default function SentRequests() {
       loadRequests();
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen sm:min-h-[calc(100vh-220px)] p-4 sm:p-0">
+        <h2 className="text-lg sm:text-xl font-bold mb-4 text-gray-900 dark:text-dark-text-primary">
+          Lời mời đã gửi
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-4">
+          {[...Array(6)].map((_, i) => (
+            <SentRequestSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen sm:min-h-[calc(100vh-220px)] p-4 sm:p-0">

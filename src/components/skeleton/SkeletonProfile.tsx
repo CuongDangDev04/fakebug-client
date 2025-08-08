@@ -12,7 +12,7 @@ export default function SkeletonProfile() {
     : {};
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto px-4 sm:px-6 py-8 dark:bg-[#18191a] dark:text-white">
+    <div className="space-y-6 max-w-7xl mx-auto px-4 mt-40 sm:px-6 py-8 dark:bg-[#18191a] dark:text-white">
       {/* Header */}
       <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8">
         <div>

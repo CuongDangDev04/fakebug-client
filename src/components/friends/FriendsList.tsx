@@ -76,8 +76,8 @@ export default function FriendsList() {
                 className="rounded-full object-cover w-[60px] h-[60px] sm:w-[80px] sm:h-[80px]"
               />
               <div className="ml-3 sm:ml-4 flex-1">
-                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:items-center">
-
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full">
+                  {/* Left side: tên + mutual friends */}
                   <div>
                     <Link
                       href={`/trang-ca-nhan/${friend.id}`}
@@ -89,27 +89,28 @@ export default function FriendsList() {
                       {friend.mutualFriendsCount} bạn chung
                     </p>
                   </div>
-                  <div className="flex flex-row gap-2 w-full sm:w-auto">
+
+                  {/* Right side: 2 nút */}
+                  <div className="flex  mt-2 sm:mt-0">
                     <Link href={`/tin-nhan/${friend.id}`} className="w-1/2 sm:w-auto">
                       <button
-                        className="w-full flex items-center justify-center gap-1 bg-[#e4e6eb] dark:bg-dark-button-primary hover:bg-[#dbe7f2] dark:hover:bg-dark-button-hover text-gray-600 dark:text-primary-400 px-3 py-1 rounded-full text-sm font-medium transition-colors"
+                        className="w-full flex items-center justify-center  bg-[#e4e6eb] dark:bg-dark-button-primary hover:bg-[#dbe7f2] dark:hover:bg-dark-button-hover text-gray-600 dark:text-primary-400 px-3 py-1 rounded-full text-sm font-medium transition-colors"
                       >
                         <MessageCircleMore className="w-4 h-4" />
-                        <span className="hidden sm:inline">Nhắn tin</span>
+                        <span className=" sm:inline">Nhắn tin</span>
                       </button>
                     </Link>
 
                     <button
                       onClick={() => handleUnfriend(friend.id)}
-                      className="w-1/2 sm:w-auto flex items-center justify-center gap-1 bg-gray-100 dark:bg-dark-hover hover:bg-gray-200 dark:hover:bg-dark-active text-gray-700 dark:text-dark-text-primary px-3 py-1 rounded-full text-sm transition-colors"
+                      className="w-1/2 sm:w-auto flex items-center justify-center  bg-gray-100 dark:bg-dark-hover hover:bg-gray-200 dark:hover:bg-dark-active text-gray-700 dark:text-dark-text-primary px-3 py-1 rounded-full text-sm transition-colors"
                     >
                       <UserMinus className="w-4 h-4" />
-                      <span className="hidden sm:inline">Huỷ kết bạn</span>
+                      <span className=" sm:inline">Huỷ kết bạn</span>
                     </button>
                   </div>
-
-
                 </div>
+
               </div>
             </div>
           ))

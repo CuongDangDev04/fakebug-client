@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { UserPlus } from 'lucide-react';
 import Loader from '../common/users/Loader';
 import { useFriendship } from '@/hooks/useFriendship';
+import FriendSuggestionSkeleton from '../skeleton/FriendSuggestionSkeleton';
 
 export default function FriendSuggestions() {
   const { sendFriendRequest } = useFriendship();
@@ -35,9 +36,20 @@ export default function FriendSuggestions() {
     }
   };
 
-  if (loading) {
-    return <div><Loader /></div>;
-  }
+ if (loading) {
+  return (
+    <div className="min-h-screen sm:min-h-[calc(100vh-220px)] p-4 sm:p-0">
+      <h2 className="text-lg sm:text-xl font-bold mb-4 text-gray-900 dark:text-dark-text-primary">
+        Những người bạn có thể biết
+      </h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-4">
+        {[...Array(6)].map((_, i) => (
+          <FriendSuggestionSkeleton key={i} />
+        ))}
+      </div>
+    </div>
+  );
+}
 
   return (
     <div className="min-h-screen sm:min-h-[calc(100vh-220px)] p-4 sm:p-0">

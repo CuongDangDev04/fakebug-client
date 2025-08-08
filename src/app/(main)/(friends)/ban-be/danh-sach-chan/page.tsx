@@ -1,4 +1,4 @@
-import BlockedUserList from "@/components/profile/BlockedUserList";
+import BlockedUserList from "@/components/friends/BlockedUserList";
 export const metadata = {
     title: 'Danh sách đã chặn',
 };
