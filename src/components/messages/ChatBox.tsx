@@ -7,16 +7,14 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Loader from '@/components/common/users/Loader';
 import { useFriendMessagesStore } from '@/stores/friendMessagesStore';
 import { ChatBoxProps } from '@/types/chatBoxProps';
-import Picker from '@emoji-mart/react';
-import data from '@emoji-mart/data';
 import { ArrowDown, EllipsisVertical, Laugh, Phone, SendHorizontal, Video } from 'lucide-react';
 import { messageService } from '@/services/messageService';
 import { useChatStore } from '@/stores/chatStore';
 import ForwardFriendsModal from '@/components/messages/ForwardFriendsModal';
-import { useThemeStore } from '@/stores/themeStore';
 import { useChatInfiniteScroll } from '@/hooks/useChatInfiniteScroll';
 import { userService } from '@/services/userService';
-import TextareaAutosize from 'react-textarea-autosize';
+import MessageInput from './MessageInput'; // Import component mới
+
 export default function ChatBox({
   currentUserId,
   targetUserId,
@@ -29,7 +27,6 @@ export default function ChatBox({
   const { messages, loading, loadMore } = useChatMessages(currentUserId, targetUserId);
   const { isOnline: isTargetOnline, lastSeen, formatLastSeen } = useUserOnlineStatus(targetUserId);
   const markAsReadInSidebar = useFriendMessagesStore((state) => state.markAsRead);
-  // Explicitly type the ref as HTMLDivElement, ensuring it's not null
   const messagesContainerRef = useRef<HTMLDivElement>(null!);
   const { loadingMore, showScrollToBottom, scrollToBottom } = useChatInfiniteScroll(messagesContainerRef, loadMore, messages);
 
@@ -38,16 +35,12 @@ export default function ChatBox({
   const [hoveredMsgId, setHoveredMsgId] = useState<number | null>(null);
   const [openedOptionsMsgId, setOpenedOptionsMsgId] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const emojiPickerRef = useRef<HTMLDivElement>(null);
   const reactionEmojis = ['❤️', '😆', '😮', '😢', '😡', '👍', '👎'];
   const [openedReactionMsgId, setOpenedReactionMsgId] = useState<number | null>(null);
   const [viewingReactionsMsg, setViewingReactionsMsg] = useState<number | null>(null);
   const removeMessageById = useChatStore((state) => state.removeMessageById);
   const [showForwardModal, setShowForwardModal] = useState(false);
   const [forwardMessageId, setForwardMessageId] = useState<number | null>(null);
-  const { isDark } = useThemeStore();
   const [targetUser, setTargetUser] = useState<any>(null);
   const [isBlocked, setIsBlocked] = useState(false);
   const [blockedBy, setBlockedBy] = useState<number | null>(null);
@@ -60,11 +53,9 @@ export default function ChatBox({
     const prevLast = prev[prev.length - 1];
     const currLast = curr[curr.length - 1];
 
-    // Chỉ scroll nếu có tin nhắn mới ở cuối
     if (!prevLast || !currLast || currLast.id !== prevLast.id) {
       const isNewMessageFromOther =
         currLast?.sender?.id === targetUserId && curr.length > prev.length;
-
       const isNewMessageFromMe =
         currLast?.sender?.id === currentUserId && curr.length > prev.length;
 
@@ -96,27 +87,6 @@ export default function ChatBox({
     }
   }, [messages, currentUserId, targetUserId, markAsReadInSidebar]);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        emojiPickerRef.current &&
-        !emojiPickerRef.current.contains(event.target as Node) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(event.target as Node)
-      ) {
-        setShowEmojiPicker(false);
-      }
-    };
-
-    if (showEmojiPicker) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showEmojiPicker]);
-
   const handleSend = () => {
     const content = input.trim();
     if (!content) return;
@@ -129,16 +99,14 @@ export default function ChatBox({
     });
 
     setInput('');
-    setShowEmojiPicker(false);
   };
 
-const handleInputKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault(); // chặn xuống dòng
-    handleSend();
-  }
-};
-
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
 
   const uniqueMessages = useMemo(() => {
     const seen = new Set();
@@ -151,16 +119,12 @@ const handleInputKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
 
   const lastSentByMe = [...uniqueMessages].reverse().find((msg) => msg.sender.id === currentUserId);
 
-  // const targetUser = messages[0]?.sender.id === currentUserId ? messages[0]?.receiver : messages[0]?.sender;
-
   useEffect(() => {
-    // Nếu đã có messages thì set từ đó
     if (messages.length > 0) {
       const msg = messages[0];
       const user = msg.sender.id === currentUserId ? msg.receiver : msg.sender;
       setTargetUser(user);
     } else if (!targetUser) {
-      // Chỉ gọi API nếu targetUser chưa được set
       userService.getPublicUserInfo(targetUserId).then((res) => {
         if (res) setTargetUser(res);
       });
@@ -187,8 +151,6 @@ const handleInputKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         emoji,
       });
     }
-
-    setShowEmojiPicker(false);
   };
 
   const handleDeleteMessageForMe = async (messageId: number) => {
@@ -214,6 +176,7 @@ const handleInputKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       console.error('Lỗi khi bỏ chặn:', error);
     }
   };
+
   return (
     <div className="flex flex-col h-[85vh] md:h-[90vh] bg-[#f0f2f5] dark:bg-[#242526] w-full">
       {/* Header */}
@@ -363,7 +326,6 @@ const handleInputKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
                                   }
                                 />
                               )}
-
                               <span>{msg.content}</span>
                             </div>
                           ) : (
@@ -417,7 +379,6 @@ const handleInputKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
                           </div>
                           <div className="relative flex items-center">
                             <button
-                              ref={buttonRef}
                               className="text-[#65676b] dark:text-[#b0b3b8] hover:text-[#0084ff]"
                               onClick={() =>
                                 setOpenedOptionsMsgId((prev) => (prev === msg.id ? null : msg.id))
@@ -605,46 +566,14 @@ const handleInputKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
           )}
         </div>
       ) : (
-
-        <div className="p-2 border-t border-gray-200 dark:border-[#4a4b4c] bg-white dark:bg-[#3a3b3c] flex items-center gap-2 relative">
-          <TextareaAutosize
-            rows={1}
-            className="flex-1 border-0 rounded-xl px-4 py-2 text-sm text-[#050505] dark:text-[#e4e6eb] bg-[#f0f2f5] dark:bg-[#4a4b4c] placeholder-[#65676b] dark:placeholder-[#b0b3b8] focus:outline-none resize-none max-h-[6.5rem] overflow-y-auto"
-            style={{ lineHeight: '1.5rem' }} // 1.5rem * 3 = 4.5rem + padding ≈ 6.5rem
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleInputKeyDown}
-            placeholder="Nhập tin nhắn..."
-          />
-          <button
-            ref={buttonRef}
-            onClick={() => setShowEmojiPicker((prev) => !prev)}
-            className="text-[#65676b] dark:text-[#b0b3b8] hover:text-[#0084ff] p-2"
-          >
-            <Laugh size={20} />
-          </button>
-          {showEmojiPicker && (
-            <div ref={emojiPickerRef} className="absolute bottom-full right-2 mb-2 z-50">
-              <Picker
-                data={data}
-                onEmojiSelect={(emoji: any) => {
-                  setInput((prev) => prev + emoji.native);
-                }}
-                theme={isDark ? 'dark' : 'light'}
-              />
-            </div>
-          )}
-          <button
-            className="text-[#0084ff] hover:bg-[#f0f2f5] dark:hover:bg-[#4a4b4c] p-2 rounded-full"
-            onClick={handleSend}
-            disabled={!input.trim()}
-          >
-            <SendHorizontal size={20} />
-          </button>
-        </div>
-
+        <MessageInput
+          input={input}
+          setInput={setInput}
+          handleSend={handleSend}
+          handleInputKeyDown={handleInputKeyDown}
+          disabled={!input.trim()}
+        />
       )}
-
     </div>
   );
 }
