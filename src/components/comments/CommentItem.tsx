@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import ReactionButtonForComment from './ReactionButtonForComment';
 import type { ReactionType } from '@/types/post';
 import ReactionListModal from '../posts/ReactionListModal';
@@ -10,6 +10,7 @@ import { useUserStore } from '@/stores/userStore';
 import { ConfirmDelete } from '../common/ui/ConfirmDelete';
 import TextareaAutosize from 'react-textarea-autosize';
 import { toast } from 'sonner';
+
 function formatRelativeTime(dateString: string) {
     const date = new Date(dateString);
     const now = new Date();
@@ -41,6 +42,7 @@ export default function CommentItem({
     postOwnerId,
     fullNamePostOwner,
     onDelete,
+    parentIdOfParent,
 }: {
     comment: any;
     currentUserId: number;
@@ -50,6 +52,7 @@ export default function CommentItem({
     postOwnerId: number;
     fullNamePostOwner: string;
     onDelete: (commentId: number) => void;
+    parentIdOfParent: number; // id comment cha của comment này
 }) {
     const [showReplies, setShowReplies] = useState(false);
     const [replyContent, setReplyContent] = useState('');
@@ -57,17 +60,28 @@ export default function CommentItem({
     const [showReactionList, setShowReactionList] = useState(false);
     const isLevelTwo = comment.parent !== null;
     const currentUser = useUserStore(state => state.user);
+    const replyInputRef = useRef<HTMLTextAreaElement>(null);
+
     if (!currentUser) return null;
+
+    // Focus input mỗi khi showReplies chuyển từ false sang true
+    useEffect(() => {
+        if (showReplies) {
+            replyInputRef.current?.focus();
+        }
+    }, [showReplies]);
+
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault(); // chặn xuống dòng khi chỉ nhấn Enter
+            e.preventDefault();
             handleReply();
         }
     };
 
     const handleReply = () => {
         if (!replyContent.trim()) return;
-        onReply(comment.id, replyContent);
+
+        onReply(parentIdOfParent, replyContent);
 
         if (postOwnerId !== cmtOwnerId) {
             notificationService.sendNotification(
@@ -107,6 +121,13 @@ export default function CommentItem({
         };
     }, [reactions]);
 
+    // Chỉnh nút Trả lời chỉ mở input, không đóng, và focus tự động
+    const handleReplyButtonClick = () => {
+        if (!showReplies) {
+            setShowReplies(true);
+        }
+    };
+
     return (
         <div className="bg-white dark:bg-dark-card rounded-xl p-3">
             <div className="flex items-start gap-3">
@@ -125,8 +146,6 @@ export default function CommentItem({
                     <div className="text-sm text-gray-800 dark:text-gray-200 break-all whitespace-pre-wrap max-w-[85%] overflow-hidden">
                         {comment.content}
                     </div>
-
-
 
                     {totalReactions > 0 && (
                         <div
@@ -155,14 +174,12 @@ export default function CommentItem({
                             onReactionsUpdated={setReactions}
                         />
 
-                        {!isLevelTwo && (
-                            <button
-                                onClick={() => setShowReplies(true)}
-                                className="text-xs text-blue-500"
-                            >
-                                Trả lời
-                            </button>
-                        )}
+                        <button
+                            onClick={handleReplyButtonClick}
+                            className="text-xs text-blue-500"
+                        >
+                            Trả lời
+                        </button>
 
                         {comment.user.id === currentUserId && (
                             <button
@@ -191,16 +208,17 @@ export default function CommentItem({
                 </div>
             </div>
 
-            {!isLevelTwo && showReplies && (
+            {showReplies && (
                 <div className="flex items-center gap-2 mt-2 ml-12">
                     <TextareaAutosize
+                        ref={replyInputRef}
                         value={replyContent}
                         onChange={(e) => setReplyContent(e.target.value)}
                         onKeyDown={handleKeyDown}
                         placeholder="Viết phản hồi..."
                         minRows={1}
                         maxRows={3}
-                        className="flex-1 bg-gray-200 dark:bg-[#333] rounded-xl px-4 py-1 text-sm dark:text-white resize-none overflow-y-auto"
+                        className="flex-1 bg-gray-100 dark:bg-[#333] rounded-xl px-4 py-1 text-sm dark:text-white resize-none overflow-y-auto"
                     />
 
                     <button
@@ -212,16 +230,7 @@ export default function CommentItem({
                 </div>
             )}
 
-            {!isLevelTwo && comment.replies?.length > 0 && !showReplies && (
-                <button
-                    onClick={() => setShowReplies(true)}
-                    className="ml-12 text-xs text-gray-500 dark:text-gray-400 mt-1"
-                >
-                    Xem tất cả {comment.replies.length} phản hồi
-                </button>
-            )}
-
-            {!isLevelTwo && showReplies && comment.replies?.length > 0 && (
+            {comment.replies?.length > 0 && (
                 <div className="mt-3 ml-8 border-l border-gray-300 dark:border-gray-700 pl-4 space-y-3">
                     {comment.replies.map((reply: any) => (
                         <CommentItem
@@ -229,11 +238,12 @@ export default function CommentItem({
                             comment={reply}
                             currentUserId={currentUserId}
                             postId={postId}
-                            cmtOwnerId={cmtOwnerId}
+                            cmtOwnerId={reply.user.id || null}
                             onReply={onReply}
                             postOwnerId={postOwnerId}
                             fullNamePostOwner={fullNamePostOwner}
                             onDelete={onDelete}
+                            parentIdOfParent={comment.id} // reply con cũng truyền parentIdOfParent là id comment cha
                         />
                     ))}
                 </div>

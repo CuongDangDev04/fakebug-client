@@ -1,19 +1,26 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { commentService } from '@/services/commentService';
 import CommentItem from './CommentItem';
 import { useUserStore } from '@/stores/userStore';
 import Link from 'next/link';
 import { notificationService } from '@/services/notificationService';
 import TextareaAutosize from 'react-textarea-autosize';
+
 export default function CommentBox({ postId, postOwnerId, fullNamePostOwner }: { postId: number, postOwnerId: number, fullNamePostOwner: string }) {
     const currentUser = useUserStore(state => state.user);
     const [comments, setComments] = useState<any[]>([]);
     const [newComment, setNewComment] = useState('');
-    const [fullNameCommentParent, setFullNameCommentParent] = useState<String>('')
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
     if (!currentUser) return null;
 
+    // Focus textarea khi component mount
+    useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.focus();
+        }
+    }, []);
     const fetchComments = async () => {
         const res = await commentService.getCommentsByPost(postId);
         if (res) setComments(res);
@@ -26,20 +33,12 @@ export default function CommentBox({ postId, postOwnerId, fullNamePostOwner }: {
     const handleReply = async (parentId: number, content: string) => {
         if (!content.trim()) return;
         await commentService.createComment(postId, currentUser.id, content, parentId);
-        fetchComments();
-
-        const getFullNameFromUser = (user: any[], parentId: number): string => {
-            const usercmt = user.find(r => r.id === parentId);
-            return usercmt ? `${usercmt.user.first_name} ${usercmt.user.last_name}` : '';
-        };
-
-        const name = getFullNameFromUser(comments, parentId);
-        if (name) setFullNameCommentParent(name);
+        await fetchComments();
 
         if (currentUser.id !== postOwnerId) {
             await notificationService.sendNotification(
                 postOwnerId,
-                `${currentUser.first_name} ${currentUser.last_name} đã trả lời bình luận của ${name} về bài viết của bạn`,
+                `${currentUser.first_name} ${currentUser.last_name} đã trả lời bình luận về bài viết của bạn`,
                 `/bai-viet/${postId}`,
                 `${currentUser.avatar_url}`
             );
@@ -60,16 +59,15 @@ export default function CommentBox({ postId, postOwnerId, fullNamePostOwner }: {
         }
 
         setNewComment('');
-        fetchComments();
+        await fetchComments();
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault(); // ngăn xuống dòng
+            e.preventDefault();
             handleNewComment();
         }
     };
-
 
     const topLevelComments = comments.filter(c => c.parent === null);
 
@@ -85,12 +83,13 @@ export default function CommentBox({ postId, postOwnerId, fullNamePostOwner }: {
                 </Link>
                 <TextareaAutosize
                     value={newComment}
+                    ref={textareaRef}
                     onChange={(e) => setNewComment(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Viết bình luận công khai..."
                     minRows={1}
                     maxRows={3}
-                    className="flex-1 bg-gray-200 dark:bg-[#333] rounded-xl px-4 py-2 text-sm dark:text-white focus:outline-none resize-none overflow-y-auto"
+                    className="flex-1 bg-gray-100 dark:bg-[#333] rounded-xl px-4 py-2 text-sm dark:text-white focus:outline-none resize-none overflow-y-auto"
                 />
 
                 <button
@@ -114,8 +113,9 @@ export default function CommentBox({ postId, postOwnerId, fullNamePostOwner }: {
                         fullNamePostOwner={fullNamePostOwner}
                         onDelete={async (commentId) => {
                             await commentService.deleteComment(commentId);
-                            fetchComments();
+                            await fetchComments();
                         }}
+                        parentIdOfParent={comment.id} // comment cha có parentIdOfParent là chính nó
                     />
                 ))}
             </div>
