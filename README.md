@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Social Network Client
 
-## Getting Started
+Đây là frontend của dự án **Social Network**, được xây dựng bằng [Next.js](https://nextjs.org). Dự án cung cấp giao diện người dùng cho một mạng xã hội với các chức năng như đăng ký, đăng nhập, đăng nhập bằng Google, đăng bài, kết bạn, nhắn tin, bình luận, và nhiều tính năng khác.
 
-First, run the development server:
+🚀 **Demo:** [https://fakebug.vercel.app/](https://fakebug.vercel.app/)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Chức năng chính
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Đăng ký, đăng nhập, đăng nhập google, xác thực người dùng
+- Quản lý hồ sơ cá nhân (profile)
+- Đăng bài viết, hình ảnh, video
+- Bình luận, thích (like), chia sẻ bài viết
+- Kết bạn, quản lý danh sách bạn bè
+- Nhắn tin trực tiếp (chat real-time) dùng thư viện socket.io
+- Call audio, video dùng WebRTC 
+- Thông báo (notifications) realtime dùng thư viện socket.io
+- Tìm kiếm người dùng, bài viết
+- Responsive UI, tối ưu cho cả desktop và mobile
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Cấu trúc thư mục
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `app/` - Các trang chính của ứng dụng (Next.js App Router)
+- `components/` - Các component dùng chung
+- `hooks/` - Custom React hooks
+- `public/` - Ảnh, icon, tài nguyên tĩnh
+- `stores/` - Store dùng thư viện Zustand để quản lí state toàn cục 
+- `services/` - Gọi api Backend, cấu hình api
+- `types/` - Định nghĩa kiểu dữ liệu TypeScript
+- `utils/` - Các hàm tiện ích
 
-## Learn More
+## Yêu cầu
 
-To learn more about Next.js, take a look at the following resources:
+- Node.js >= 18
+- Kết nối với backend (API) của dự án Social Network (xem hướng dẫn backend ở repo khác)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Hướng dẫn chạy dự án
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. **Cài đặt dependencies:**
 
-## Deploy on Vercel
+   ```bash
+   npm install
+   # hoặc
+   yarn install
+   # hoặc
+   pnpm install
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+2. **Cấu hình biến môi trường:**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   Tạo file `.env` dựa trên file mẫu `.env.example` (nếu có), cấu hình các biến như API endpoint, v.v.
+
+3. **Chạy server phát triển:**
+
+   ```bash
+   npm run dev
+   # hoặc
+   yarn dev
+   # hoặc
+   pnpm dev
+   # hoặc
+   bun dev
+   ```
+
+   Mở [http://localhost:3000](http://localhost:3000) trên trình duyệt để xem kết quả.
+
+4. **Build production:**
+
+   ```bash
+   npm run build
+   npm start
+   ```
+
+## Lưu ý
+
+- Đây chỉ là phần frontend, cần chạy backend song song để sử dụng đầy đủ chức năng.
+
+## Tham khảo
+
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Learn Next.js](https://nextjs.org/learn)
+- [Vercel Deployment](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme)
+
+---
