@@ -36,7 +36,7 @@ export default function SharePostModal({
             const res = await postService.sharePost(originalPost.id, {
                 content,
                 privacy,
-                
+
             });
 
             onClose();
@@ -54,7 +54,20 @@ export default function SharePostModal({
             setPrivacy('public');
         }
     }, [isOpen]);
+    useEffect(() => {
+        if (!isOpen) return;
 
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isOpen, onClose]);
     if (!userId) return null;
 
     return (
@@ -80,13 +93,22 @@ export default function SharePostModal({
 
             <div className="border rounded-md p-3 mt-4 bg-gray-50 dark:bg-dark-bg text-sm text-gray-700 dark:text-gray-300">
                 <p className="italic text-gray-500 dark:text-gray-400 mb-1">Bài viết gốc:</p>
-                <p className="whitespace-pre-line">{originalPost.content}</p>
-                {originalPost.media_url && (
-                    <div className="mt-2 rounded overflow-hidden">
-                        <img src={originalPost.media_url} alt="Ảnh gốc" className="w-full rounded-md" />
-                    </div>
-                )}
+
+                <div className="max-h-64 overflow-y-auto space-y-2">
+                    <p className="whitespace-pre-line">{originalPost.content}</p>
+
+                    {originalPost.media_url && (
+                        <div className="rounded overflow-hidden">
+                            <img
+                                src={originalPost.media_url}
+                                alt="Ảnh gốc"
+                                className="w-full max-h-80 object-contain rounded-md"
+                            />
+                        </div>
+                    )}
+                </div>
             </div>
+
 
             <div className="flex justify-end mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
                 <button

@@ -265,11 +265,11 @@ export default function PostItem({ post, onDeleted }: PostItemProps) {
 
 
             {currentPost.media_url && (
-                <div className="overflow-hidden rounded-lg">
+                <div className="overflow-hidden rounded-lg w-full">
                     <img
                         src={currentPost.media_url}
                         alt="Post Image"
-                        className="object-cover w-full max-h-[500px]"
+                        className="w-full h-auto object-contain mx-auto"
                     />
                 </div>
             )}
