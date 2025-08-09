@@ -7,12 +7,22 @@ import { useUserStore } from '@/stores/userStore';
 import Link from 'next/link';
 import { notificationService } from '@/services/notificationService';
 import TextareaAutosize from 'react-textarea-autosize';
+import { useEmojiPicker } from '@/hooks/useEmojiPicker';
+import { Laugh, SendHorizontal } from 'lucide-react';
+import EmojiPickerComponent from '../common/ui/EmojiPickerComponent';
 
 export default function CommentBox({ postId, postOwnerId, fullNamePostOwner }: { postId: number, postOwnerId: number, fullNamePostOwner: string }) {
     const currentUser = useUserStore(state => state.user);
     const [comments, setComments] = useState<any[]>([]);
     const [newComment, setNewComment] = useState('');
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const buttonRef = useRef<HTMLButtonElement>(null!);
+
+    const { showEmojiPicker, setShowEmojiPicker, emojiPickerRef, handleEmojiSelect } = useEmojiPicker(
+        (emoji: string) => setNewComment(newComment + emoji),
+        buttonRef
+    );
+
     if (!currentUser) return null;
 
     // Focus textarea khi component mount
@@ -21,6 +31,7 @@ export default function CommentBox({ postId, postOwnerId, fullNamePostOwner }: {
             textareaRef.current.focus();
         }
     }, []);
+
     const fetchComments = async () => {
         const res = await commentService.getCommentsByPost(postId);
         if (res) setComments(res);
@@ -50,7 +61,7 @@ export default function CommentBox({ postId, postOwnerId, fullNamePostOwner }: {
         await commentService.createComment(postId, currentUser.id, newComment);
 
         if (currentUser.id !== postOwnerId) {
-            await notificationService.sendNotification(
+            notificationService.sendNotification(
                 postOwnerId,
                 `${currentUser.first_name} ${currentUser.last_name} đã bình luận về bài viết của bạn`,
                 `/bai-viet/${postId}`,
@@ -59,6 +70,7 @@ export default function CommentBox({ postId, postOwnerId, fullNamePostOwner }: {
         }
 
         setNewComment('');
+        setShowEmojiPicker(false); // Đóng picker sau khi gửi
         await fetchComments();
     };
 
@@ -73,7 +85,7 @@ export default function CommentBox({ postId, postOwnerId, fullNamePostOwner }: {
 
     return (
         <div className="mt-4">
-            <div className="flex items-center py-4 px-4 rounded-xl bg-white dark:bg-dark-card gap-2 mb-4">
+            <div className="flex items-center py-4 px-4 rounded-xl bg-white dark:bg-dark-card gap-2 mb-4 relative">
                 <Link href={`/trang-ca-nhan/${currentUser.id}`}>
                     <img
                         src={currentUser?.avatar_url || '/default-avatar.png'}
@@ -91,12 +103,25 @@ export default function CommentBox({ postId, postOwnerId, fullNamePostOwner }: {
                     maxRows={3}
                     className="flex-1 bg-gray-100 dark:bg-[#333] rounded-xl px-4 py-2 text-sm dark:text-white focus:outline-none resize-none overflow-y-auto"
                 />
-
+                <button
+                    ref={buttonRef}
+                    onClick={() => setShowEmojiPicker((prev) => !prev)}
+                    className="text-[#65676b] dark:text-[#b0b3b8] hover:text-[#0084ff] p-2"
+                >
+                    <Laugh size={20} />
+                </button>
+                <EmojiPickerComponent
+                    show={showEmojiPicker}
+                    onEmojiSelect={handleEmojiSelect}
+                    emojiPickerRef={emojiPickerRef}
+                />
                 <button
                     onClick={handleNewComment}
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full text-sm"
+                    className="px-4 py-2 hover:text-blue-600  "
+                    disabled={!newComment.trim()}
                 >
-                    Gửi
+                    <SendHorizontal size={20} />
+
                 </button>
             </div>
 
@@ -115,7 +140,7 @@ export default function CommentBox({ postId, postOwnerId, fullNamePostOwner }: {
                             await commentService.deleteComment(commentId);
                             await fetchComments();
                         }}
-                        parentIdOfParent={comment.id} // comment cha có parentIdOfParent là chính nó
+                        parentIdOfParent={comment.id}
                     />
                 ))}
             </div>

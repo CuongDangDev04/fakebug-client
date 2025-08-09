@@ -10,17 +10,10 @@ import { useUserStore } from '@/stores/userStore';
 import { ConfirmDelete } from '../common/ui/ConfirmDelete';
 import TextareaAutosize from 'react-textarea-autosize';
 import { toast } from 'sonner';
-
-function formatRelativeTime(dateString: string) {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-    if (diff < 60) return 'Vừa xong';
-    if (diff < 3600) return `${Math.floor(diff / 60)} phút trước`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)} giờ trước`;
-    return `${Math.floor(diff / 86400)} ngày trước`;
-}
+import { useEmojiPicker } from '@/hooks/useEmojiPicker';
+import { Laugh, SendHorizontal } from 'lucide-react';
+import EmojiPickerComponent from '../common/ui/EmojiPickerComponent';
+import { formatRelativeTime } from '@/utils/formatRelativeTime';
 
 const reactionIcons: Record<ReactionType, string> = {
     like: '/reactions/like.svg',
@@ -52,7 +45,7 @@ export default function CommentItem({
     postOwnerId: number;
     fullNamePostOwner: string;
     onDelete: (commentId: number) => void;
-    parentIdOfParent: number; // id comment cha của comment này
+    parentIdOfParent: number;
 }) {
     const [showReplies, setShowReplies] = useState(false);
     const [replyContent, setReplyContent] = useState('');
@@ -61,6 +54,12 @@ export default function CommentItem({
     const isLevelTwo = comment.parent !== null;
     const currentUser = useUserStore(state => state.user);
     const replyInputRef = useRef<HTMLTextAreaElement>(null);
+    const buttonRef = useRef<HTMLButtonElement>(null!);
+
+    const { showEmojiPicker, setShowEmojiPicker, emojiPickerRef, handleEmojiSelect } = useEmojiPicker(
+        (emoji: string) => setReplyContent(replyContent + emoji),
+        buttonRef
+    );
 
     if (!currentUser) return null;
 
@@ -94,6 +93,7 @@ export default function CommentItem({
 
         setReplyContent('');
         setShowReplies(true);
+        setShowEmojiPicker(false); // Đóng picker sau khi gửi reply
     };
 
     const currentUserReaction = reactions.find(
@@ -209,7 +209,7 @@ export default function CommentItem({
             </div>
 
             {showReplies && (
-                <div className="flex items-center gap-2 mt-2 ml-12">
+                <div className="flex items-center gap-2 mt-2 ml-12 relative">
                     <TextareaAutosize
                         ref={replyInputRef}
                         value={replyContent}
@@ -220,12 +220,25 @@ export default function CommentItem({
                         maxRows={3}
                         className="flex-1 bg-gray-100 dark:bg-[#333] rounded-xl px-4 py-1 text-sm dark:text-white resize-none overflow-y-auto"
                     />
-
+                    <button
+                        ref={buttonRef}
+                        onClick={() => setShowEmojiPicker((prev) => !prev)}
+                        className="text-[#65676b] dark:text-[#b0b3b8] hover:text-[#0084ff] p-2"
+                    >
+                        <Laugh size={20} />
+                    </button>
+                    <EmojiPickerComponent
+                        show={showEmojiPicker}
+                        onEmojiSelect={handleEmojiSelect}
+                        emojiPickerRef={emojiPickerRef}
+                    />
                     <button
                         onClick={handleReply}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-full text-xs"
+                        className=" hover:text-blue-600 px-3 py-1 "
+                        disabled={!replyContent.trim()}
                     >
-                        Gửi
+                    <SendHorizontal size={20} />
+                        
                     </button>
                 </div>
             )}
@@ -243,7 +256,7 @@ export default function CommentItem({
                             postOwnerId={postOwnerId}
                             fullNamePostOwner={fullNamePostOwner}
                             onDelete={onDelete}
-                            parentIdOfParent={comment.id} // reply con cũng truyền parentIdOfParent là id comment cha
+                            parentIdOfParent={comment.id}
                         />
                     ))}
                 </div>
