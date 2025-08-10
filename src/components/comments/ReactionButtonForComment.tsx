@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ThumbsUp } from 'lucide-react';
-import { commentService } from '@/services/commentService';
 import { useUserStore } from '@/stores/userStore';
 import type { ReactionType } from '@/types/post';
 
@@ -29,11 +28,13 @@ export default function ReactionButtonForComment({
     initialReaction,
     initialReactions,
     onReactionsUpdated,
+    reactComment,
 }: {
     commentId: number;
     initialReaction: ReactionType | null;
-    initialReactions: any[]; // mảng reactions từ backend
-    onReactionsUpdated?: (reactions: any[]) => void; // callback để update tổng số
+    initialReactions: any[];
+    onReactionsUpdated?: (reactions: any[]) => void;
+    reactComment: (commentId: number, userId: number, type: ReactionType | null) => void;
 }) {
     const currentUser = useUserStore(state => state.user);
 
@@ -42,42 +43,60 @@ export default function ReactionButtonForComment({
     const [showReactions, setShowReactions] = useState(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+    useEffect(() => {
+        setReactionsList(initialReactions);
+    }, [initialReactions]);
+
+    useEffect(() => {
+        setSelectedReaction(initialReaction);
+    }, [initialReaction]);
+
     const updateAndNotify = (newReactions: any[]) => {
         setReactionsList(newReactions);
-        if (onReactionsUpdated) onReactionsUpdated(newReactions);
+        if (onReactionsUpdated) {
+            onReactionsUpdated(newReactions);
+        }
     };
 
-    const handleReact = async (reaction: ReactionType) => {
-        if (!currentUser) return;
+    const handleReact = (reaction: ReactionType) => {
+        if (!currentUser) {
+            console.warn('[ReactionButton] No currentUser, cannot react');
+            return;
+        }
 
-        await commentService.reactToComment(commentId, currentUser.id, reaction);
+
+        reactComment(commentId, currentUser.id, reaction);
 
         setSelectedReaction(reaction);
         setShowReactions(false);
 
-        // Cập nhật local reactions:
-        const otherReactions = reactionsList.filter(r => r.user.id !== currentUser.id);
+        const otherReactions = reactionsList.filter(r => r.user && r.user.id !== currentUser.id);
         const newReactions = [...otherReactions, { user: currentUser, type: reaction }];
+
         updateAndNotify(newReactions);
     };
 
-    const handleRemoveReaction = async () => {
-        if (!currentUser) return;
+    const handleRemoveReaction = () => {
+        if (!currentUser) {
+            console.warn('[ReactionButton] No currentUser, cannot remove reaction');
+            return;
+        }
 
-        await commentService.reactToComment(commentId, currentUser.id, null);
+
+        reactComment(commentId, currentUser.id, null);
 
         setSelectedReaction(null);
 
-        // Xóa reaction khỏi danh sách local:
-        const newReactions = reactionsList.filter(r => r.user.id !== currentUser.id);
+        const newReactions = reactionsList.filter(r => r.user && r.user.id !== currentUser.id);
+
         updateAndNotify(newReactions);
     };
 
-    const handleButtonClick = async () => {
+    const handleButtonClick = () => {
         if (selectedReaction) {
-            await handleRemoveReaction();
+            handleRemoveReaction();
         } else {
-            await handleReact('like');
+            handleReact('like');
         }
     };
 
@@ -119,9 +138,6 @@ export default function ReactionButtonForComment({
                 </span>
             </button>
 
-            
-
-            {/* Bảng chọn reactions */}
             {showReactions && (
                 <div className="absolute bottom-10 left-0 bg-white dark:bg-dark-card rounded-full shadow-lg flex gap-3 px-4 py-2 z-50 min-w-[300px] justify-center">
                     {reactions.map(r => (

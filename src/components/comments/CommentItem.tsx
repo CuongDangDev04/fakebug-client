@@ -36,6 +36,7 @@ export default function CommentItem({
     fullNamePostOwner,
     onDelete,
     parentIdOfParent,
+    reactComment, // thêm prop này
 }: {
     comment: any;
     currentUserId: number;
@@ -46,6 +47,7 @@ export default function CommentItem({
     fullNamePostOwner: string;
     onDelete: (commentId: number) => void;
     parentIdOfParent: number;
+    reactComment: (commentId: number, userId: number, type: ReactionType | null) => void; // thêm kiểu
 }) {
     const [showReplies, setShowReplies] = useState(false);
     const [replyContent, setReplyContent] = useState('');
@@ -63,12 +65,16 @@ export default function CommentItem({
 
     if (!currentUser) return null;
 
-    // Focus input mỗi khi showReplies chuyển từ false sang true
     useEffect(() => {
         if (showReplies) {
             replyInputRef.current?.focus();
         }
     }, [showReplies]);
+
+    // Đồng bộ reactions khi prop comment.reactions thay đổi (ví dụ realtime update)
+    useEffect(() => {
+        setReactions(comment.reactions || []);
+    }, [comment.reactions]);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -93,7 +99,7 @@ export default function CommentItem({
 
         setReplyContent('');
         setShowReplies(true);
-        setShowEmojiPicker(false); // Đóng picker sau khi gửi reply
+        setShowEmojiPicker(false);
     };
 
     const currentUserReaction = reactions.find(
@@ -121,7 +127,6 @@ export default function CommentItem({
         };
     }, [reactions]);
 
-    // Chỉnh nút Trả lời chỉ mở input, không đóng, và focus tự động
     const handleReplyButtonClick = () => {
         if (!showReplies) {
             setShowReplies(true);
@@ -172,6 +177,7 @@ export default function CommentItem({
                             initialReaction={currentUserReaction}
                             initialReactions={reactions}
                             onReactionsUpdated={setReactions}
+                            reactComment={reactComment} // Truyền hàm reactComment
                         />
 
                         <button
@@ -189,7 +195,7 @@ export default function CommentItem({
                                         description: 'Bình luận này sẽ bị xoá vĩnh viễn.',
                                         onConfirm: async () => {
                                             await onDelete(comment.id);
-                                            toast.success("Xoá bình luận thành công")
+                                            toast.success("Xoá bình luận thành công");
                                         },
                                         confirmText: 'Xoá',
                                         cancelText: 'Huỷ',
@@ -223,7 +229,7 @@ export default function CommentItem({
                     <button
                         ref={buttonRef}
                         onClick={() => setShowEmojiPicker((prev) => !prev)}
-                        className="text-[#65676b] dark:text-[#b0b3b8] hover:text-[#0084ff] p-2"
+                        className="text-[#65676b] dark:text-[#b0b3b8] hover:text-[#0084ff]"
                     >
                         <Laugh size={20} />
                     </button>
@@ -234,11 +240,10 @@ export default function CommentItem({
                     />
                     <button
                         onClick={handleReply}
-                        className=" hover:text-blue-600 px-3 py-1 "
+                        className=" hover:text-blue-600  py-1 "
                         disabled={!replyContent.trim()}
                     >
-                    <SendHorizontal size={20} />
-                        
+                        <SendHorizontal size={20} />
                     </button>
                 </div>
             )}
@@ -251,12 +256,13 @@ export default function CommentItem({
                             comment={reply}
                             currentUserId={currentUserId}
                             postId={postId}
-                            cmtOwnerId={reply.user.id || null}
+                            cmtOwnerId={reply.user.id}
                             onReply={onReply}
                             postOwnerId={postOwnerId}
                             fullNamePostOwner={fullNamePostOwner}
                             onDelete={onDelete}
                             parentIdOfParent={comment.id}
+                            reactComment={reactComment} // truyền tiếp reactComment cho reply
                         />
                     ))}
                 </div>
@@ -264,13 +270,15 @@ export default function CommentItem({
 
             {showReactionList && (
                 <ReactionListModal
-                    users={reactions.map(r => ({
-                        id: r.user.id,
-                        first_name: r.user.first_name,
-                        last_name: r.user.last_name,
-                        avatar_url: r.user.avatar_url,
-                        type: r.type,
-                    }))}
+                    users={reactions
+                        .filter(r => r.user)
+                        .map(r => ({
+                            id: r.user.id,
+                            first_name: r.user.first_name,
+                            last_name: r.user.last_name,
+                            avatar_url: r.user.avatar_url,
+                            type: r.type,
+                        }))}
                     onClose={() => setShowReactionList(false)}
                 />
             )}
