@@ -19,6 +19,9 @@ import {
   Archive,
   Flag
 } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 interface ConversationItemProps {
   fm: FriendsMessage
@@ -26,7 +29,7 @@ interface ConversationItemProps {
   onDeleteConversation?: () => void
 }
 
- function ConversationItem({ fm, onClick, onDeleteConversation }: ConversationItemProps) {
+function ConversationItem({ fm, onClick, onDeleteConversation }: ConversationItemProps) {
   const { isOnline } = useUserOnlineStatus(fm.friendId)
   const unreadCount = typeof fm.unreadCount === 'number' ? fm.unreadCount : 0
   const isUnread = unreadCount > 0
@@ -34,13 +37,13 @@ interface ConversationItemProps {
   const sentAtFormatted =
     fm.sent_at && !isNaN(new Date(fm.sent_at).getTime())
       ? formatRelativeTime(fm.sent_at)
-      : 'Vừa xong'
+      : ''
 
   const { setFriends } = useFriendMessagesStore()
   const [loading, setLoading] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
-
+  const router = useRouter()
   const handleClick = async (e: React.MouseEvent) => {
     if (isUnread && !loading) {
       setLoading(true)
@@ -65,14 +68,14 @@ interface ConversationItemProps {
   const handleBlockUser = async (userId: number, userName: string) => {
     try {
       await messageService.blockUser(userId);
-      alert(`Đã chặn ${userName}`);
+      toast.success(`Đã chặn ${userName}`);
       setMenuOpen(false);
 
       // Tuỳ chọn: gọi lại danh sách bạn bè
       const res = await messageService.getFriendMessages();
       setFriends(res.friends);
     } catch (error) {
-      alert('Không thể chặn người dùng.');
+      toast.error('Không thể chặn người dùng.');
       console.error(error);
     }
   };
@@ -153,8 +156,15 @@ interface ConversationItemProps {
           <div className="absolute right-0 top-6 z-50 w-56 bg-white dark:bg-neutral-900 shadow-xl rounded-lg overflow-hidden border border-gray-200 dark:border-neutral-700">
             <ul className="text-sm text-gray-700 dark:text-gray-200">
 
-
-              <li className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-neutral-800 cursor-pointer flex items-center gap-2">
+              <li
+                onClick={(e) => {
+                  e.preventDefault();    // Chặn hành vi mặc định
+                  e.stopPropagation();   // Dừng sự kiện lan truyền
+                  router.push(`/trang-ca-nhan/${fm.friendId}`);
+                  setMenuOpen(false);
+                }}
+                className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-neutral-800 cursor-pointer flex items-center gap-2"
+              >
                 <User size={16} /> Xem trang cá nhân
               </li>
 
@@ -165,7 +175,7 @@ interface ConversationItemProps {
                 }}
                 className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-neutral-800 cursor-pointer flex items-center gap-2 text-red-600 dark:text-red-400"
               >
-                <Ban size={16} /> Chặn
+                <Ban size={16} /> Chặn tin nhắn
               </li>
 
 

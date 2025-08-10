@@ -14,6 +14,7 @@ import ForwardFriendsModal from '@/components/messages/ForwardFriendsModal';
 import { useChatInfiniteScroll } from '@/hooks/useChatInfiniteScroll';
 import { userService } from '@/services/userService';
 import MessageInput from './MessageInput'; // Import component mới
+import { toast } from 'sonner';
 
 export default function ChatBox({
   currentUserId,
@@ -539,7 +540,7 @@ export default function ChatBox({
               originalMessageId: forwardMessageId,
               newReceiverId: friendId,
             });
-            alert('Đã chuyển tiếp tin nhắn.');
+            toast.success('Đã chuyển tiếp tin nhắn.');
             setShowForwardModal(false);
             setForwardMessageId(null);
           }}

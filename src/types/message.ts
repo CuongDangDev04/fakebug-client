@@ -1,7 +1,7 @@
 export interface FriendsMessage {
     id: number;
     content: string;
-    sent_at: Date;
+    sent_at: Date | null;
     senderId: string;
     receiverId: number;
     friendId:number;
