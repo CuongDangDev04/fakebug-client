@@ -9,6 +9,14 @@ export default function MobileBottomNav() {
   const pathname = usePathname()
   const { totalUnreadMessages, unreadNotificationCount } = useHeaderNotifications()
 
+  // Kiểm tra xem có phải route /tin-nhan hoặc /tin-nhan/:id hay không
+  const isInTinNhanRoute = pathname === '/tin-nhan' || pathname.startsWith('/tin-nhan/')
+
+  // Nếu đang trong route tin-nhan hoặc con của nó thì ẩn BottomNav
+  if (isInTinNhanRoute) {
+    return null
+  }
+
   const isActive = (path: string) => pathname === path
 
   return (
@@ -17,7 +25,7 @@ export default function MobileBottomNav() {
         <Home size={35} className={isActive('/') ? 'text-blue-600' : ''} />
       </Link>
 
-      <Link href="/ban-be/tat-ca" className="flex flex-col  dark:text-gray-100 items-center justify-center gap-0.5">
+      <Link href="/ban-be/tat-ca" className="flex flex-col dark:text-gray-100 items-center justify-center gap-0.5">
         <Users size={35} className={isActive('/ban-be/tat-ca') ? 'text-blue-600' : ''} />
       </Link>
 
@@ -38,6 +46,7 @@ export default function MobileBottomNav() {
           </span>
         )}
       </Link>
+
       <Link href="/menu-mobile" className="relative flex flex-col dark:text-gray-100 items-center justify-center gap-0.5">
         <Menu size={35} className={isActive('/menu-mobile') ? 'text-blue-600' : ''} />
       </Link>

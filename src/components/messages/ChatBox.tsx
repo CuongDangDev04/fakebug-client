@@ -15,6 +15,16 @@ import { useChatInfiniteScroll } from '@/hooks/useChatInfiniteScroll';
 import { userService } from '@/services/userService';
 import MessageInput from './MessageInput'; // Import component mới
 import { toast } from 'sonner';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import 'dayjs/locale/vi';
+
+dayjs.extend(relativeTime);
+dayjs.locale('vi');
+
+export const formatRelativeTime = (time: string | Date) => {
+  return dayjs(time).fromNow();
+};
 
 export default function ChatBox({
   currentUserId,
@@ -179,9 +189,9 @@ export default function ChatBox({
   };
 
   return (
-    <div className="flex flex-col h-[85vh] md:h-[90vh] bg-[#f0f2f5] dark:bg-[#242526] w-full">
+    <div className="flex flex-col h-[calc(100vh-60px)] md:h-[calc(100vh-80px)] bg-[#f0f2f5] dark:bg-[#242526] w-full">
       {/* Header */}
-      <div className="flex items-center gap-2 p-2 bg-[#f0f2f5] dark:bg-[#3a3b3c] shadow-sm border-b border-gray-200 dark:border-[#4a4b4c]">
+      <div className="flex items-center gap-2 px-2 py-1 md:px-4 md:py-2 bg-[#f0f2f5] dark:bg-[#3a3b3c] shadow-sm border-b border-gray-200 dark:border-[#4a4b4c]">
         {onBack && (
           <button
             className="md:hidden p-2 rounded-full hover:bg-gray-200 dark:hover:bg-[#4a4b4c]"
@@ -237,8 +247,8 @@ export default function ChatBox({
       {/* Messages */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-100 dark:bg-dark-bg"
-        style={{ minHeight: 0, maxHeight: 'calc(100vh - 120px)' }}
+        className="flex-1 overflow-y-auto px-1 py-2 md:px-4 md:py-3 space-y-1 md:space-y-2 bg-gray-100 dark:bg-dark-bg"
+        style={{ minHeight: 0, maxHeight: 'calc(100vh - 140px)' }}
       >
         {loading && <div className="text-[#65676b] dark:text-[#b0b3b8] text-center">Đang tải...</div>}
         {loadingMore && (
@@ -264,33 +274,29 @@ export default function ChatBox({
           return (
             <div
               key={msg.id || idx}
-              className={`flex w-full ${isMe ? 'justify-end' : 'justify-start'}`}
+              className={`flex w-full ${isMe ? 'justify-end' : 'justify-start'} py-0.5 md:py-1`}
               onMouseEnter={() => setHoveredMsgId(msg.id)}
               onMouseLeave={() => setHoveredMsgId(null)}
             >
               <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} w-full`}>
-                <div className={`flex ${isMe ? 'flex-row-reverse' : 'flex-row'} items-start gap-2 max-w-[70%]`}>
+                <div className={`flex ${isMe ? 'flex-row-reverse' : 'flex-row'} items-end gap-1 md:gap-2 max-w-[98%] md:max-w-[80%]`}>
                   {!isMe && (
                     <img
-                      className="rounded-full w-7 h-7 object-cover mt-2"
+                      className="rounded-full w-7 h-7 md:w-8 md:h-8 object-cover mt-1"
                       src={(msg.sender as any).avatar_url}
                       alt="avatar"
                     />
                   )}
-                  <div className="flex flex-col items-start">
-                    <div className={`flex items-start ${isMe ? 'flex-row-reverse' : 'flex-row'} gap-1`}>
-                      <div className="relative inline-block">
+                  <div className="flex flex-col items-start w-full">
+                    <div className={`flex items-end ${isMe ? 'flex-row-reverse' : 'flex-row'} gap-1`}>
+                      <div className="relative inline-block w-full">
                         <div
-                          className={`px-3 py-2 my-2 text-sm max-w-[300px] cursor-pointer ${isMe
+                          className={`flex items-center px-4 py-3 md:px-5 md:py-3 text-[16px] md:text-[15px] max-w-full min-h-[40px] cursor-pointer break-words ${isMe
                             ? 'bg-[#0084ff] text-white'
                             : 'bg-white dark:bg-[#3a3b3c] text-[#050505] dark:text-[#e4e6eb]'
                             }`}
                           style={{
-                            borderRadius: '18px',
-                            borderTopRightRadius: isMe ? '6px' : '18px',
-                            borderTopLeftRadius: isMe ? '18px' : '6px',
-                            borderBottomRightRadius: isMe ? '6px' : '18px',
-                            borderBottomLeftRadius: isMe ? '18px' : '6px',
+                            borderRadius: '22px', // fully rounded corners
                           }}
                           onClick={() =>
                             setShowTime((prev) => ({
@@ -330,7 +336,7 @@ export default function ChatBox({
                               <span>{msg.content}</span>
                             </div>
                           ) : (
-                            msg.content
+                            <span className="w-full">{msg.content}</span>
                           )}
                         </div>
                         {msg.reactions && msg.reactions.length > 0 && (
@@ -438,12 +444,12 @@ export default function ChatBox({
                       )}
                     </div>
                     {showTime[msg.id] && (
-                      <div className="text-[10px] text-[#65676b] dark:text-[#b0b3b8] mt-1">
-                        {sentAt && new Date(sentAt).toLocaleString()}
+                      <div className="text-[10px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5 md:mt-1">
+                        {sentAt && formatRelativeTime(sentAt)}
                       </div>
                     )}
                     {isMe && isLastSentByMe && wasRead && (
-                      <div className="text-[10px] text-[#0084ff] mt-1">Đã xem</div>
+                      <div className="text-[10px] text-[#0084ff] mt-0.5 md:mt-1">Đã xem</div>
                     )}
                   </div>
                 </div>
@@ -551,7 +557,7 @@ export default function ChatBox({
         />
       )}
       {isBlocked ? (
-        <div className="text-center text-gray-500 dark:text-white p-4">
+        <div className="text-center text-gray-500 dark:text-white p-2 md:p-4">
           {blockedBy === currentUserId ? (
             <>
               <p>Bạn đã chặn người này. Không thể gửi tin nhắn.</p>
@@ -567,13 +573,15 @@ export default function ChatBox({
           )}
         </div>
       ) : (
-        <MessageInput
-          input={input}
-          setInput={setInput}
-          handleSend={handleSend}
-          handleInputKeyDown={handleInputKeyDown}
-          disabled={!input.trim()}
-        />
+        <div className=" bg-[#f0f2f5] dark:bg-[#242526]">
+          <MessageInput
+            input={input}
+            setInput={setInput}
+            handleSend={handleSend}
+            handleInputKeyDown={handleInputKeyDown}
+            disabled={!input.trim()}
+          />
+        </div>
       )}
     </div>
   );

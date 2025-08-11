@@ -33,7 +33,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <MainWrapper>
-      <div className="relative h-screen">
+      <div className="relative ">
 
         {/* Home Feed */}
         <div className={`${isHome ? 'block' : 'hidden'} overflow-auto h-full`}>

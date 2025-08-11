@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react"; // thêm icon mũi tên
 import ConversationItem from "./ConversationItem";
 import { messageService } from "@/services/messageService";
 import { useFriendMessagesStore } from "@/stores/friendMessagesStore";
@@ -88,7 +89,6 @@ export default function ChatSidebar({
   }, []);
 
   const listToShow = search.trim() ? searchResults : friends;
-
   const totalUnread = friends.reduce((sum, f) => sum + (f.unreadCount ?? 0), 0);
 
   return (
@@ -103,20 +103,27 @@ export default function ChatSidebar({
         shadow-lg md:shadow-none
       `}
     >
+      {/* Header */}
       <div className="flex items-center justify-between p-4">
-        <span className="font-bold text-xl text-gray-900 dark:text-dark-text-primary flex items-center gap-2">
-          Đoạn chat
-          {totalUnread > 0 && (
-            <span
-              className="ml-2 bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5 min-w-[20px] text-center"
-              style={{ lineHeight: "18px" }}
-            >
-              {totalUnread}
-            </span>
-          )}
-        </span>
+        <div className="flex items-center gap-2">
+          <Link href="/" className="text-gray-600 dark:text-dark-text-secondary hover:text-blue-600">
+            <ArrowLeft size={20} />
+          </Link>
+          <span className="font-bold text-xl text-gray-900 dark:text-dark-text-primary flex items-center gap-2">
+            Đoạn chat
+            {totalUnread > 0 && (
+              <span
+                className="ml-2 bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5 min-w-[20px] text-center"
+                style={{ lineHeight: "18px" }}
+              >
+                {totalUnread}
+              </span>
+            )}
+          </span>
+        </div>
       </div>
 
+      {/* Search */}
       <div className="p-3 bg-gray-50 dark:bg-dark-card">
         <div className="flex items-center bg-gray-100 dark:bg-dark-bg rounded-full px-3 py-2">
           <svg
@@ -126,22 +133,8 @@ export default function ChatSidebar({
             strokeWidth={2}
             viewBox="0 0 24 24"
           >
-            <circle
-              cx="11"
-              cy="11"
-              r="8"
-              stroke="currentColor"
-              strokeWidth="2"
-              fill="none"
-            />
-            <line
-              x1="21"
-              y1="21"
-              x2="16.65"
-              y2="16.65"
-              stroke="currentColor"
-              strokeWidth="2"
-            />
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
           <input
             className="bg-transparent outline-none flex-1 text-sm text-gray-900 dark:text-dark-text-gray placeholder-gray-700 dark:placeholder-dark-text-secondary"
@@ -152,6 +145,7 @@ export default function ChatSidebar({
         </div>
       </div>
 
+      {/* Danh sách chat */}
       <div className="flex-1 overflow-y-auto" style={{ maxHeight: '91vh' }}>
         {(isLoading || isSearching) ? (
           <SidebarSkeleton />
@@ -163,7 +157,6 @@ export default function ChatSidebar({
               </div>
             ) : (
               listToShow.map((fm) => {
-                // Nếu là user tìm kiếm (có first_name), map lại để phù hợp ConversationItem
                 if ('first_name' in fm) {
                   const friendId = fm.id;
                   const friendName = `${fm.first_name} ${fm.last_name}`.trim();
@@ -188,7 +181,6 @@ export default function ChatSidebar({
                   );
                 }
 
-                // Trường hợp là friend messages bình thường
                 const friendId = fm.friendId ?? fm.id;
                 return (
                   <Link key={friendId} href={`/tin-nhan/${friendId}`} passHref>

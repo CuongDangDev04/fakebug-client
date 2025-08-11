@@ -29,7 +29,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
   if (!currentUserId) return null
 
   return (
-    <div className="flex h-full md:h-[90vh] relative">
+    <div className="flex  relative">
       {/* Sidebar desktop */}
       <div className="hidden md:block w-80 border-r h-full">
         <ChatSidebar
