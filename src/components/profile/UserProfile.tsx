@@ -25,6 +25,7 @@ export default function UserProfile() {
   const params = useParams();
   const userId = params?.userId as string;
   const tokenUserId = useUserStore((state) => state.user?.id);
+  const currentUser = useUserStore((state) => state?.user)
   const [profileData, setProfileData] = useState<ProfileResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -93,6 +94,12 @@ export default function UserProfile() {
       switch (friendshipStatus?.status) {
         case 'not_friend':
           await friendshipService.sendFriendRequest(Number(userId));
+            await notificationService.sendNotification(
+                Number(userId),
+                `Đã nhận lời mời kết bạn từ ${currentUser?.first_name} ${currentUser?.last_name}`,
+                "/ban-be/loi-moi-ket-ban-da-nhan",
+                currentUser?.avatar_url || '/default_avatar'
+            );
           setFriendshipStatus({ status: 'pending', message: 'Đã gửi lời mời kết bạn' });
           break;
         case 'friend':

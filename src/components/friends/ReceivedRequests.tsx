@@ -1,63 +1,45 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { friendshipService } from '@/services/friendshipService';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Check, X } from 'lucide-react';
 import { useFriendship } from '@/hooks/useFriendship';
 import ReceivedRequestSkeleton from '../skeleton/ReceivedRequestSkeleton';
-import { ConfirmDelete } from '../common/ui/ConfirmDelete';  // import modal
-import { FriendRequest } from '@/types/friendship';
+import { ConfirmDelete } from '../common/ui/ConfirmDelete';
 import { toast } from 'sonner';
+import { useFriendStore } from '@/stores/friendStore';
 
 export default function ReceivedRequests() {
-  const [receivedRequests, setReceivedRequests] = useState<FriendRequest[]>([]);
-  const [loading, setLoading] = useState(true);
+  const receivedRequests = useFriendStore(state => state.receivedRequests);
+  const loading = useFriendStore(state => state.loading);
+  const loadReceivedRequests = useFriendStore(state => state.loadReceivedRequests);
+  const setReceivedRequests = useFriendStore(state => state.setReceivedRequests);
+  const hasLoaded = useFriendStore(state => state.hasLoaded);
+
   const { respondToFriendRequest } = useFriendship();
 
   useEffect(() => {
-    loadRequests();
-  }, []);
-
-  const loadRequests = async () => {
-    try {
-      setLoading(true);
-      const received = await friendshipService.getReceivedRequests();
-      const requests = received?.data.requests || [];
-
-      const requestsWithMutuals = await Promise.all(
-        requests.map(async (req: any) => {
-          try {
-            const mutualResponse = await friendshipService.getMutualFriends(req.from.id);
-            return { ...req, mutualFriends: mutualResponse?.data.total || 0 };
-          } catch {
-            return { ...req, mutualFriends: 0 };
-          }
-        })
-      );
-
-      setReceivedRequests(requestsWithMutuals);
-    } catch (error) {
-      console.error('Lỗi khi tải lời mời kết bạn:', error);
-      setReceivedRequests([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+     if (!hasLoaded) {
+    loadReceivedRequests();
+     }
+  }, [loadReceivedRequests,hasLoaded]);
 
   const handleRespond = async (requestId: number, accept: boolean) => {
-    const request: any = receivedRequests.find((r: any) => r.id === requestId);
+    const request = receivedRequests.find(r => r.id === requestId);
     if (!request) {
       console.error("Không tìm thấy lời mời với ID:", requestId);
       return;
     }
-
     if (await respondToFriendRequest(requestId, accept, request.from)) {
-      loadRequests();
+      await loadReceivedRequests();
+      if (accept) {
+        toast.success(`Đã xác nhận lời mời kết bạn của ${request.from.firstName} ${request.from.lastName}`);
+      } else {
+        toast.success(`Đã từ chối lời mời kết bạn của ${request.from.firstName} ${request.from.lastName}`);
+      }
     }
   };
 
-  // Hàm gọi modal xác nhận khi nhấn Xóa (từ chối lời mời)
   const confirmRejectRequest = (request: any) => {
     ConfirmDelete({
       title: 'Xác nhận từ chối lời mời kết bạn',
@@ -66,8 +48,6 @@ export default function ReceivedRequests() {
       cancelText: 'Huỷ',
       onConfirm: async () => {
         await handleRespond(request.id, false);
-        toast.success(`Từ chối lời mời kết bạn của ${request.from.firstName} ${request.from.lastName} thành công`)
-
       }
     });
   };
@@ -87,6 +67,14 @@ export default function ReceivedRequests() {
     );
   }
 
+  if (receivedRequests.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-[120px] text-gray-500 dark:text-[#b0b3b8]">
+        Không có lời mời kết bạn nào.
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen sm:min-h-[calc(100vh-220px)] p-4 sm:p-0">
       <h2 className="text-lg sm:text-xl font-bold mb-4 text-gray-900 dark:text-dark-text-primary">
@@ -94,7 +82,7 @@ export default function ReceivedRequests() {
       </h2>
       <div className="h-full overflow-y-auto custom-scrollbar">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-4">
-          {receivedRequests.map((request: any) => (
+          {receivedRequests.map((request) => (
             <div
               key={request.id}
               className="flex items-center space-x-3 p-3 sm:p-4 bg-white dark:bg-dark-card rounded-xl border border-gray-100 dark:border-dark-border"

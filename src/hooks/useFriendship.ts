@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { friendshipService } from '@/services/friendshipService';
 import { notificationService } from '@/services/notificationService';
 import { useUserStore } from '@/stores/userStore';
+import { useFriendStore } from '@/stores/friendStore';
 import { showNotificationToast } from '@/components/notifications/NotificationToast';
 
 export const useFriendship = () => {
     const [loading, setLoading] = useState(false);
     const currentUser = useUserStore((state) => state.user);
+    const loadFriends = useFriendStore(state => state.loadFriends);
     const currentUserFullName = `${currentUser?.first_name ?? ''} ${currentUser?.last_name ?? ''}`.trim();
     const currentUserAvatar = currentUser?.avatar_url || '/default-avatar.png';
 
@@ -14,12 +16,17 @@ export const useFriendship = () => {
         try {
             setLoading(true);
             await friendshipService.sendFriendRequest(targetId);
+            console.log('targetId',targetId)
             await notificationService.sendNotification(
-                targetId, 
+                targetId,
                 `Đã nhận lời mời kết bạn từ ${currentUserFullName}`,
                 "/ban-be/loi-moi-ket-ban-da-nhan",
-                currentUserAvatar // Now using the default-backed avatar URL
+                currentUserAvatar
             );
+              useFriendStore.getState().resetHasLoaded();
+
+            await loadFriends(); 
+
             return true;
         } catch (error) {
             console.error('Lỗi khi gửi lời mời kết bạn:', error);
@@ -33,22 +40,25 @@ export const useFriendship = () => {
         try {
             setLoading(true);
             await friendshipService.respondToRequest(requestId, accept);
-            
+
             if (accept) {
                 await notificationService.sendNotification(
                     fromUser.id,
                     `${currentUserFullName} đã chấp nhận lời mời kết bạn của bạn`,
                     "/ban-be/tat-ca",
-                    currentUserAvatar // Now using the default-backed avatar URL
+                    currentUserAvatar
                 );
-                
+
                 showNotificationToast({
-                    avt: fromUser.avatar || '/default-avatar.png', // Added fallback for user avatar
+                    avt: fromUser.avatar || '/default-avatar.png',
                     message: `Phản hồi lời mời kết bạn của ${fromUser.firstName} ${fromUser.lastName} thành công`,
                     createdAt: '1 phút trước',
                     url: '/ban-be/tat-ca',
                     navigate: () => {}
                 });
+              useFriendStore.getState().resetHasLoaded();
+
+                await loadFriends(); // Reload bạn bè sau khi accept lời mời
             }
             return true;
         } catch (error) {
@@ -63,6 +73,8 @@ export const useFriendship = () => {
         try {
             setLoading(true);
             await friendshipService.unfriend(targetId);
+              useFriendStore.getState().resetHasLoaded();
+            await loadFriends(); // Reload bạn bè sau khi huỷ kết bạn
             return true;
         } catch (error) {
             console.error('Lỗi khi hủy kết bạn:', error);
@@ -76,6 +88,9 @@ export const useFriendship = () => {
         try {
             setLoading(true);
             await friendshipService.cancelSentRequest(targetId);
+              useFriendStore.getState().resetHasLoaded();
+            
+            await loadFriends(); // Reload bạn bè sau khi huỷ lời mời
             return true;
         } catch (error) {
             console.error('Lỗi khi hủy lời mời:', error);
@@ -90,7 +105,7 @@ export const useFriendship = () => {
         try {
             setLoading(true);
             const response = await friendshipService.getUserFriends(userId);
-            return response?.data ;
+            return response?.data;
         } catch (error) {
             console.error('Lỗi khi tải danh sách bạn bè:', error);
             return null;
@@ -103,9 +118,13 @@ export const useFriendship = () => {
     const addFriendFromOtherList = async (targetId: number) => {
         try {
             setLoading(true);
-            const status:any = await friendshipService.checkFriendshipStatus(targetId);
+            const status: any = await friendshipService.checkFriendshipStatus(targetId);
             if (status.data === 'NOT_FRIEND') {
-                return await sendFriendRequest(targetId);
+                const success = await sendFriendRequest(targetId);
+                if (success) {
+                    await loadFriends();
+                }
+                return success;
             }
             return false;
         } catch (error) {
@@ -135,6 +154,6 @@ export const useFriendship = () => {
         cancelFriendRequest,
         getOtherUserFriends,
         addFriendFromOtherList,
-        checkMutualFriends
+        checkMutualFriends,
     };
 };

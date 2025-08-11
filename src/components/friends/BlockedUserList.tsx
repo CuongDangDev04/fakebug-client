@@ -1,44 +1,42 @@
-'use client'
-import { useEffect, useState } from 'react';
-import { friendshipService } from '@/services/friendshipService';
+'use client';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { BlockedUser } from '@/types/blockedUser';
 import BlockedUserSkeleton from '../skeleton/BlockedUserSkeleton';
-import { ConfirmDelete } from '../common/ui/ConfirmDelete'; // import modal
+import { ConfirmDelete } from '../common/ui/ConfirmDelete';
 import { toast } from 'sonner';
+import { useFriendStore } from '@/stores/friendStore';
+import { friendshipService } from '@/services/friendshipService';
 
 export default function BlockedUserList() {
-  const [blocked, setBlocked] = useState<BlockedUser[]>([]);
-  const [loading, setLoading] = useState(true);
+  const blockedUsers = useFriendStore(state => state.blockedUsers);
+  const loading = useFriendStore(state => state.loading);
+  const loadBlockedUsers = useFriendStore(state => state.loadBlockedUsers);
+  const setBlockedUsers = useFriendStore(state => state.setBlockedUsers);
+  const hasLoaded = useFriendStore(state => state.hasLoaded);
+
   const [unblockingId, setUnblockingId] = useState<number | null>(null);
 
-  const fetchBlocked = async () => {
-    setLoading(true);
-    try {
-      const res = await friendshipService.getBlockedUsers();
-      setBlocked(res?.data.blocked || []);
-    } catch (e) {
-      setBlocked([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Load dữ liệu khi mount
   useEffect(() => {
-    fetchBlocked();
-  }, []);
+    if (!hasLoaded) {
+      loadBlockedUsers();
+    }
+  }, [loadBlockedUsers, hasLoaded]);
 
   const handleUnblock = async (userId: number) => {
     setUnblockingId(userId);
     try {
       await friendshipService.unblockUser(userId);
-      setBlocked(blocked.filter(u => u.id !== userId));
+
+      // Cập nhật trong store: lọc bỏ user đã bỏ chặn
+      setBlockedUsers(blockedUsers.filter(u => u.id !== userId));
+    } catch (error) {
+      console.error('Lỗi khi bỏ chặn:', error);
     } finally {
       setUnblockingId(null);
     }
   };
 
-  // Hàm gọi modal xác nhận
   const confirmUnblockUser = (userId: number, firstName: string, lastName: string) => {
     ConfirmDelete({
       title: 'Xác nhận bỏ chặn',
@@ -47,7 +45,7 @@ export default function BlockedUserList() {
       cancelText: 'Huỷ',
       onConfirm: async () => {
         await handleUnblock(userId);
-        toast.success(`Đã huỷ chặn ${firstName} ${lastName}`)
+        toast.success(`Đã huỷ chặn ${firstName} ${lastName}`);
       }
     });
   };
@@ -63,7 +61,7 @@ export default function BlockedUserList() {
     </div>
   );
 
-  if (!blocked.length) return (
+  if (!blockedUsers.length) return (
     <div className="flex items-center justify-center min-h-[120px] text-gray-500 dark:text-[#b0b3b8]">
       Không có người dùng nào bị chặn.
     </div>
@@ -75,7 +73,7 @@ export default function BlockedUserList() {
         Danh sách đã chặn
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {blocked.map(user => (
+        {blockedUsers.map(user => (
           <div
             key={user.id}
             className="flex items-center justify-between p-4 bg-white dark:bg-dark-card rounded-lg"
@@ -83,7 +81,7 @@ export default function BlockedUserList() {
             <div className="flex items-center gap-3">
               <img
                 src={user.avatar || `https://i.pravatar.cc/100?img=${user.id}`}
-                alt=""
+                alt={`${user.firstName} ${user.lastName}`}
                 className="w-14 h-14 rounded-full object-cover bg-gray-100 dark:bg-gray-700"
               />
               <div>

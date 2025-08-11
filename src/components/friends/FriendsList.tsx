@@ -1,50 +1,30 @@
 'use client';
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { friendshipService } from '@/services/friendshipService';
-import type { FriendType } from '@/types/friendship';
 import { MessageCircleMore, UserMinus } from 'lucide-react';
 import FriendSkeletonCard from '../skeleton/FriendSkeletonCard';
 import { useFriendship } from '@/hooks/useFriendship';
-import { ConfirmDelete } from '../common/ui/ConfirmDelete'; // import modal confirm
+import { ConfirmDelete } from '../common/ui/ConfirmDelete';
 import { toast } from 'sonner';
+import { useFriendStore } from '@/stores/friendStore';
+import type { Friend } from '@/stores/friendStore';
+import { useEffect } from 'react';
 
 export default function FriendsList() {
   const { unfriend } = useFriendship();
-  const [friends, setFriends] = useState<FriendType[]>([]);
-  const [friendsWithMutual, setFriendsWithMutual] = useState<FriendType[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadFriends();
-  }, []);
-
-  const loadFriends = async () => {
-    try {
-      setLoading(true);
-      const response = await friendshipService.getFriends();
-      setFriends(response?.data.friends);
-
-      const friendsWithMutualData = await Promise.all(
-        response?.data.friends.map(async (friend: FriendType) => {
-          const mutualResponse = await friendshipService.getMutualFriends(friend.id);
-          return {
-            ...friend,
-            mutualFriendsCount: mutualResponse?.data.total
-          };
-        })
-      );
-
-      setFriendsWithMutual(friendsWithMutualData);
-      setLoading(false);
-    } catch (error) {
-      console.error('Lỗi khi tải danh sách bạn bè:', error);
-      setLoading(false);
+  // Lấy dữ liệu và hàm từ zustand store
+  const friends = useFriendStore(state => state.friends);
+  const loading = useFriendStore(state => state.loading);
+  const loadFriends = useFriendStore(state => state.loadFriends);
+const hasLoaded = useFriendStore(state => state.hasLoaded);
+  // Load bạn bè khi component mount
+   useEffect(() => {
+    if (!hasLoaded) {
+      loadFriends();
     }
-  };
-
-  const confirmUnfriend = (friend: FriendType) => {
+  }, [hasLoaded, loadFriends]);
+  const confirmUnfriend = (friend: Friend) => {
     ConfirmDelete({
       title: 'Xác nhận huỷ kết bạn',
       description: `Bạn có chắc chắn muốn huỷ kết bạn với ${friend.firstName} ${friend.lastName}?`,
@@ -54,8 +34,7 @@ export default function FriendsList() {
         const success = await unfriend(friend.id);
         if (success) {
           await loadFriends();
-          toast.success(`Huỷ kết bạn với ${friend.firstName} ${friend.lastName} thành công`)
-
+          toast.success(`Huỷ kết bạn với ${friend.firstName} ${friend.lastName} thành công`);
         }
       }
     });
@@ -65,7 +44,7 @@ export default function FriendsList() {
     <div className="w-full bg-white dark:bg-dark-card">
       <div className="border-b border-gray-200 dark:border-dark-border px-6 py-4">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-dark-text-primary">Bạn bè</h1>
-        <p className="text-gray-500 dark:text-dark-text-secondary">{friendsWithMutual.length} người bạn</p>
+        <p className="text-gray-500 dark:text-dark-text-secondary">{friends.length} người bạn</p>
       </div>
 
       <div className="divide-y divide-gray-200 dark:divide-dark-border">
@@ -74,7 +53,7 @@ export default function FriendsList() {
             <FriendSkeletonCard key={index} />
           ))
         ) : (
-          friendsWithMutual.map((friend: any) => (
+          friends.map((friend) => (
             <div
               key={friend.id}
               className="flex items-center px-4 sm:px-6 py-4 hover:bg-gray-50 dark:hover:bg-dark-hover transition-colors"
@@ -96,7 +75,7 @@ export default function FriendsList() {
                       {friend.firstName} {friend.lastName}
                     </Link>
                     <p className="text-gray-500 dark:text-dark-text-secondary text-xs sm:text-sm mt-0.5">
-                      {friend.mutualFriendsCount} bạn chung
+                      {friend.mutualFriendsCount ?? 0} bạn chung
                     </p>
                   </div>
 

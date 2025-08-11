@@ -1,54 +1,51 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { friendshipService } from '@/services/friendshipService';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { UserPlus } from 'lucide-react';
-import { useFriendship } from '@/hooks/useFriendship';
 import FriendSuggestionSkeleton from '../skeleton/FriendSuggestionSkeleton';
+import { useFriendStore } from '@/stores/friendStore';
+import { useFriendship } from '@/hooks/useFriendship';
+import { toast } from 'sonner';
 
 export default function FriendSuggestions() {
+  const suggestions = useFriendStore(state => state.suggestions);
+  const loading = useFriendStore(state => state.loading);
+  const loadSuggestions = useFriendStore(state => state.loadSuggestions);
+  const setSuggestions = useFriendStore(state => state.setSuggestions);
+  const hasLoaded = useFriendStore(state => state.hasLoaded);
+
   const { sendFriendRequest } = useFriendship();
-  const [suggestions, setSuggestions] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+     if (!hasLoaded) {
     loadSuggestions();
-  }, []);
-
-  const loadSuggestions = async () => {
-    try {
-      setLoading(true);
-      const response = await friendshipService.getFriendSuggestions();
-      setSuggestions(response?.data.suggestions);
-    } catch (error) {
-      console.error('Lỗi khi tải gợi ý kết bạn:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+     }
+  }, [loadSuggestions,hasLoaded]);
 
   const handleSendRequest = async (targetId: number) => {
-    const suggestion: any = suggestions.find((s: any) => s.id === targetId);
+    const suggestion = suggestions.find(s => s.id === targetId);
     if (suggestion && await sendFriendRequest(targetId)) {
-      loadSuggestions();
+      // Sau khi gửi request thành công, reload lại gợi ý
+      await loadSuggestions();
+      toast.success(`Đã gửi lời mời kết bạn tới ${suggestion.firstName} ${suggestion.lastName}`);
     }
   };
 
- if (loading) {
-  return (
-    <div className="min-h-screen sm:min-h-[calc(100vh-220px)] p-4 sm:p-0">
-      <h2 className="text-lg sm:text-xl font-bold mb-4 text-gray-900 dark:text-dark-text-primary">
-        Những người bạn có thể biết
-      </h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-4">
-        {[...Array(6)].map((_, i) => (
-          <FriendSuggestionSkeleton key={i} />
-        ))}
+  if (loading) {
+    return (
+      <div className="min-h-screen sm:min-h-[calc(100vh-220px)] p-4 sm:p-0">
+        <h2 className="text-lg sm:text-xl font-bold mb-4 text-gray-900 dark:text-dark-text-primary">
+          Những người bạn có thể biết
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-4">
+          {[...Array(6)].map((_, i) => (
+            <FriendSuggestionSkeleton key={i} />
+          ))}
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
   return (
     <div className="min-h-screen sm:min-h-[calc(100vh-220px)] p-4 sm:p-0">
@@ -57,7 +54,7 @@ export default function FriendSuggestions() {
       </h2>
       <div className="h-full overflow-y-auto custom-scrollbar">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-4">
-          {suggestions.map((suggestion: any) => (
+          {suggestions.map((suggestion) => (
             <div
               key={suggestion.id}
               className="flex items-center space-x-3 p-3 sm:p-4 bg-white dark:bg-dark-card rounded-xl border border-gray-100 dark:border-dark-border"
@@ -99,4 +96,3 @@ export default function FriendSuggestions() {
     </div>
   );
 }
-

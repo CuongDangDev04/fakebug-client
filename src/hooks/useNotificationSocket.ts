@@ -3,6 +3,7 @@ import type Notification from '@/types/notification';
 import { useEffect } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import { useUserStore } from '@/stores/userStore';
+import { useFriendStore } from '@/stores/friendStore';
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:5001';
 
@@ -28,6 +29,8 @@ export function useNotificationSocket(
             console.log('Received notification from socket:', notification);
             addNotification(notification);
             if (onNewNotification) onNewNotification(notification);
+            useFriendStore.getState().resetHasLoaded();
+
         });
 
         socket.on('disconnect', () => {

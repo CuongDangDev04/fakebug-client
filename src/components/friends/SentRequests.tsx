@@ -1,35 +1,27 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { friendshipService } from '@/services/friendshipService';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { X } from 'lucide-react';
 import { useFriendship } from '@/hooks/useFriendship';
 import SentRequestSkeleton from '../skeleton/SentRequestSkeleton';
-import { ConfirmDelete } from '../common/ui/ConfirmDelete'; // import modal confirm
+import { ConfirmDelete } from '../common/ui/ConfirmDelete';
 import { toast } from 'sonner';
+import { useFriendStore } from '@/stores/friendStore';
 
 export default function SentRequests() {
+  const sentRequests = useFriendStore(state => state.sentRequests);
+  const loading = useFriendStore(state => state.loading);
+  const loadSentRequests = useFriendStore(state => state.loadSentRequests);
+  const hasLoaded = useFriendStore(state => state.hasLoaded);
+
   const { cancelFriendRequest } = useFriendship();
-  const [sentRequests, setSentRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadRequests();
-  }, []);
-
-  const loadRequests = async () => {
-    try {
-      setLoading(true);
-      const sent = await friendshipService.getSentRequests();
-      setSentRequests(sent?.data.requests || []);
-    } catch (error) {
-      console.error('Lỗi khi tải lời mời kết bạn:', error);
-      setSentRequests([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+     if (!hasLoaded) {
+    loadSentRequests();
+     }
+  }, [loadSentRequests,hasLoaded]);
 
   const confirmCancelRequest = (request: any) => {
     ConfirmDelete({
@@ -40,9 +32,8 @@ export default function SentRequests() {
       onConfirm: async () => {
         const success = await cancelFriendRequest(request.to.id);
         if (success) {
-          await loadRequests();
-          toast.success(`Huỷ lời mời kết bạn thành công`)
-
+          await loadSentRequests();
+          toast.success(`Huỷ lời mời kết bạn thành công`);
         }
       }
     });
@@ -59,6 +50,14 @@ export default function SentRequests() {
             <SentRequestSkeleton key={i} />
           ))}
         </div>
+      </div>
+    );
+  }
+
+  if (sentRequests.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-[120px] text-gray-500 dark:text-[#b0b3b8]">
+        Không có lời mời đã gửi.
       </div>
     );
   }
