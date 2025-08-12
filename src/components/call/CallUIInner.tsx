@@ -46,7 +46,6 @@ export const CallUIInner = ({ socket, currentUserId, role, targetUserId, callTyp
     if (!socket) return;
 
     const handleCallEnded = () => {
-      console.log('[CallUIInner] 🔴 Đóng cuộc gọi do nhận sự kiện call-ended');
       endCall();
       cleanup();
     };

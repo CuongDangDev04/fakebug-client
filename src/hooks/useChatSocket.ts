@@ -32,16 +32,13 @@ export function useChatSocket() {
     (window as any).chatSocket = socket;
 
     socket.on('connect', () => {
-      console.log('[ChatSocket] Connected:', socket.id);
     });
 
     socket.on('onlineUsers', (userIds: number[]) => {
-      console.log('[ChatSocket] Online:', userIds);
       updateOnlineUserIds(() => userIds);
     });
 
     socket.on('userStatusChanged', (data: { userId: number; isOnline: boolean; lastSeen?: string }) => {
-      console.log('[ChatSocket] userStatusChanged:', data);
 
       updateOnlineUserIds((prev) =>
         data.isOnline
@@ -57,19 +54,16 @@ export function useChatSocket() {
     });
 
     socket.on('newMessage', (msg: any) => {
-      console.log('[ChatSocket] New msg:', msg);
       addMessage(msg);                // cập nhật chi tiết trong ChatBox
       updateFriendMessage(msg);       // cập nhật danh sách trong Sidebar
     });
 
     socket.on('message-read', (data: { from: number }) => {
-      console.log('[ChatSocket] Message read from user:', data.from);
       markMessagesAsReadFromUser(data.from);
       setUserHasReadMyMessages(data.from, userId);
     });
 
     socket.on('messageRevoked', ({ messageId }: { messageId: number }) => {
-      console.log('[ChatSocket] Message revoked:', messageId);
 
       // Cập nhật lại message trong ChatBox
       addMessage({
@@ -87,12 +81,10 @@ export function useChatSocket() {
 
       // DEBUG: log lại toàn bộ messages sau khi revoke
       setTimeout(() => {
-        console.log('[ChatSocket] Messages after revoke:', useChatStore.getState().messages);
       }, 100);
     });
 
     socket.on('reactionUpdated', (updatedMessage: any) => {
-      console.log('[ChatSocket] Reaction updated:', updatedMessage);
 
       // Cập nhật trong ChatBox
       addMessage(updatedMessage);

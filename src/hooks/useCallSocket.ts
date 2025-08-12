@@ -10,7 +10,6 @@ export const useCallSocket = (userId: number) => {
   useEffect(() => {
     if (!userId) return;
 
-    console.log('[useCallSocket] Initializing socket for userId:', userId);
 
     const socket = io(`${SOCKET_URL}/call`, {
       query: { userId },
@@ -23,11 +22,9 @@ export const useCallSocket = (userId: number) => {
     (window as any).callSocket = socket;
 
     socket.on('connect', () => {
-      console.log('📡 [CallSocket] Đã kết nối:', socket.id);
     });
 
     socket.on('disconnect', () => {
-      console.log('📴 [CallSocket] Mất kết nối');
     });
 
     return () => {

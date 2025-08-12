@@ -43,16 +43,13 @@ export default function AdminUserReportManager() {
         reportId: number,
         status: 'pending' | 'reviewed' | 'dismissed'
     ) => {
-        console.log('[FE] Bắt đầu handleUpdateStatus với:', { reportId, status });
 
         try {
             const updatedReport = await userReportService.updateReportStatus(reportId, status);
-            console.log('[FE] Kết quả updateReportStatus:', updatedReport);
 
             if (status === 'reviewed') {
                 toast.success('Báo cáo đã được duyệt');
 
-                console.log('[FE] Gửi thông báo cho người bị báo cáo:', updatedReport.reportedUser);
                 await notificationService.sendNotification(
                     updatedReport.reportedUser.id,
                     'Tài khoản của bạn đã bị khóa 1 ngày do vi phạm nội quy.',
@@ -60,7 +57,6 @@ export default function AdminUserReportManager() {
                     '/lg.png'
                 );
 
-                console.log('[FE] Gửi thông báo cho người báo cáo:', updatedReport.reporter);
                 await notificationService.sendNotification(
                     updatedReport.reporter.id,
                     `Báo cáo của bạn về người dùng ${updatedReport.reportedUser.first_name} ${updatedReport.reportedUser.last_name} đã được duyệt và tài khoản người dùng ${updatedReport.reportedUser.first_name} ${updatedReport.reportedUser.last_name} bị khoá 1 ngày.`,
@@ -73,7 +69,6 @@ export default function AdminUserReportManager() {
                 toast.info('Báo cáo đã được bỏ qua');
             }
 
-            console.log('[FE] Gọi fetchReports để tải lại danh sách báo cáo');
             fetchReports();
         } catch (err) {
             console.error('[FE] Lỗi khi cập nhật trạng thái:', err);

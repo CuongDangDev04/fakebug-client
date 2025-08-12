@@ -66,10 +66,6 @@ export default function ChatPage(props: ChatPageProps) {
               callId,
             });
             useCallStore.getState().startCalling(callId, type, chattingUserId);
-            console.log(
-              '[FE] 📞 Người gọi phát lệnh. Bắt đầu cuộc gọi với role=caller, callId=',
-              callId
-            );
           }}
           onBack={() => {
             setChattingUserId(null);

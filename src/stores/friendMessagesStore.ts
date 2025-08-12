@@ -15,7 +15,6 @@ export const useFriendMessagesStore = create<FriendMessagesState>((set, get) => 
   setFriends: (f) => set({ friends: f }),
 
   updateMessage: (msg) => {
-    console.log("[updateMessage]", msg.id, msg.content);
 
     const currentUserId = useUserStore.getState().user?.id;
     const senderId = msg.sender?.id ?? msg.senderId ?? msg.friendId;

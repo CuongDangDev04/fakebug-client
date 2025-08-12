@@ -72,7 +72,6 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
                 callId,
               })
               useCallStore.getState().startCalling(callId, type, chattingUserId || targetUserId!)
-              console.log('[FE] 📞 Người gọi phát lệnh. Bắt đầu cuộc gọi với role=caller, callId=', callId)
             }}
             onBack={() => {
               setChattingUserId(null) // Quay lại Sidebar trên mobile

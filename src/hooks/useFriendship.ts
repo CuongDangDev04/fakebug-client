@@ -16,7 +16,6 @@ export const useFriendship = () => {
         try {
             setLoading(true);
             await friendshipService.sendFriendRequest(targetId);
-            console.log('targetId',targetId)
             await notificationService.sendNotification(
                 targetId,
                 `Đã nhận lời mời kết bạn từ ${currentUserFullName}`,

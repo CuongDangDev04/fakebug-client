@@ -102,7 +102,6 @@ export const useWebRTC = (
 
     setIsCamEnabled(isVideoCall);
 
-    console.log(`[WebRTC] Local stream attached - Video enabled: ${isVideoCall}`);
   };
 
 

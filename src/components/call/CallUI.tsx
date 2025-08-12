@@ -11,14 +11,7 @@ interface Props {
 export const CallUI = ({ socket, currentUserId }: Props) => {
   const { isCalling, role, peerUserId, isCallStarted , callType} = useCallStore();
   const targetId = Number(peerUserId);
-  // ⛔ Không render gì nếu chưa vào cuộc gọi hoặc role chưa rõ ràng
-  console.log('🔍 [CallUI] Render:', {
-    isCalling,
-    role,
-    isCallStarted,
-    peerUserId,
-
-  });
+ 
   if (!isCalling || !role || !isCallStarted || !callType)  {
     return null;
   }

@@ -21,12 +21,10 @@ export function useNotificationSocket(
         const socket: Socket = io(`${SOCKET_URL}/notifications`);
 
         socket.on('connect', () => {
-            console.log('Connected to WebSocket:', socket.id);
             socket.emit('subscribeToUserNotifications', userId);
         });
 
         socket.on('newNotification', (notification: Notification) => {
-            console.log('Received notification from socket:', notification);
             addNotification(notification);
             if (onNewNotification) onNewNotification(notification);
             useFriendStore.getState().resetHasLoaded();

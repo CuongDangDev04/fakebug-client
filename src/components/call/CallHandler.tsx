@@ -37,12 +37,10 @@ export const CallHandler = ({ currentUserId }: Props) => {
     if (!socket) return;
 
     const onIncomingCall = (data: any) => {
-      console.log('[FE] 📞 Cuộc gọi đến:', data);
       openIncomingCall(data);
     };
 
     const onCallStarted = (data: any) => {
-      console.log('🚀 [Receiver] Cuộc gọi chính thức bắt đầu:', data);
 
       // ✅ Cả caller và receiver đều nhận được callId chuẩn từ server
       setActiveCallId(data.callId);
@@ -54,7 +52,6 @@ export const CallHandler = ({ currentUserId }: Props) => {
     };
 
     const onReceiverAccepted = (data: any) => {
-      console.log('📢 [Caller] Receiver đã chấp nhận cuộc gọi:', data);
 
       setActiveCallId(data.callId);
 
@@ -64,7 +61,6 @@ export const CallHandler = ({ currentUserId }: Props) => {
     };
 
     const onCallEnded = (data: any) => {
-      console.log('❌ [CallHandler] Cuộc gọi đã kết thúc:', data);
 
       const isCaller = currentUserId === data.callerId;
       const isReceiver = currentUserId === data.receiverId;
@@ -94,7 +90,6 @@ export const CallHandler = ({ currentUserId }: Props) => {
       endCall();
     };
     const onUserNotOnline = (data: any) => {
-      console.log('❌ [Caller] Người nhận không online:', data);
       if (data.callerId === currentUserId) {
         setRejectedMessage('📴 Người nhận hiện không trực tuyến.');
         endCall();

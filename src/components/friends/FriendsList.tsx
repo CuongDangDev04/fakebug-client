@@ -7,8 +7,8 @@ import { useFriendship } from '@/hooks/useFriendship';
 import { ConfirmDelete } from '../common/ui/ConfirmDelete';
 import { toast } from 'sonner';
 import { useFriendStore } from '@/stores/friendStore';
-import type { Friend } from '@/stores/friendStore';
 import { useEffect } from 'react';
+import { Friend } from '@/types/friendStoreType';
 
 export default function FriendsList() {
   const { unfriend } = useFriendship();
