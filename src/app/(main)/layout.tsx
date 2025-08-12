@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState, useEffect } from "react";
@@ -17,23 +18,30 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const pathname = usePathname();
 
   const [mounted, setMounted] = useState(false);
+  const [activeFriendTab, setActiveFriendTab] = useState<string | null>(null);
+
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (pathname === '/ban-be/tat-ca') setActiveFriendTab('allFriends');
+    else if (pathname === '/ban-be/loi-moi-ket-ban-da-nhan') setActiveFriendTab('receivedRequests');
+    else if (pathname === '/ban-be/loi-moi-ket-ban-da-gui') setActiveFriendTab('sentRequests');
+    else if (pathname === '/ban-be/goi-y') setActiveFriendTab('suggestions');
+    else if (pathname === '/ban-be/danh-sach-chan') setActiveFriendTab('blockedList');
+    else setActiveFriendTab(null);
+  }, [pathname]);
+
   if (!mounted) return null;
 
   const isHome = pathname === '/';
   const isNotifications = pathname === '/thong-bao';
   const isMyProfile = pathname === '/trang-ca-nhan';
-  const isAllFriends = pathname === '/ban-be/tat-ca';
-  const isReceivedRequests = pathname === '/ban-be/loi-moi-ket-ban-da-nhan';
-  const isSentRequests = pathname === '/ban-be/loi-moi-ket-ban-da-gui';
-  const isSuggestions = pathname === '/ban-be/goi-y';
-  const isBlockedList = pathname === '/ban-be/danh-sach-chan';
 
   return (
     <MainWrapper>
-      <div className="relative ">
+      <div className="relative h-screen">
 
         {/* Home Feed */}
         <div className={`${isHome ? 'block' : 'hidden'} overflow-auto h-full`}>
@@ -51,21 +59,34 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         </div>
 
         {/* Friends */}
-        <div className={`${(isAllFriends || isReceivedRequests || isSentRequests || isSuggestions || isBlockedList) ? 'block' : 'hidden'} overflow-auto h-full`}>
+        <div className={`${activeFriendTab ? 'block' : 'hidden'} overflow-auto h-full`}>
           <FriendWrapper>
-            <div className={`${isAllFriends ? 'block' : 'hidden'}`}><FriendsList /></div>
-            <div className={`${isReceivedRequests ? 'block' : 'hidden'}`}><ReceivedRequests /></div>
-            <div className={`${isSentRequests ? 'block' : 'hidden'}`}><SentRequests /></div>
-            <div className={`${isSuggestions ? 'block' : 'hidden'}`}><FriendSuggestions /></div>
-            <div className={`${isBlockedList ? 'block' : 'hidden'}`}><BlockedUserList /></div>
+            <div className={activeFriendTab === 'allFriends' ? 'block' : 'hidden'}>
+              <FriendsList />
+            </div>
+            <div className={activeFriendTab === 'receivedRequests' ? 'block' : 'hidden'}>
+              <ReceivedRequests />
+            </div>
+            <div className={activeFriendTab === 'sentRequests' ? 'block' : 'hidden'}>
+              <SentRequests />
+            </div>
+            <div className={activeFriendTab === 'suggestions' ? 'block' : 'hidden'}>
+              <FriendSuggestions />
+            </div>
+            <div className={activeFriendTab === 'blockedList' ? 'block' : 'hidden'}>
+              <BlockedUserList />
+            </div>
           </FriendWrapper>
         </div>
 
         {/* Other pages */}
-        <div className={`${(!isHome && !isNotifications && !isMyProfile && !isAllFriends && !isReceivedRequests && !isSentRequests && !isSuggestions && !isBlockedList) ? 'block' : 'hidden'} overflow-auto h-full`}>
+        <div
+          className={`${(!isHome && !isNotifications && !isMyProfile && !activeFriendTab) ? 'block' : 'hidden'} overflow-auto h-full`}
+        >
           {children}
         </div>
       </div>
     </MainWrapper>
   );
 }
+
