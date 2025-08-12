@@ -42,8 +42,11 @@ export default function ReactionButton({
 
     const [selectedReaction, setSelectedReaction] = useState<ReactionType | null>(null)
     const [showReactions, setShowReactions] = useState(false)
+
     const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+    const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
     const longPressTriggered = useRef(false)
+    const isSelectingReaction = useRef(false)
 
     useEffect(() => {
         if (currentUser) {
@@ -52,44 +55,40 @@ export default function ReactionButton({
         }
     }, [currentUser, reactedUsers])
 
+    const clearAllTimeouts = () => {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current)
+        if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current)
+    }
+
     const handleReact = async (reaction: ReactionType) => {
-        if (!currentUser) return;
+        if (!currentUser) return
+        setSelectedReaction(reaction)
+        setShowReactions(false)
+        clearAllTimeouts()
+        onReacted?.(reaction)
 
-        //  Update ngay
-        setSelectedReaction(reaction);
-        setShowReactions(false);
-        onReacted?.(reaction);
+        postReactionsService.react(postId, currentUser.id, reaction).catch(err => {
+            console.error('Failed to react:', err)
+        })
 
-        //  Gửi request sau
-        postReactionsService.react(postId, currentUser.id, reaction).catch((err) => {
-            console.error('Failed to react:', err);
-            // Optional: rollback UI nếu cần
-        });
-
-        //  Gửi noti 
         if (currentUser.id !== postOwnerId) {
             notificationService.sendNotification(
                 postOwnerId,
                 `${currentUser.first_name} ${currentUser.last_name} đã ${reactionName(reaction)} bài viết của bạn.`,
                 `/bai-viet/${postId}`,
                 currentUser.avatar_url || ''
-            ).catch((err) => console.error('Failed to send notification:', err));
+            ).catch(err => console.error('Failed to send notification:', err))
         }
-    };
-
+    }
 
     const handleRemoveReaction = async () => {
-        if (!currentUser) return;
-
-        // Cập nhật trước
-        setSelectedReaction(null);
-        onReacted?.(null);
-
-        //  Gửi API sau
-        postReactionsService.removeReaction(postId, currentUser.id).catch((err) => {
-            console.error('Failed to remove reaction:', err);
-        });
-    };
+        if (!currentUser) return
+        setSelectedReaction(null)
+        onReacted?.(null)
+        postReactionsService.removeReaction(postId, currentUser.id).catch(err => {
+            console.error('Failed to remove reaction:', err)
+        })
+    }
 
     const handleButtonClick = async () => {
         if (selectedReaction) {
@@ -110,9 +109,9 @@ export default function ReactionButton({
         }, 200)
     }
 
-    //  Long press trên mobile
     const handleTouchStart = () => {
         longPressTriggered.current = false
+        isSelectingReaction.current = false
         timeoutRef.current = setTimeout(() => {
             setShowReactions(true)
             longPressTriggered.current = true
@@ -120,37 +119,32 @@ export default function ReactionButton({
     }
 
     const handleTouchEnd = async () => {
-        if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current)
+        if (timeoutRef.current) clearTimeout(timeoutRef.current)
+
+        // Nếu vừa chọn reaction thì không giữ popup
+        if (isSelectingReaction.current) {
+            isSelectingReaction.current = false
+            return
         }
 
         if (longPressTriggered.current) {
-            // Giữ hiện reactions thêm 3 giây rồi mới ẩn
-            timeoutRef.current = setTimeout(() => {
+            hideTimeoutRef.current = setTimeout(() => {
                 setShowReactions(false)
-            }, 3000) // 3000ms = 3 giây
+            }, 3000)
         } else {
-            // Nếu không phải long press, coi như tap
             await handleButtonClick()
         }
     }
 
     const reactionName = (reaction: ReactionType) => {
         switch (reaction) {
-            case 'like':
-                return 'thích'
-            case 'love':
-                return 'yêu thích'
-            case 'haha':
-                return 'cười haha'
-            case 'wow':
-                return 'thể hiện sự ngạc nhiên'
-            case 'sad':
-                return 'cảm thấy buồn'
-            case 'angry':
-                return 'phẫn nộ'
-            default:
-                return 'phản ứng'
+            case 'like': return 'thích'
+            case 'love': return 'yêu thích'
+            case 'haha': return 'cười haha'
+            case 'wow': return 'thể hiện sự ngạc nhiên'
+            case 'sad': return 'cảm thấy buồn'
+            case 'angry': return 'phẫn nộ'
+            default: return 'phản ứng'
         }
     }
 
@@ -167,17 +161,16 @@ export default function ReactionButton({
                 userSelect: 'none',
                 WebkitTouchCallout: 'none',
             }}
-
         >
             <button
                 onClick={!isMobile ? handleButtonClick : undefined}
                 onContextMenu={e => isMobile && e.preventDefault()}
                 className={`
-          flex items-center justify-center gap-1 px-4 h-9 rounded-lg  select-none
-          dark:text-gray-300 
-          hover:bg-gray-100 dark:hover:bg-dark-hover 
-          ${selectedReaction ? reactionColors[selectedReaction] : ''}
-        `}
+                    flex items-center justify-center gap-1 px-4 h-9 rounded-lg select-none
+                    dark:text-gray-300 
+                    hover:bg-gray-100 dark:hover:bg-dark-hover 
+                    ${selectedReaction ? reactionColors[selectedReaction] : ''}
+                `}
             >
                 {selectedReaction ? (
                     <img
@@ -201,10 +194,15 @@ export default function ReactionButton({
                         <button
                             key={r.type}
                             onClick={(e) => {
-                                e.stopPropagation();  // Chặn sự kiện không truyền lên parent
+                                e.stopPropagation()
+                                isSelectingReaction.current = true
                                 handleReact(r.type as ReactionType)
                             }}
-                            onTouchEnd={(e) => e.stopPropagation()} // Tương tự chặn touchend để tránh gọi handleTouchEnd ở parent
+                            onTouchEnd={(e) => {
+                                e.stopPropagation()
+                                isSelectingReaction.current = true
+                                handleReact(r.type as ReactionType)
+                            }}
                             className="hover:scale-125 transition-transform"
                         >
                             <img src={r.url} alt={r.name} className="w-16 h-10" />
