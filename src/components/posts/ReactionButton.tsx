@@ -124,8 +124,14 @@ export default function ReactionButton({
             clearTimeout(timeoutRef.current)
         }
 
-        if (!longPressTriggered.current) {
-            await handleButtonClick() // nếu không giữ đủ lâu → xem như tap
+        if (longPressTriggered.current) {
+            // Giữ hiện reactions thêm 3 giây rồi mới ẩn
+            timeoutRef.current = setTimeout(() => {
+                setShowReactions(false)
+            }, 3000) // 3000ms = 3 giây
+        } else {
+            // Nếu không phải long press, coi như tap
+            await handleButtonClick()
         }
     }
 
@@ -194,7 +200,11 @@ export default function ReactionButton({
                     {reactions.map(r => (
                         <button
                             key={r.type}
-                            onClick={() => handleReact(r.type as ReactionType)}
+                            onClick={(e) => {
+                                e.stopPropagation();  // Chặn sự kiện không truyền lên parent
+                                handleReact(r.type as ReactionType)
+                            }}
+                            onTouchEnd={(e) => e.stopPropagation()} // Tương tự chặn touchend để tránh gọi handleTouchEnd ở parent
                             className="hover:scale-125 transition-transform"
                         >
                             <img src={r.url} alt={r.name} className="w-16 h-10" />
