@@ -575,8 +575,8 @@ export default function ChatBox({
         </div>
       ) : (
         <div
-          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-          className="fixed bottom-0 w-full  left-0 right-0 p-2 border-t border-gray-200 dark:border-[#4a4b4c] bg-white dark:bg-[#3a3b3c] flex items-center gap-2 z-50"
+          // style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+          className="fixed py-2 md:static bottom-0 w-full  left-0 right-0 p-2  border-t  border-gray-200 dark:border-[#4a4b4c] bg-white dark:bg-[#3a3b3c] flex items-center  z-50"
         >
           <MessageInput
             input={input}

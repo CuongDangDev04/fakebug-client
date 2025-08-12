@@ -21,10 +21,10 @@ const MessageInput = ({ input, setInput, handleSend, handleInputKeyDown, disable
 
     return (
         <div style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-            className="p-2 border-t w-full border-gray-200 dark:border-[#4a4b4c] bg-white dark:bg-[#3a3b3c] flex items-center gap-2 relative">
+            className="flex-1   w-full border-gray-200 dark:border-[#4a4b4c] bg-white dark:bg-[#3a3b3c] flex items-center gap-2 relative">
             <TextareaAutosize
                 rows={1}
-                className="flex-1 border-0 rounded-xl px-4 py-2 text-sm text-[#050505] dark:text-[#e4e6eb] bg-[#f0f2f5] dark:bg-[#4a4b4c] placeholder-[#65676b] dark:placeholder-[#b0b3b8] focus:outline-none resize-none max-h-[6.5rem] overflow-y-auto"
+                className="flex-1 self-center border-0 rounded-xl px-4 py-2 text-sm text-[#050505] dark:text-[#e4e6eb] bg-[#f0f2f5] dark:bg-[#4a4b4c] placeholder-[#65676b] dark:placeholder-[#b0b3b8] focus:outline-none resize-none max-h-[6.5rem] overflow-y-auto"
                 style={{ lineHeight: '1.5rem' }}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
