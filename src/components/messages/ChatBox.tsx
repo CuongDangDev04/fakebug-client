@@ -248,8 +248,9 @@ export default function ChatBox({
       <div
         ref={messagesContainerRef}
         className="flex-1 overflow-y-auto px-1 py-2 md:px-4 md:py-3 space-y-1 md:space-y-2 bg-gray-100 dark:bg-dark-bg"
-        style={{ minHeight: 0, maxHeight: 'calc(100vh - 140px)' }}
+        style={{ minHeight: 0, maxHeight: 'calc(100vh - 140px)', paddingBottom: 'calc(80px + env(safe-area-inset-bottom))' }}
       >
+
         {loading && <div className="text-[#65676b] dark:text-[#b0b3b8] text-center">Đang tải...</div>}
         {loadingMore && (
           <div className="flex justify-center py-2">
@@ -573,7 +574,10 @@ export default function ChatBox({
           )}
         </div>
       ) : (
-        <div className=" bg-[#f0f2f5] dark:bg-[#242526]">
+        <div
+          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+          className="fixed bottom-0 w-full  left-0 right-0 p-2 border-t border-gray-200 dark:border-[#4a4b4c] bg-white dark:bg-[#3a3b3c] flex items-center gap-2 z-50"
+        >
           <MessageInput
             input={input}
             setInput={setInput}
