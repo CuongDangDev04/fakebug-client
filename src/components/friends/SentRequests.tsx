@@ -13,7 +13,7 @@ export default function SentRequests() {
   const sentRequests = useFriendStore(state => state.sentRequests);
   const loading = useFriendStore(state => state.loading);
   const loadSentRequests = useFriendStore(state => state.loadSentRequests);
-  const hasLoaded = useFriendStore(state => state.hasLoaded);
+  const hasLoaded = useFriendStore(state => state.hasLoadedSentRequests);
 
   const { cancelFriendRequest } = useFriendship();
 

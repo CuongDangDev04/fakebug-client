@@ -17,9 +17,9 @@ export default function FriendsList() {
   const friends = useFriendStore(state => state.friends);
   const loading = useFriendStore(state => state.loading);
   const loadFriends = useFriendStore(state => state.loadFriends);
-const hasLoaded = useFriendStore(state => state.hasLoaded);
+  const hasLoaded = useFriendStore(state => state.hasLoadedFriends);
   // Load bạn bè khi component mount
-   useEffect(() => {
+  useEffect(() => {
     if (!hasLoaded) {
       loadFriends();
     }

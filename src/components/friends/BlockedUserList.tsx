@@ -12,7 +12,7 @@ export default function BlockedUserList() {
   const loading = useFriendStore(state => state.loading);
   const loadBlockedUsers = useFriendStore(state => state.loadBlockedUsers);
   const setBlockedUsers = useFriendStore(state => state.setBlockedUsers);
-  const hasLoaded = useFriendStore(state => state.hasLoaded);
+  const hasLoaded = useFriendStore(state => state.hasLoadedBlockedUsers);
 
   const [unblockingId, setUnblockingId] = useState<number | null>(null);
 
@@ -27,7 +27,9 @@ export default function BlockedUserList() {
     setUnblockingId(userId);
     try {
       await friendshipService.unblockUser(userId);
-
+              useFriendStore.getState().resetHasLoadedBlockedUsers();
+              useFriendStore.getState().resetHasLoadedFriends();
+              useFriendStore.getState().resetHasLoadedSuggestions()
       // Cập nhật trong store: lọc bỏ user đã bỏ chặn
       setBlockedUsers(blockedUsers.filter(u => u.id !== userId));
     } catch (error) {

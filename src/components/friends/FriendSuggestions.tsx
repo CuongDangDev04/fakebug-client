@@ -13,7 +13,7 @@ export default function FriendSuggestions() {
   const loading = useFriendStore(state => state.loading);
   const loadSuggestions = useFriendStore(state => state.loadSuggestions);
   const setSuggestions = useFriendStore(state => state.setSuggestions);
-  const hasLoaded = useFriendStore(state => state.hasLoaded);
+  const hasLoaded = useFriendStore(state => state.hasLoadedSuggestions);
 
   const { sendFriendRequest } = useFriendship();
 

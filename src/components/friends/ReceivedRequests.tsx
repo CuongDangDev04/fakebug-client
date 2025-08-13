@@ -14,7 +14,7 @@ export default function ReceivedRequests() {
   const loading = useFriendStore(state => state.loading);
   const loadReceivedRequests = useFriendStore(state => state.loadReceivedRequests);
   const setReceivedRequests = useFriendStore(state => state.setReceivedRequests);
-  const hasLoaded = useFriendStore(state => state.hasLoaded);
+  const hasLoaded = useFriendStore(state => state.hasLoadedReceivedRequests);
 
   const { respondToFriendRequest } = useFriendship();
 
@@ -33,9 +33,9 @@ export default function ReceivedRequests() {
     if (await respondToFriendRequest(requestId, accept, request.from)) {
       await loadReceivedRequests();
       if (accept) {
-        toast.success(`Đã xác nhận lời mời kết bạn của ${request.from.firstName} ${request.from.lastName}`);
+        toast.success(`Đã xác nhận lời mời kết bạn của ${request.from?.firstName} ${request.from?.lastName}`);
       } else {
-        toast.success(`Đã từ chối lời mời kết bạn của ${request.from.firstName} ${request.from.lastName}`);
+        toast.success(`Đã từ chối lời mời kết bạn của ${request.from?.firstName} ${request.from?.lastName}`);
       }
     }
   };
@@ -87,10 +87,10 @@ export default function ReceivedRequests() {
               key={request.id}
               className="flex items-center space-x-3 p-3 sm:p-4 bg-white dark:bg-dark-card rounded-xl border border-gray-100 dark:border-dark-border"
             >
-              <Link href={`/trang-ca-nhan/${request.from.id}`} className="shrink-0">
+              <Link href={`/trang-ca-nhan/${request.from?.id}`} className="shrink-0">
                 <Image
-                  src={request.from.avatar || '/default-avatar.png'}
-                  alt={`${request.from.firstName} ${request.from.lastName}`}
+                  src={request.from?.avatar || '/default-avatar.png'}
+                  alt={`${request.from?.firstName} ${request.from?.lastName}`}
                   width={90}
                   height={90}
                   className="w-16 h-16 sm:w-[90px] sm:h-[90px] rounded-full sm:rounded-full object-cover"
@@ -99,10 +99,10 @@ export default function ReceivedRequests() {
 
               <div className="flex-1 min-w-0">
                 <Link
-                  href={`/trang-ca-nhan/${request.from.id}`}
+                  href={`/trang-ca-nhan/${request.from?.id}`}
                   className="font-semibold text-sm sm:text-base hover:underline text-gray-900 dark:text-dark-text-primary truncate block"
                 >
-                  {request.from.firstName} {request.from.lastName}
+                  {request.from?.firstName} {request.from?.lastName}
                 </Link>
 
                 <p className="text-xs sm:text-sm text-gray-500 dark:text-dark-text-secondary mb-2">

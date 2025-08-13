@@ -18,6 +18,7 @@ import type { FriendshipStatus } from '@/types/friendship';
 import { toast } from 'sonner';
 import { notificationService } from '@/services/notificationService';
 import { ConfirmDelete } from '../common/ui/ConfirmDelete';
+import { useFriendStore } from '@/stores/friendStore';
 
 type TabType = 'posts' | 'friends' | 'photos';
 
@@ -79,7 +80,13 @@ export default function UserProfile() {
     const fetchFriendshipStatus = async () => {
       try {
         const response = await friendshipService.checkFriendshipStatus(Number(userId));
-        if (response) setFriendshipStatus(response.data);
+        if (response) {
+          setFriendshipStatus(response.data);
+          // Nếu server trả về blocked, set isBlocked = true
+          if (response.data.status === 'blocked') {
+            setIsBlocked(true);
+          }
+        }
       } catch (error) {
         console.error('Error fetching friendship status:', error);
       }
@@ -94,13 +101,15 @@ export default function UserProfile() {
       switch (friendshipStatus?.status) {
         case 'not_friend':
           await friendshipService.sendFriendRequest(Number(userId));
-            await notificationService.sendNotification(
-                Number(userId),
-                `Đã nhận lời mời kết bạn từ ${currentUser?.first_name} ${currentUser?.last_name}`,
-                "/ban-be/loi-moi-ket-ban-da-nhan",
-                currentUser?.avatar_url || '/default_avatar'
-            );
+          await notificationService.sendNotification(
+            Number(userId),
+            `Đã nhận lời mời kết bạn từ ${currentUser?.first_name} ${currentUser?.last_name}`,
+            "/ban-be/loi-moi-ket-ban-da-nhan",
+            currentUser?.avatar_url || '/default_avatar'
+          );
           setFriendshipStatus({ status: 'pending', message: 'Đã gửi lời mời kết bạn' });
+          useFriendStore.getState().resetHasLoadedSentRequests();
+
           break;
         case 'friend':
           await friendshipService.unfriend(Number(userId));
@@ -140,7 +149,13 @@ export default function UserProfile() {
     toast.info("Đang bỏ chặn người dùng...");
     try {
       await friendshipService.unblockUser(Number(userId));
+      useFriendStore.getState().resetHasLoadedFriends();
+
+      useFriendStore.getState().resetHasLoadedBlockedUsers();
+
       setIsBlocked(false);
+      setFriendshipStatus({ status: 'not_friend', message: 'Chưa là bạn bè' });
+
       toast.success("Đã bỏ chặn người dùng!");
     } catch (error) {
       toast.error("Có lỗi xảy ra khi bỏ chặn!");
@@ -159,6 +174,10 @@ export default function UserProfile() {
         try {
           await friendshipService.unfriend(Number(userId));
           setFriendshipStatus({ status: 'not_friend', message: 'Chưa là bạn bè' });
+          useFriendStore.getState().resetHasLoadedFriends();
+          useFriendStore.getState().resetHasLoadedSuggestions();
+
+
           toast.success('Đã huỷ kết bạn thành công');
         } catch (err) {
           toast.error('Lỗi khi huỷ kết bạn');

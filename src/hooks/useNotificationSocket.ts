@@ -27,7 +27,9 @@ export function useNotificationSocket(
         socket.on('newNotification', (notification: Notification) => {
             addNotification(notification);
             if (onNewNotification) onNewNotification(notification);
-            useFriendStore.getState().resetHasLoaded();
+            useFriendStore.getState().resetHasLoadedReceivedRequests();
+            useFriendStore.getState().resetHasLoadedSuggestions()
+            useFriendStore.getState().resetHasLoadedSentRequests()
 
         });
 
