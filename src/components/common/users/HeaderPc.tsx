@@ -150,32 +150,38 @@ export default function HeaderPC() {
         {/* Avatar dropdown */}
         <div className="relative">
           <button
-            className="p-1.5 hover:bg-gray-100 dark:hover:bg-dark-hover rounded-lg"
+            className="p-1.5 hover:bg-gray-100 dark:hover:bg-dark-hover w-full rounded-full"
             onClick={() => setShowDropdown(!showDropdown)}
           >
-            <Image
-              src={user?.avatar_url || '/default-avatar.png'}
-              width={32}
-              height={32}
-              className="rounded-full object-cover"
-              alt="Avatar"
-            />
+            <div className="w-8 h-8 rounded-full overflow-hidden">
+              <Image
+                src={user?.avatar_url || '/default-avatar.png'}
+                width={32}
+                height={32}
+                className="object-cover"
+                alt="Avatar"
+              />
+            </div>
           </button>
+
 
           {showDropdown && (
             <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-dark-card rounded-lg shadow-lg border border-gray-200 dark:border-dark-border">
               <div className="p-4 border-b border-gray-200 dark:border-dark-border flex items-center gap-3">
-                <Image
-                  src={user?.avatar_url || '/default-avatar.png'}
-                  width={48}
-                  height={48}
-                  className="rounded-full object-cover"
-                  alt="Avatar"
-                />
+                <div className="w-12 h-12 rounded-full overflow-hidden">
+                  <Image
+                    src={user?.avatar_url || '/default-avatar.png'}
+                    width={48}
+                    height={48}
+                    className="object-cover"
+                    alt="Avatar"
+                  />
+                </div>
                 <p className="font-semibold text-gray-900 dark:text-dark-text-primary">
                   {user?.first_name} {user?.last_name}
                 </p>
               </div>
+
               <div className="p-2 space-y-1">
                 {/* Hiển thị link quản trị nếu là admin */}
                 {user?.role === 'admin' && (

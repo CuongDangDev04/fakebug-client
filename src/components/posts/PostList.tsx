@@ -8,7 +8,7 @@ export default function PostList() {
   const [feedType, setFeedType] = useState<FeedType>('feed');
 
   return (
-    <div className="w-full md:w-4/6 m-auto space-y-4">
+    <div className="w-full md:w-1/2 m-auto space-y-4">
       <div className="flex justify-center flex-wrap gap-2 mb-4">
         {(['feed', 'public', 'friends', 'private'] as FeedType[]).map((type) => (
           <button
