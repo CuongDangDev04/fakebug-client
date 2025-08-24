@@ -78,6 +78,9 @@ export default function ChatBox({
     prevMessagesRef.current = messages;
   }, [messages, currentUserId, targetUserId, scrollToBottom]);
 
+  useEffect(()=> {
+    document.title= 'Tin nhắn'
+  },[])
   useEffect(() => {
     if (!targetUserId) return;
     messageService.checkBlock(targetUserId).then((res) => {
